@@ -65,7 +65,7 @@ The World Wide Web is probably the most popular and used service of the Internet
 Let us define the scenario in which the Web lives. It is based on a client-server architecture, where Web servers provide objects (such as documents, images or files in general) to clients that request and display them, called \textit{user agents} (e.g. Web browsers).
 
 In the Web, documents and objects are identified by a Uniform Resource Locator (URL), whose most important component is the domain name: it is a human-readable label that identifies a device within the Internet.
-A domain name is composed by sequences of letters and symbols, separated by each other with dots. This separation is needed by the hierarchical structure of domain names, but we won't delve into the details of the Domain Name System yet. %TODO - expand on DNS and its flaws
+A domain name is composed by sequences of letters and symbols, separated by each other with dots. This separation is needed by the hierarchical structure of domain names, but we won't delve into the details of the Domain Name System here. More information can be found in Appendix \ref{appx:dns}. %TODO - expand on DNS flaws?
 
 To access a website, the client has to know the domain name associated to that website. This is usually provided by the user or by services such as search engines. The domain name is resolved to an IP address by using the Domain Name System.
 Once obtained, the client opens a TCP connection towards that address on port 80, and starts exchanging messages using the HyperText Transfer Protocol (HTTP). %TODO - mention HTTPS
@@ -83,7 +83,7 @@ The main attacks that can be used to prevent communication towards a website are
 	\item DNS hijacking: by altering DNS resolutions, the domain of the targeted website can either be deleted or edited to make it refer to another IP address, thus preventing access to the original content. This attack can be carried out by both the owners of the DNS resolver (by directly editing their records), or by third parties through an attack called DNS cache poisoning: an attacker pretending to be a valid name server intercepts DNS requests from other name servers and provides fake responses to alter the address of the targeted domain, also setting a high time-to-live so that the redirection is active for as long as possible. Another vector for DNS hijacking, though unrelated to DNS itself, is to remotely edit the configuration of typical home routers through known vulnerabilities, changing the DNS resolver to a malicious one.
 \end{itemize}
 
-We also have a problem of trust. When you access a website, there is no guarantee that the data you received is from the content creator, because HTTP is vulnerable to man-in-the-middle attacks. There is no mechanism to verify the authenticity of the transmitted data and the protocol does not use encryption, so anyone can forge a valid HTTP communication (even based on an ongoing one) and send it through the wires.
+We also have a problem of trust. When you access a website, there is no guarantee that the data you received is from the content creator, because HTTP is vulnerable to man-in-the-middle attacks. There is no mechanism to verify the authenticity of the transmitted data and the protocol does not use encryption, so anyone can forge a valid HTTP communication (even based on an ongoing one) and send it through the wires. We expand on this in Section \ref{sec:distributed}.
 
 HTTPS resolves this issue by asymmetrically encrypting the communication channel, and authenticating the data that is sent, but the current trust system (X.509) is based on certificate authorities and is considered weak, which might allow for identity theft. %TODO - expand on this
 
@@ -91,18 +91,35 @@ Another important issue is privacy and handling of personal information: with th
 This data can be either automatically collected from user interactions, or can be provided directly by the user: consider, as an example, a social network, where users provide personal information such as their generalities, and the website collects data such as post interactions, number and timestamps of logins, and so on.
 This effectively moves ownership of the data from the user to the company. Data that intrinsically belongs to the user (especially personal information such as name, address and phone number) are stored privately into the company server, and the user has limited control over it, since the only possible actions on the data are the ones defined by the company or required by law.
 
-\section{A Distributed Environment}
-We have to rethink the Web if we want to move it to a decentralized environment. The current Web is a centralized system: each website is owned by a party that we'll define as \textit{content creator}. The content creator owns the website and is responsible for distributing its content, either by using a self-owned and maintained web server or by publishing it to a dedicated service, known as \textit{web hosting} service provider (there are too many currently online to present a somewhat accurate list of examples here). When using \textit{web server}, we will always refer to both these options, since in both cases there is always a web server that serves the website, whether it's owned by the content provider or by a company.
+\section{A Distributed Environment} \label{sec:distributed}
+We have to rethink the Web if we want to move it to a decentralized environment. The current Web is a centralized system: each website is owned by a party that we'll define as \textit{content creator}. The content creator owns the website and is responsible for distributing its content, either by using a self-owned and maintained web server or by publishing it to a dedicated service, known as \textit{web hosting} service provider (there are too many services currently online to present a somewhat accurate list of examples here). When using \textit{web server}, we will always refer to both these options, since in both cases there is always a web server that serves the website, whether it's owned by the content provider or by a company.
 Although it's not required, the content creator usually also obtains a domain name to associate with the website.
 
 This system is centralized because the website is accessible only through the web server. If obtained, the domain name will always direct towards that server (even if it changes its IP address, since that's one of the main purposes of DNS).
 
-Let us introduce a very important concept in distributed systems: failure, and its related models.
+%TODO - I don't like the following paragraphs very much.
+Let us introduce a very important concept in distributed systems: \textbf{failure}, and its related models.
 We introduce it now to highlight the difference between a centralized environment and a decentralized (or distributed) one.
-The failure model in which we could place the Web is a stopping failure model: an entity can fail only by stopping, or \textit{crashing}. This means that we \textit{trust} each entity to behave as expected by the protocol, or to not function at all.\footnote{I realize this is an oversimplification of the model, but we don't need to give more detail than this.} %TODO - expand on this?
+The failure model in which we could place the Web is a \textbf{stopping failure model}: an entity can fail only by stopping, or \textit{crashing}. This means that we \textit{trust} each entity to behave as expected by the protocol, or to not function at all.\footnote{This is an oversimplification of the model, but we don't need to give more detail than this.} %TODO - expand on this? or point to a reference?
 
+This model allows Web clients (browsers) %TODO - I haven't defined them
+and content creators to make certain assumptions on the behavior of web servers and other components:
+\begin{itemize}
+	\item Web clients assume that the content they request is returned without any modification, with its content exactly as intended by its creator;
+	\item It is assumed that the channel through which the information is sent does not modify that data;
+	\item Content creators assume that the website that they create is stored in the web server (and distributed) without any modification.
+	%TODO - more?
+\end{itemize}
 
-We consider an entity \textit{trusted} when we can rely on any 
+One could argue that this model does not accurately represent the reality. For example, a malicious third party can interfere in the communication channel %TODO - should we explain how? the footnote is more technical than the tone used here
+and change the data that is transmitted. This is transparent to both the clients and the web server, since there is no mechanism in place to ensure that the data is \textit{integral}\footnote{We mean a stronger integrity than the one provided by TCP. TCP ensures data integrity against transmission errors, which are in the order of few bits per kilobyte, but in this attack the entire TCP packet can be rewritten, allowing TCP packets to appear unaltered.} -- and rightfully so, given that the communication channel is assumed to not alter data arbitrarily. This is known as a \textit{man-in-the-middle} attack.
+
+To allow this scenario, we need to weaken the model, by removing assumptions on what the communication channel is supposed to do. We now place the communication channel in a \textbf{Byzantine failure model}: it can fail not only by stopping, but also by exhibiting arbitrary behavior.
+
+HTTPS, the more secure Web protocol, assumes this weaker scenario. It introduces encryption and authentication of transmitted data, which allows it to be transferred over \textit{non trusted} communication channels. If the data is altered by a malicious third party during transmission, the client or the web server can detect it and react accordingly.
+
+For example, if a content creator publishes a website on a web hosting service, that platform is able to delete or alter any file of that website, effectively sending to clients different information than the one intended by the author, and the clients would not notice this difference.
+
 %TODO - hardly any project defines itself as a distributed system in the academic sense
 
 \section{Decentralization trade-offs}
@@ -154,6 +171,23 @@ We consider an entity \textit{trusted} when we can rely on any
 %\citep{bpelspec}.
 %\nocite{*}
 
+\appendix 
+
+\chapter{The Domain Name System - A brief overview}\label{appx:dns}
+The Domain Name System is a decentralized naming system for devices connected to a network (including the Internet), currently defined with RFC 1034\cite{rfc:1034} and RFC 1035\cite{rfc:1035} and updated with successive RFCs throughout the years.
+
+The DNS defines three components:
+\begin{itemize}
+	\item The \emph{domain name space} is a tree data structure, where nodes are identified by \emph{labels}: labels compose the domain names in a hierarchical way, by concatenation of labels separated by dots. For example, for the domain ``\texttt{www.example.com}'', ``\texttt{example.com}'' is a child of ``\texttt{com}'' and ``\texttt{www.example.com}'' is a child of ``\texttt{example.com}''.
+	\item \emph{Name servers} are programs which store information about a subset of the domain space and references to other name servers which have information about the rest of the tree. Name servers have \emph{authority} over the parts of the tree of which they have complete information.
+	\item \emph{Resolvers} are programs which receive queries from clients and respond with information extracted from the name servers. Resolvers only need to know directly just one name server to complete all possible queries: if that name server does not contain the requested information, the resolver uses its references to reach other name servers.
+\end{itemize}
+The domain name space has one root node, labeled with an empty string. Childs of this node are called \emph{top-level domains}, among which we can find ``\texttt{.com}'' and ``\texttt{.org}'', and two lettered \emph{country codes}, such as ``\texttt{.ch}'' and ``\texttt{.it}''. Currently, there are about one thousand different top-level domains\cite{website:tldlist}.
+
+When resolving a hostname, resolvers query the root name server with the whole domain. The root name server usually replies with the address of the name server which has authority over the top-level domain of the hostname, but it also has facility to reply with the address of the actual server associated with the whole hostname. If the query has not been completed, the query is repeated with the correspondent top-level domain name server, and so on.
+
+To reduce traffic towards the root name servers (and all other name servers), DNS resolvers implement a \emph{caching} system: results from name servers are stored for reuse, together with a time-to-live value specified from the name servers themselves. 
+
 \backmatter
 
 \chapter{Glossary}
@@ -165,7 +199,7 @@ We consider an entity \textit{trusted} when we can rely on any
 
 %\bibliographystyle{alpha}
 %\bibliographystyle{dcu}
-\bibliographystyle{plainnat}
+\bibliographystyle{plainnat} %TODO - figure out how to work this
 \bibliography{webrbiblio}
 
 %\cleardoublepage
