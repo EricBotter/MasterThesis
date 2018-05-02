@@ -1,0 +1,176 @@
+\documentclass[mscthesis]{usiinfthesis}
+\usepackage{lipsum}
+\usepackage{listings}
+
+\lstdefinelanguage{algebra}
+{morekeywords={import,sort,constructors,observers,transformers,axioms,if,
+else,end},
+sensitive=false,
+morecomment=[l]{//s},
+}
+
+\title{A report on the decentralized web} %compulsory
+\specialization{Specialization in Computer Systems}%optional
+\subtitle{} %optional
+\author{Eric Botter} %compulsory
+\begin{committee}
+\advisor{Prof.}{Fernando}{Pedone} %compulsory
+\coadvisor{}{Leandro Pacheco}{De Sousa}{} %optional
+\end{committee}
+\Day{20} %compulsory
+\Month{June} %compulsory
+\Year{2018} %compulsory, put only the year
+\place{Lugano} %compulsory
+
+\dedication{} %optional
+\openepigraph{Someone said \dots}{Someone} %optional
+
+%\makeindex %optional, also comment out \theindex at the end
+
+\begin{document}
+
+\maketitle %generates the titlepage, this is FIXED
+
+\frontmatter %generates the frontmatter, this is FIXED
+
+\begin{abstract}
+This is a very abstract abstract.
+
+\lipsum
+\end{abstract}
+
+%\begin{abstract}[Zusammenfassung]
+%optional, use only if your external advisor requires it in his/er language
+%\end{abstract}
+
+\begin{acknowledgements}
+\lipsum
+\end{acknowledgements}
+
+\tableofcontents
+%\listoffigures %optional
+%\listoftables %optional
+
+\mainmatter
+
+\chapter{Introduction}\label{ch:intro}
+%TODO: summary of what we're going to do
+
+
+\chapter{Background: The Current Web, Models and Definitions}
+\label{ch:background}
+
+The World Wide Web is probably the most popular and used service of the Internet, sometimes even confused with the Internet itself. It is very common nowadays to access the WWW (or most commonly known as simply ``the Web'') and browse websites from many platforms, from the typical desktop computer to the modern smartphone.
+
+Let us define the scenario in which the Web lives. It is based on a client-server architecture, where Web servers provide objects (such as documents, images or files in general) to clients that request and display them, called \textit{user agents} (e.g. Web browsers).
+
+In the Web, documents and objects are identified by a Uniform Resource Locator (URL), whose most important component is the domain name: it is a human-readable label that identifies a device within the Internet.
+A domain name is composed by sequences of letters and symbols, separated by each other with dots. This separation is needed by the hierarchical structure of domain names, but we won't delve into the details of the Domain Name System yet. %TODO - expand on DNS and its flaws
+
+To access a website, the client has to know the domain name associated to that website. This is usually provided by the user or by services such as search engines. The domain name is resolved to an IP address by using the Domain Name System.
+Once obtained, the client opens a TCP connection towards that address on port 80, and starts exchanging messages using the HyperText Transfer Protocol (HTTP). %TODO - mention HTTPS
+
+HTTP is a client-server, request-response protocol. Clients specify the details of the needed resource in the request and the server replies with the content or an error status if something went wrong (e.g. 404 Not Found). We won't explore HTTP as none of the projects that we will see rely on HTTP or any of its properties. %TODO explore HTTP? maybe expand on it as needed
+
+There are different ways to setup a website. A content creator can either setup a custom server and upload a website there, or it can rent a server (either physical or virtual) from an existing provider.
+
+\section{Problems in the current web}
+The main problem in the current Web is vulnerability to censorship. Since we have a direct relationship from domain names to websites (or from IP addresses to websites), it is relatively easy for powerful parties (including governments and ISPs) to block communications from users to a certain service. 
+The main attacks that can be used to prevent communication towards a website are:
+\begin{itemize}
+	\item Denial of Service (DoS): a large volume of requests is sent towards the targeted server, which quickly runs out of available resources (such as bandwidth, simultaneously open connections, memory or CPU). Requests can be sent from a single device, but in current days requests are typically sent from multiple sources, in order to both increase the volume of traffic and make it difficult to identify and stop the origin of the attack: this is known as Distributed Denial of Service (DDoS).
+	\item IP address blocking: packets towards a given address or address range are blocked. This attack can be enacted by routers that exchange packets regarding the targeted IP address, which can interrupt forwarding of said packets thus preventing any sort of communication, making the server effectively disconnected from the Internet.
+	\item DNS hijacking: by altering DNS resolutions, the domain of the targeted website can either be deleted or edited to make it refer to another IP address, thus preventing access to the original content. This attack can be carried out by both the owners of the DNS resolver (by directly editing their records), or by third parties through an attack called DNS cache poisoning: an attacker pretending to be a valid name server intercepts DNS requests from other name servers and provides fake responses to alter the address of the targeted domain, also setting a high time-to-live so that the redirection is active for as long as possible. Another vector for DNS hijacking, though unrelated to DNS itself, is to remotely edit the configuration of typical home routers through known vulnerabilities, changing the DNS resolver to a malicious one.
+\end{itemize}
+
+We also have a problem of trust. When you access a website, there is no guarantee that the data you received is from the content creator, because HTTP is vulnerable to man-in-the-middle attacks. There is no mechanism to verify the authenticity of the transmitted data and the protocol does not use encryption, so anyone can forge a valid HTTP communication (even based on an ongoing one) and send it through the wires.
+
+HTTPS resolves this issue by asymmetrically encrypting the communication channel, and authenticating the data that is sent, but the current trust system (X.509) is based on certificate authorities and is considered weak, which might allow for identity theft. %TODO - expand on this
+
+Another important issue is privacy and handling of personal information: with the current scenario, whenever you connect to a website, that website privately stores data about you.
+This data can be either automatically collected from user interactions, or can be provided directly by the user: consider, as an example, a social network, where users provide personal information such as their generalities, and the website collects data such as post interactions, number and timestamps of logins, and so on.
+This effectively moves ownership of the data from the user to the company. Data that intrinsically belongs to the user (especially personal information such as name, address and phone number) are stored privately into the company server, and the user has limited control over it, since the only possible actions on the data are the ones defined by the company or required by law.
+
+\section{A Distributed Environment}
+We have to rethink the Web if we want to move it to a decentralized environment. The current Web is a centralized system: each website is owned by a party that we'll define as \textit{content creator}. The content creator owns the website and is responsible for distributing its content, either by using a self-owned and maintained web server or by publishing it to a dedicated service, known as \textit{web hosting} service provider (there are too many currently online to present a somewhat accurate list of examples here). When using \textit{web server}, we will always refer to both these options, since in both cases there is always a web server that serves the website, whether it's owned by the content provider or by a company.
+Although it's not required, the content creator usually also obtains a domain name to associate with the website.
+
+This system is centralized because the website is accessible only through the web server. If obtained, the domain name will always direct towards that server (even if it changes its IP address, since that's one of the main purposes of DNS).
+
+Let us introduce a very important concept in distributed systems: failure, and its related models.
+We introduce it now to highlight the difference between a centralized environment and a decentralized (or distributed) one.
+The failure model in which we could place the Web is a stopping failure model: an entity can fail only by stopping, or \textit{crashing}. This means that we \textit{trust} each entity to behave as expected by the protocol, or to not function at all.\footnote{I realize this is an oversimplification of the model, but we don't need to give more detail than this.} %TODO - expand on this?
+
+
+We consider an entity \textit{trusted} when we can rely on any 
+%TODO - hardly any project defines itself as a distributed system in the academic sense
+
+\section{Decentralization trade-offs}
+
+\chapter{Decentralizing Storage}
+
+\section{BitTorrent}\label{proj:bittorrent}
+
+\subsection{DHT}\label{tech:dht}
+
+\section{IPFS}\label{proj:ipfs}
+
+\section{Ethereum Swarm}\label{proj:swarm}
+
+\section{Filecoin}\label{proj:filecoin}
+
+\section{Analysis}
+
+
+\chapter{Decentralizing Naming}
+
+\section{Namecoin}\label{proj:namecoin}
+
+\section{Ethereum Name Service}\label{proj:ens}
+
+\section{Analysis}
+
+
+\chapter{Distributed Web Projects}
+
+\section{ZeroNet}\label{proj:zeronet}
+
+\section{Blockstack}\label{proj:blockstack}
+
+\section{Analysis}
+
+
+\chapter{Upcoming projects}
+
+\section{Substratum}
+
+\section{Hashgraph}
+
+
+\chapter{Conclusions}
+
+%As you can easily see from the above listing \citet{bbggs:iet07}
+%define something weird based on the BPEL specification
+%\citep{bpelspec}.
+%\nocite{*}
+
+\backmatter
+
+\chapter{Glossary}
+\begin{itemize}
+	\item TCP
+	\item ISP
+	
+\end{itemize}
+
+%\bibliographystyle{alpha}
+%\bibliographystyle{dcu}
+\bibliographystyle{plainnat}
+\bibliography{webrbiblio}
+
+%\cleardoublepage
+%\theindex %optional, use only if you have an index, must use
+	  %\makeindex in the preamble
+%\lipsum
+
+\end{document}
