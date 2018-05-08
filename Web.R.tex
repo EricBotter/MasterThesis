@@ -74,8 +74,8 @@ HTTP is a client-server, request-response protocol. Clients specify the details 
 
 There are different ways to setup a website. A content creator can either setup a custom server and upload a website there, or it can rent a server (either physical or virtual) from an existing provider.
 
-\section{Problems in the current web}
-The main problem in the current Web is vulnerability to censorship. Since we have a direct relationship from domain names to websites (or from IP addresses to websites), it is relatively easy for powerful parties (including governments and ISPs) to block communications from users to a certain service. 
+\section{Problems in the current web} \label{sec:problems}
+The main problem in the current Web is vulnerability to \textbf{censorship}. Since we have a direct relationship from domain names to websites (or from IP addresses to websites), it is relatively easy for powerful parties (including governments and ISPs) to block communications from users to a certain service. 
 The main attacks that can be used to prevent communication towards a website are:
 \begin{itemize}
 	\item Denial of Service (DoS): a large volume of requests is sent towards the targeted server, which quickly runs out of available resources (such as bandwidth, simultaneously open connections, memory or CPU). Requests can be sent from a single device, but in current days requests are typically sent from multiple sources, in order to both increase the volume of traffic and make it difficult to identify and stop the origin of the attack: this is known as Distributed Denial of Service (DDoS).
@@ -83,11 +83,11 @@ The main attacks that can be used to prevent communication towards a website are
 	\item DNS hijacking: by altering DNS resolutions, the domain of the targeted website can either be deleted or edited to make it refer to another IP address, thus preventing access to the original content. This attack can be carried out by both the owners of the DNS resolver (by directly editing their records), or by third parties through an attack called DNS cache poisoning: an attacker pretending to be a valid name server intercepts DNS requests from other name servers and provides fake responses to alter the address of the targeted domain, also setting a high time-to-live so that the redirection is active for as long as possible. Another vector for DNS hijacking, though unrelated to DNS itself, is to remotely edit the configuration of typical home routers through known vulnerabilities, changing the DNS resolver to a malicious one.
 \end{itemize}
 
-We also have a problem of trust. When you access a website, there is no guarantee that the data you received is from the content creator, because HTTP is vulnerable to man-in-the-middle attacks. There is no mechanism to verify the authenticity of the transmitted data and the protocol does not use encryption, so anyone can forge a valid HTTP communication (even based on an ongoing one) and send it through the wires. We expand on this in Section \ref{sec:distributed}.
+We also have a problem of \textbf{trust}. When you access a website, there is no guarantee that the data you received is from the content creator, because HTTP is vulnerable to man-in-the-middle attacks. There is no mechanism to verify the authenticity of the transmitted data and the protocol does not use encryption, so anyone can forge a valid HTTP communication (even based on an ongoing one) and send it through the wires. We expand on this in Section \ref{sec:distributed}.
 
 HTTPS resolves this issue by asymmetrically encrypting the communication channel, and authenticating the data that is sent, but the current trust system (X.509) is based on certificate authorities and is considered weak, which might allow for identity theft. %TODO - expand on this
 
-Another important issue is privacy and handling of personal information: with the current scenario, whenever you connect to a website, that website privately stores data about you.
+Another important issue is \textbf{privacy} and handling of personal information: with the current scenario, whenever you connect to a website, that website privately stores data about you.
 This data can be either automatically collected from user interactions, or can be provided directly by the user: consider, as an example, a social network, where users provide personal information such as their generalities, and the website collects data such as post interactions, number and timestamps of logins, and so on.
 This effectively moves ownership of the data from the user to the company. Data that intrinsically belongs to the user (especially personal information such as name, address and phone number) are stored privately into the company server, and the user has limited control over it, since the only possible actions on the data are the ones defined by the company or required by law.
 
@@ -97,10 +97,9 @@ Although it's not required, the content creator usually also obtains a domain na
 
 This system is centralized because the website is accessible only through the web server. If obtained, the domain name will always direct towards that server (even if it changes its IP address, since that's one of the main purposes of DNS).
 
-%TODO - I don't like the following paragraphs very much.
 Let us introduce a very important concept in distributed systems: \textbf{failure}, and its related models.
 We introduce it now to highlight the difference between a centralized environment and a decentralized (or distributed) one.
-The failure model in which we could place the Web is a \textbf{stopping failure model}: an entity can fail only by stopping, or \textit{crashing}. This means that we \textit{trust} each entity to behave as expected by the protocol, or to not function at all.\footnote{This is an oversimplification of the model, but we don't need to give more detail than this.} %TODO - expand on this? or point to a reference?
+The failure model in which we could place the Web is a \textbf{stopping failure model}: an entity can fail only by stopping, or \textit{crashing}. This means that we \textit{trust} each entity to behave as expected by the protocol, or to not function at all.\footnote{This is an oversimplification of the model, but we don't need to give more detail than this.} %TODO - expand on this? or point to a reference? We might move the technical details into the Appendix, and keep the discussion informal here.
 
 This model allows Web clients (browsers) %TODO - I haven't defined them
 and content creators to make certain assumptions on the behavior of web servers and other components:
@@ -111,18 +110,42 @@ and content creators to make certain assumptions on the behavior of web servers 
 	%TODO - more?
 \end{itemize}
 
-One could argue that this model does not accurately represent the reality. For example, a malicious third party can interfere in the communication channel %TODO - should we explain how? the footnote is more technical than the tone used here
-and change the data that is transmitted. This is transparent to both the clients and the web server, since there is no mechanism in place to ensure that the data is \textit{integral}\footnote{We mean a stronger integrity than the one provided by TCP. TCP ensures data integrity against transmission errors, which are in the order of few bits per kilobyte, but in this attack the entire TCP packet can be rewritten, allowing TCP packets to appear unaltered.} -- and rightfully so, given that the communication channel is assumed to not alter data arbitrarily. This is known as a \textit{man-in-the-middle} attack.
+One could argue that this model does not accurately represent the reality. For example, if a malicious third party takes over the communication channel, it can interfere %TODO - should we explain how? the following footnote is more technical than the tone used here
+and change the data that is transmitted. This is transparent to both the clients and the web server, since there is no mechanism in place to ensure that the data is \textit{integral}\footnote{We mean a stronger integrity than the one provided by TCP: it ensures data integrity against transmission errors, which are in the order of few bits per kilobyte; but in this attack the entire TCP packet can be rewritten, allowing them to appear unaltered.} -- and rightfully so, given that the communication channel is assumed to not alter data arbitrarily. This is known as a \textit{man-in-the-middle} attack.
 
-To allow this scenario, we need to weaken the model, by removing assumptions on what the communication channel is supposed to do. We now place the communication channel in a \textbf{Byzantine failure model}: it can fail not only by stopping, but also by exhibiting arbitrary behavior.
+To allow this scenario, we need to weaken the model, by removing assumptions on what the communication channel will do, especially during a failure.
+The \textbf{Byzantine failure model} is exactly this: entities can fail not only by stopping, but also by exhibiting arbitrary behavior.
+This is particularly useful to model malicious intentions: since failed entities can perform arbitrary actions, it is particularly important to consider situations that can cause the most damage to the system. Once we protect against these actions (and all possible other scenarios), we are sure to protect the system from any attacker that takes over the entities that we consider to be Byzantine.
 
-HTTPS, the more secure Web protocol, assumes this weaker scenario. It introduces encryption and authentication of transmitted data, which allows it to be transferred over \textit{non trusted} communication channels. If the data is altered by a malicious third party during transmission, the client or the web server can detect it and react accordingly.
+Let's now place the communication channel in this Byzantine failure model.
+HTTPS, the more secure Web protocol, is built around this weaker scenario. It introduces encryption and authentication of transmitted data, which allows it to be transferred over \textit{non-trusted} communication channels.
+If the data is altered by a malicious third party during transmission, the client or the web server can detect it and react accordingly.
 
-For example, if a content creator publishes a website on a web hosting service, that platform is able to delete or alter any file of that website, effectively sending to clients different information than the one intended by the author, and the clients would not notice this difference.
+But what if we extend the Byzantine model to other entities? For example, if a content creator publishes a website on a web hosting service, that platform is technically able to delete or alter any file of that website, effectively sending to clients different information than the one intended by the author, and the clients would not notice this difference. HTTPS would not be able to protect against this attack, since it only protects the communication channel and not the website files themselves, which are encrypted by the web server only when transmitting them to a client: to do this, the web server has to access the files directly, and can therefore do whatever possible action to them, including editing and deleting them. Not only that: the web server is also able to send whatever content it desires (or refuse to serve content at all), since the client has no way of verifying that the content is as intended by its author.
 
-%TODO - hardly any project defines itself as a distributed system in the academic sense
+What would we achieve if we protect the data itself from Byzantine attacks? If the data can be distributed by a non-trusted entity, then we don't need to rely on some specific and trusted system: \textit{anyone} can distribute it.
 
-\section{Decentralization trade-offs}
+This effectively enables a \textbf{distributed Web}, where content is shared by a network of web servers that anyone can provide. We don't need to trust some hosting service provider with the website data, we can distribute our data to any of them and we will be sure that the information is going to be transmitted safely without modifications.
+
+Let's see how this scenario can resolve the three problems described in Section \ref{sec:problems}:
+\begin{itemize}
+	\item \textbf{Censorship}: to allow web servers to expose Byzantine behavior means that any one of them can refuse to serve content. But note that we can't assume that every single web server  fails with Byzantine consequences, just like we don't assume that in the current Web every single  server will crash when contacted. We have to guarantee that some percentage of the servers will behave properly, without failing.\\
+	This is why we need a \textbf{network} of web servers and not just one: that one server not only is exposed to all of the attacks mentioned in Section \ref{sec:problems}, but can also fail by refusing to serve content; if, instead of one, we have multiple web server (of which we are guaranteed that a percentage behaves properly), we know that if some web server fails (either on its own or by means of an attack) the rest of the network can still operate.
+
+	\item \textbf{Trust}: by distrusting the web servers, we have made impossible for them to successfully send data different from what the content creator intended. Clients have a way to detect information manipulation and can discard such manipulated data.
+
+	\item \textbf{Privacy} and handling of personal information: in a distributed environment, we no longer have websites that can privately store data about their users. This is because every website now is hosted on multiple servers: if they want to provide some form of consistency, they have to share or synchronize that data in some way. This suggests that the data is no longer private, but we cannot have public personal data available to multiple servers, especially when some of them have malicious intents.\\
+	Among the different possibilities, we mention two options here: either the clients (and the clients only) store the private data, so that it is not shared in the network, or the data is uploaded in the network but in an encrypted way, so that only its owner can access it. We will see how different projects tackle this problem, and whether they solve it.
+\end{itemize}
+
+Many projects claim to implement the distributed Web. Every one of them provides a specific strength or focuses on a particular issue instead of building a complete, all-round system.
+Unfortunately, such protocols are not well-known to the general public, and consequently are not widespread enough to be either standardized or integrated into modern state-of-the-art browsers.
+But most importantly, creating such a protocol is very difficult.
+
+Keep in mind that many of these projects do not define the model around which their platform is built. They mostly define the possible attacks and the related countermeasures they adopt. We will try to infer a model of the environment whenever we consider appropriate to do so, while trying stay as close to the project specifications as possible.
+
+%\section{Challenges of creating a distributed Web}
+%todo - But how exactly is it difficult to build the distributed Web? 
 
 \chapter{Decentralizing Storage}
 
