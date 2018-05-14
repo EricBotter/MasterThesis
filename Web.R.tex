@@ -149,9 +149,28 @@ Keep in mind that many of these projects do not define the model around which th
 
 \chapter{Decentralizing Storage}
 
+The first and most fundamental challenge in building the distributed Web is how to store the files that compose websites.
+
+In the current Web, this is not generally a problem: you can either setup your own personal web server, exposed to the internet, that contains the website files, or you can upload those files to a web hosting service provider in order to serve them for you.
+But now we have introduced a network of untrusted servers that are not necessarily going to distribute your files as you intended, if at all. How do we make sure that the files are still getting to the clients? How can clients be sure that they received the files exactly as their author has written them? To answer these two questions, each project has to implement two features, respectively.
+
+The first one is an \textbf{incentive scheme}, i.e. a way to encourage nodes in a network to share data. If the incentive is strong enough, there will be more people that genuinely participate in the system, thus reducing the relative amount of intentional Byzantine behavior. Furthermore, if there is no incentive to share data, nodes will just obtain what they need and then leave the network, without contributing to other node's downloads, thus reducing the overall performance of the system, possibly even rendering it useless if this behavior is intentionally brought to the extreme (in other words, an attack is performed).
+
+The second one is \textbf{data verification}: each system must provide a way to verify the integrity of the data that is transmitted. This is needed because everyone in the system can fail and transmit arbitrary data: who receives the data must be able to verify the received information, in order to detect and possibly discard it (maybe going as far as taking action w.r.t. the failed sender, for example by blocking communications). It usually involves cryptographic hashing, sometimes combined with asymmetric cryptography.
+
+%todo - define use cases to describe project functionalities? Like download a file, upload a file, etc.
+
 \section{BitTorrent}\label{proj:bittorrent}
 
-\subsection{DHT}\label{tech:dht}
+You most surely have already heard about BitTorrent. It is probably the most known and used peer-to-peer file-sharing protocol. We take a look at BitTorrent both because of its popularity and because it is the basis of ZeroNet, another project discussed in Section \ref{proj:zeronet}.
+
+Let us start with some definitions related to the BitTorrent protocol. A collection of files is known as a \textbf{torrent}. Each torrent is described in a dedicated file called, unsurprisingly, \textbf{torrent file}, which contains a list of the files contained in that torrent and its corresponding cryptographic hash (using the SHA-1 algorithm), plus some metadata, such as the name of the torrent, etc.
+
+A BitTorrent client connected to and participating in the network is called a \textbf{peer}. Peers communicate with each other when they are aware of the same torrent: that group of peers is called a \textbf{swarm}.
+
+%Torrents contain the cryptographic hash of the files so that ...
+
+%In order to download a file, users first have to obtain a torrent that contains that file. This is done out of band
 
 \section{IPFS}\label{proj:ipfs}
 
@@ -161,6 +180,7 @@ Keep in mind that many of these projects do not define the model around which th
 
 \section{Analysis}
 
+% todo - possible \chapter{Decentralizing logic}? This would just be Ethereum, and maybe Hashgraph
 
 \chapter{Decentralizing Naming}
 
@@ -210,6 +230,9 @@ The domain name space has one root node, labeled with an empty string. Childs of
 When resolving a hostname, resolvers query the root name server with the whole domain. The root name server usually replies with the address of the name server which has authority over the top-level domain of the hostname, but it also has facility to reply with the address of the actual server associated with the whole hostname. If the query has not been completed, the query is repeated with the correspondent top-level domain name server, and so on.
 
 To reduce traffic towards the root name servers (and all other name servers), DNS resolvers implement a \emph{caching} system: results from name servers are stored for reuse, together with a time-to-live value specified from the name servers themselves. 
+
+\chapter{Distributed Hash Table}\label{appx:dht}
+%todo
 
 \backmatter
 
