@@ -158,19 +158,29 @@ The first one is an \textbf{incentive scheme}, i.e. a way to encourage nodes in 
 
 The second one is \textbf{data verification}: each system must provide a way to verify the integrity of the data that is transmitted. This is needed because everyone in the system can fail and transmit arbitrary data: who receives the data must be able to verify the received information, in order to detect and possibly discard it (maybe going as far as taking action w.r.t. the failed sender, for example by blocking communications). It usually involves cryptographic hashing, sometimes combined with asymmetric cryptography.
 
+Another key component is a distributed storage system, but in general of any peer-to-peer network, is \textbf{peer discovery}, i.e. a mechanism through which a client can obtain a list of currently active peers that can be contacted. This is because on the Internet, it is impossible to know which devices are offering which services (especially if these devices keep moving and disconnecting all the time), without a dedicated directory that lists and keeps track of them. This directory can be either centralized or decentralized, and comparing the two options leads to the same advantages and disadvantages that we discussed previously. It would make sense to prefer a decentralized directory to a centralized one, but a completely distributed directory cannot exist, since it also needs to be discovered: a compromise has to be made. Often, projects with a distributed directory have a different process just to make the directory known to a client: this process is often referred to as \textit{peer discovery bootstrap}.
+%todo - the above is probably confusing
+
 %todo - define use cases to describe project functionalities? Like download a file, upload a file, etc.
 
 \section{BitTorrent}\label{proj:bittorrent}
 
-You most surely have already heard about BitTorrent. It is probably the most known and used peer-to-peer file-sharing protocol. We take a look at BitTorrent both because of its popularity and because it is the basis of ZeroNet, another project discussed in Section \ref{proj:zeronet}.
+You most surely have already heard about BitTorrent. It is probably the most known and used peer-to-peer file-sharing protocol. We take a look at BitTorrent both because of its popularity and because it is at the basis of ZeroNet, another project discussed in Section \ref{proj:zeronet}.
 
 Let us start with some definitions related to the BitTorrent protocol. A collection of files is known as a \textbf{torrent}. Each torrent is described in a dedicated file called, unsurprisingly, \textbf{torrent file}, which contains a list of the files contained in that torrent and its corresponding cryptographic hash (using the SHA-1 algorithm), plus some metadata, such as the name of the torrent, etc.
 
-A BitTorrent client connected to and participating in the network is called a \textbf{peer}. Peers communicate with each other when they are aware of the same torrent: that group of peers is called a \textbf{swarm}.
+A BitTorrent client connected to and participating in the network is called a \textbf{peer}. Peers communicate with each other when they are aware of the same torrent: that group of peers is called a \textbf{swarm}. When a peer has all the parts of a torrent and is sharing them with the rest of network, it is called a \textbf{seed}, and the operation of sharing data is called \textit{seeding}.
+
+In BitTorrent, torrents are distributed out-of-band. It is assumed that when a peer obtains a torrent file, that file is legitimate and as intended by the torrent creator. Usually, torrent files can be obtained from the Web, often from dedicated websites and forums where users can upload their own torrent files.
+
+To better describe the functioning and mechanisms of BitTorrent, let's explore two very common scenarios: uploading a torrent into the network and downloading a torrent from the network.
+
+To upload a torrent into the network, a user has to collect a set of files that will compose the torrent. By using a client that supports this functionality, the user can create a corresponding torrent file, which can then be distributed by the user on their preferred platform. The user's client now is aware of the torrent and has all its files: it is therefore seeding the torrent to other users.
+
+To download a torrent from the network, a user has to obtain the torrent file first. The file is then passed to the client that will start to 
+
 
 %Torrents contain the cryptographic hash of the files so that ...
-
-%In order to download a file, users first have to obtain a torrent that contains that file. This is done out of band
 
 \section{IPFS}\label{proj:ipfs}
 
