@@ -158,7 +158,7 @@ The first one is an \textbf{incentive scheme}, i.e. a way to encourage nodes in 
 
 The second one is \textbf{data verification}: each system must provide a way to verify the integrity of the data that is transmitted. This is needed because everyone in the system can fail and transmit arbitrary data: who receives the data must be able to verify the received information, in order to detect and possibly discard it (maybe going as far as taking action w.r.t. the failed sender, for example by blocking communications). It usually involves cryptographic hashing, sometimes combined with asymmetric cryptography.
 
-Another key component is a distributed storage system, but in general of any peer-to-peer network, is \textbf{peer discovery}, i.e. a mechanism through which a client can obtain a list of currently active peers that can be contacted. This is because on the Internet, it is impossible to know which devices are offering which services (especially if these devices keep moving and disconnecting all the time), without a dedicated directory that lists and keeps track of them. This directory can be either centralized or decentralized, and comparing the two options leads to the same advantages and disadvantages that we discussed previously. It would make sense to prefer a decentralized directory to a centralized one, but a completely distributed directory cannot exist, since it also needs to be discovered: a compromise has to be made. Often, projects with a distributed directory have a different process just to make the directory known to a client: this process is often referred to as \textit{peer discovery bootstrap}.
+Another key component is a distributed storage system, but in general of any peer-to-peer network, is \textbf{peer discovery}, i.e. a mechanism through which a client can obtain a list of currently active peers that can be contacted. This is because on the Internet, it is impossible to find which devices are offering which services (especially if these devices keep moving and disconnecting all the time), without either knowing them directly, or looking them up using a dedicated directory that lists and keeps track of such devices. This directory can be either centralized or decentralized, and comparing the two options leads to the same advantages and disadvantages that we discussed previously. It would make sense to prefer a decentralized directory to a centralized one, but a completely distributed directory cannot exist, since it also needs to be discovered: a compromise has to be made. Often, projects with a distributed directory have a different process just to make the directory known to a client: this process is often referred to as \textit{peer discovery bootstrap}.
 %todo - the above is probably confusing
 
 %todo - define use cases to describe project functionalities? Like download a file, upload a file, etc.
@@ -167,22 +167,35 @@ Another key component is a distributed storage system, but in general of any pee
 
 You most surely have already heard about BitTorrent. It is probably the most known and used peer-to-peer file-sharing protocol. We take a look at BitTorrent both because of its popularity and because it is at the basis of ZeroNet, another project discussed in Section \ref{proj:zeronet}.
 
+\subsection{Protocol overview}
+
 Let us start with some definitions related to the BitTorrent protocol. A collection of files is known as a \textbf{torrent}, and to make distribution easier, each file is split into \textbf{blocks} of equal size. A torrent is described in a dedicated file called, unsurprisingly, \textbf{torrent file}, which contains a list of the files contained in that torrent and the cryptographic hash of each block (using the SHA-1 algorithm), plus some metadata, such as the name of the torrent, the block size, etc.
 
 A BitTorrent client connected to and participating in the network is called a \textbf{peer}. Peers communicate with each other when they are aware of the same torrent: that group of peers is called a \textbf{swarm}. When a peer has all the parts of a torrent and is sharing them with the rest of network, it is called a \textbf{seeder}, and the operation of sharing data is called \textit{seeding}.
 
 In BitTorrent, torrents are distributed out-of-band. It is assumed that when a peer obtains a torrent file, that file is legitimate and as intended by the torrent creator. Usually, torrent files can be obtained from the Web, often from dedicated websites and forums where users can upload their own torrent files.
 
-To perform peer discovery, BitTorrent relies on \textbf{trackers}, dedicated servers that keep track of swarms for different torrents. Each torrent file lists the trackers that peers should contact (by announcing themselves) for that particular torrent. Although different torrents can rely on different (and multiple) trackers, this is a centralized peer discovery system: it is often the case that few trackers (in the order of tens) track the majority of torrents. If these trackers are shutdown or blocked, peers will have a hard time discovering each other. %todo - continue with DHT and PEX
+To perform peer discovery, BitTorrent relies on \textbf{trackers}, dedicated servers that keep track of swarms for different torrents. Each torrent file lists the trackers that peers should contact (by announcing themselves) for that particular torrent. Although different torrents can rely on different (and multiple) trackers, this is a centralized peer discovery system: it is often the case that few trackers (in the order of tens) track the majority of torrents. If these trackers are shutdown or blocked, peers will have a hard time discovering each other. To counter this, BitTorrent later integrated two decentralized discovery mechanisms: DHT (which we cover in Appendix \ref{appx:dht}), and \textbf{Peer Exchange} (or PEX) that allows peers to trade information about their common swarm, so that each client can discover more peers, leading to a better connected swarm. Note that peers cannot join a swarm only through PEX: they have to first contact either a tracker or the DHT.
+
+BitTorrent does not define how to bootstrap the connection to the DHT, leaving it as an implementation detail. Different clients employ different techniques, among which we can find the following:
+\begin{itemize}
+	\item Keeping a long-lived cache of peers encountered: when the client is started, it tries to contact the peers in his cache to enter the DHT;
+	\item Contacting a known IP address/domain name that offers a dedicated DHT bootstrapping service;
+	\item Retrieve an initial list of peers from a tracker, then access the DHT through them;
+	\item Torrent files can contain information about nodes of the DHT or peers in the BitTorrent network.
+\end{itemize}
 
 To better describe the functioning and mechanisms of BitTorrent, let's explore two very common scenarios: uploading a torrent into the network and downloading a torrent from the network.
 
 To upload a torrent into the network, a user has to collect a set of files that will compose the torrent. By using a client that supports this functionality, the user can create a corresponding torrent file, which can then be distributed by the user on their preferred platform. The user's client now is aware of the torrent and has all its files: it is therefore seeding the torrent to other users.
 
-To download a torrent from the network, a user has to obtain the torrent file first. The file is then passed to the client that will start to contact the swarm and gather information about which peers have which data. It will then start downloading blocks from each peer, and will become a seeder when the download is complete.
+To download a torrent from the network, a user has to obtain the torrent file first. The file is then passed to the client that will start to contact the swarm (through trackers, DHT or whichever system the torrent file specifies) and gather information about which peers have which data. It will then start downloading blocks from each peer, and will become a seeder when the download is complete.
 
-Let's analyze now some properties of the protocol. BitTorrent's \textbf{incentive scheme} is called \textit{tit-for-tat} (TFT)
+BitTorrent's \textbf{incentive scheme} is well explained and analyzed in \cite{cohen2003incentives} and we will just summarize it here. It is based on a \textit{tit-for-tat} algorithm, and uses a mechanism known as \textbf{choking} to select the best peers for collaboration. Choking is refusal from a peer to share its blocks with another peer, who is said to be \textit{choked}; \textit{unchoking} is the opposite operation.
 
+BitTorrent peers usually do not share data with all known downloading peers to reduce overhead of communications and best utilize the available bandwidth. Peers will start sending blocks to some other peer in the swarm, hoping that they return the favor and start sending data back. If the favor is not returned, the other peer is choked, and some other peer is chosen instead; otherwise, the peer will increase its bandwidth towards the other peer, and those peers will continue to share data between each other. This is done until a limit of simultaneously connected peers is reached, usually 4 but it is user-configurable. Every now and then, a peer will unchoke some random peer, hoping that a benevolent uploader is found: this is called an \textit{optimistic unchoke}, and it is done by replacing the worst-performing peer which becomes choked. This allows to improve performance if the current transfers do not maximize a peer's bandwidth, but it can also degrade it if the new peer does not perform as good as the replaced one: this is why it's said to be \textit{optimistic}.
+
+\subsection{Analysis}
 
 %Torrents contain the cryptographic hash of the files so that ...
 
@@ -192,7 +205,7 @@ Let's analyze now some properties of the protocol. BitTorrent's \textbf{incentiv
 
 \section{Filecoin}\label{proj:filecoin}
 
-\section{Analysis}
+\section{Summary}
 
 % todo - possible \chapter{Decentralizing logic}? This would just be Ethereum, and maybe Hashgraph
 
