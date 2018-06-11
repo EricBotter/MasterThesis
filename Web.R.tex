@@ -54,18 +54,15 @@ This is a very abstract abstract.
 \mainmatter
 
 \chapter{Introduction}\label{ch:intro}
-%TODO: summary of what we're going to do
-
-
-\chapter{Background: The Current Web, Models and Definitions}
-\label{ch:background}
 
 The World Wide Web is probably the most popular and used service of the Internet, sometimes even confused with the Internet itself. It is very common nowadays to access the WWW (or most commonly known as simply ``the Web'') and browse websites from many platforms, from the typical desktop computer to the modern smartphone.
+
+%TODO: give context about why a distributed web and what is happening at the moment
 
 Let us define the scenario in which the Web lives. It is based on a client-server architecture, where Web servers provide objects (such as documents, images or files in general) to clients that request and display them, called \textit{user agents} (e.g. Web browsers).
 
 In the Web, documents and objects are identified by a Uniform Resource Locator (URL), whose most important component is the domain name: it is a human-readable label that identifies a device within the Internet.
-A domain name is composed by sequences of letters and symbols, separated by each other with dots. This separation is needed by the hierarchical structure of domain names, but we won't delve into the details of the Domain Name System here. More information can be found in Appendix \ref{appx:dns}. %TODO - expand on DNS flaws?
+A domain name is composed by sequences of letters and symbols, separated by each other with dots. This separation is needed by the hierarchical structure of domain names, but we won't delve into the details of the Domain Name System here: we will talk more about it when we discuss naming, in Chapter \ref{ch:naming}.
 
 To access a website, the client has to know the domain name associated to that website. This is usually provided by the user or by services such as search engines. The domain name is resolved to an IP address by using the Domain Name System.
 Once obtained, the client opens a TCP connection towards that address on port 80, and starts exchanging messages using the HyperText Transfer Protocol (HTTP). %TODO - mention HTTPS
@@ -83,7 +80,7 @@ The main attacks that can be used to prevent communication towards a website are
 	\item DNS hijacking: by altering DNS resolutions, the domain of the targeted website can either be deleted or edited to make it refer to another IP address, thus preventing access to the original content. This attack can be carried out by both the owners of the DNS resolver (by directly editing their records), or by third parties through an attack called DNS cache poisoning: an attacker pretending to be a valid name server intercepts DNS requests from other name servers and provides fake responses to alter the address of the targeted domain, also setting a high time-to-live so that the redirection is active for as long as possible. Another vector for DNS hijacking, though unrelated to DNS itself, is to remotely edit the configuration of typical home routers through known vulnerabilities, changing the DNS resolver to a malicious one.
 \end{itemize}
 
-We also have a problem of \textbf{trust}. When you access a website, there is no guarantee that the data you received is from the content creator, because HTTP is vulnerable to man-in-the-middle attacks. There is no mechanism to verify the authenticity of the transmitted data and the protocol does not use encryption, so anyone can forge a valid HTTP communication (even based on an ongoing one) and send it through the wires. We expand on this in Section \ref{sec:distributed}.
+We also have a problem of \textbf{trust}. When you access a website, there is no guarantee that the data you received is from the content creator, because HTTP is vulnerable to man-in-the-middle attacks. There is no mechanism to verify the authenticity of the transmitted data and the protocol does not use encryption, so anyone can forge a valid HTTP communication (even based on an ongoing one) and send it through the wires. We expand on this in Chapter \ref{ch:background}.
 
 HTTPS resolves this issue by asymmetrically encrypting the communication channel, and authenticating the data that is sent, but the current trust system (X.509) is based on certificate authorities and is considered weak, which might allow for identity theft. %TODO - expand on this
 
@@ -91,7 +88,16 @@ Another important issue is \textbf{privacy} and handling of personal information
 This data can be either automatically collected from user interactions, or can be provided directly by the user: consider, as an example, a social network, where users provide personal information such as their generalities, and the website collects data such as post interactions, number and timestamps of logins, and so on.
 This effectively moves ownership of the data from the user to the company. Data that intrinsically belongs to the user (especially personal information such as name, address and phone number) are stored privately into the company server, and the user has limited control over it, since the only possible actions on the data are the ones defined by the company or required by law.
 
-\section{A Distributed Environment} \label{sec:distributed}
+\section{Thesis structure}
+This thesis has been structured as follows. The first chapter describes the Web in its current state and defines the open issues in its regard. The second chapter introduces some common definitions and describes the models used to analyze the Web and any of the projects that will subsequently be looked at; we also define the characteristics of the Distributed Web. The third chapter describes and analyses some projects that focus on distributing storage.
+%TODO: summary of what we're going to do
+
+\section{Thesis goals}
+%todo
+
+\chapter{Models and Definitions}
+\label{ch:background}
+
 We have to rethink the Web if we want to move it to a decentralized environment. The current Web is a centralized system: each website is owned by a party that we'll define as \textit{content creator}. The content creator owns the website and is responsible for distributing its content, either by using a self-owned and maintained web server or by publishing it to a dedicated service, known as \textit{web hosting} service provider (there are too many services currently online to present a somewhat accurate list of examples here). When using \textit{web server}, we will always refer to both these options, since in both cases there is always a web server that serves the website, whether it's owned by the content provider or by a company.
 Although it's not required, the content creator usually also obtains a domain name to associate with the website.
 
@@ -99,22 +105,31 @@ This system is centralized because the website is accessible only through the we
 
 Let us introduce a very important concept in distributed systems: \textbf{failure}, and its related models.
 We introduce it now to highlight the difference between a centralized environment and a decentralized (or distributed) one.
-The failure model in which we could place the Web is a \textbf{stopping failure model}: an entity can fail only by stopping, or \textit{crashing}. This means that we \textit{trust} each entity to behave as expected by the protocol, or to not function at all.\footnote{This is an oversimplification of the model, but we don't need to give more detail than this.} %TODO - expand on this? or point to a reference? We might move the technical details into the Appendix, and keep the discussion informal here.
 
-This model allows Web clients (browsers) %TODO - I haven't defined them
+The failure model in which we could place the Web is a \textbf{stopping failure model}.
+In this model, a process can \textbf{fail}, i.e. it stops functioning as intended, and the way a process fails is by stopping, or \textit{halting}. Once a process has halted, it remains in that state. Other processes are able to detect this failure, and the most common way that this is done is by giving a maximum response time to message exchanges with that process: if we expect a communication which does not happen within a time limit, we consider that process as failed (this is called detection by \textit{timeout}).
+
+This means that we know that each entity will behave as expected, and in case of failure it will not function at all. In other words, we consider that entity as \textbf{trusted}, as it will never give a response which is not conforming to the protocol.
+
+This model allows Web clients (browsers) %TODO - define them in the Introduction
 and content creators to make certain assumptions on the behavior of web servers and other components:
 \begin{itemize}
-	\item Web clients assume that the content they request is returned without any modification, with its content exactly as intended by its creator;
+	\item Web clients assume that the content they request is returned without any modification;
 	\item It is assumed that the channel through which the information is sent does not modify that data;
 	\item Content creators assume that the website that they create is stored in the web server (and distributed) without any modification.
 	%TODO - more?
 \end{itemize}
+In case of failure of the Web server, a browser will try to communicate with it, and after some time without receiving a response it will give up and show to the user an error message, of which an example can be found in Figure \ref{fig:browsertimeoutexample}.
+\begin{figure}[b]
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/browser-timeout-example}
+	\caption{An error message for a connection timeout with a Web server given by Firefox 60.}
+	\label{fig:browsertimeoutexample}
+\end{figure}
 
-One could argue that this model does not accurately represent the reality. For example, if a malicious third party takes over the communication channel, it can interfere %TODO - should we explain how? the following footnote is more technical than the tone used here
-and change the data that is transmitted. This is transparent to both the clients and the web server, since there is no mechanism in place to ensure that the data is \textit{integral}\footnote{We mean a stronger integrity than the one provided by TCP: it ensures data integrity against transmission errors, which are in the order of few bits per kilobyte; but in this attack the entire TCP packet can be rewritten, allowing them to appear unaltered.} -- and rightfully so, given that the communication channel is assumed to not alter data arbitrarily. This is known as a \textit{man-in-the-middle} attack.
+One could argue that this model does not accurately represent the reality. For example, if a malicious third party takes over the communication channel, gaining complete control over each byte that it transports\footnote{An example of such a third party are Internet Service Providers.}, it can interfere and change the data that is transmitted. This is transparent to both the clients and the web server, since there is no mechanism in place to ensure that the data is \textit{integral}\footnote{TCP provides data integrity against transmission errors, which are in the order of few bits per kilobyte, but this is too weak in this scenario, where the entire TCP packet can be rewritten to appear unaltered.} -- and rightfully so, given that the communication channel is assumed to not alter data arbitrarily. This is known as a \textit{man-in-the-middle} attack.
 
-To allow this scenario, we need to weaken the model, by removing assumptions on what the communication channel will do, especially during a failure.
-The \textbf{Byzantine failure model} is exactly this: entities can fail not only by stopping, but also by exhibiting arbitrary behavior.
+To allow this scenario in our model we need to weaken it, by removing assumptions on what the communication channel will do during failure. We now allow arbitrary behavior, which means that processes under this weaker model can produce any kind of message, whether it complies to the protocol or not: they can lie, omit information or do just about anything, which also includes stopping and behaving properly. This model is the \textbf{Byzantine failure model}.
 This is particularly useful to model malicious intentions: since failed entities can perform arbitrary actions, it is particularly important to consider situations that can cause the most damage to the system. Once we protect against these actions (and all possible other scenarios), we are sure to protect the system from any attacker that takes over the entities that we consider to be Byzantine.
 
 Let's now place the communication channel in this Byzantine failure model.
@@ -129,12 +144,12 @@ This effectively enables a \textbf{distributed Web}, where content is shared by 
 
 Let's see how this scenario can resolve the three problems described in Section \ref{sec:problems}:
 \begin{itemize}
-	\item \textbf{Censorship}: to allow web servers to expose Byzantine behavior means that any one of them can refuse to serve content. But note that we can't assume that every single web server  fails with Byzantine consequences, just like we don't assume that in the current Web every single  server will crash when contacted. We have to guarantee that some percentage of the servers will behave properly, without failing.\\
+	\item \textbf{Censorship}: to allow web servers to expose Byzantine behavior means that any one of them can refuse to serve content. But note that we can't assume that every single web server fails with Byzantine consequences, just like we don't assume that in the current Web every single server will crash when contacted. We have to guarantee that some percentage of the servers will behave properly, without failing.\\
 	This is why we need a \textbf{network} of web servers and not just one: that one server not only is exposed to all of the attacks mentioned in Section \ref{sec:problems}, but can also fail by refusing to serve content; if, instead of one, we have multiple web server (of which we are guaranteed that a percentage behaves properly), we know that if some web server fails (either on its own or by means of an attack) the rest of the network can still operate.
 
 	\item \textbf{Trust}: by distrusting the web servers, we have made impossible for them to successfully send data different from what the content creator intended. Clients have a way to detect information manipulation and can discard such manipulated data.
 
-	\item \textbf{Privacy} and handling of personal information: in a distributed environment, we no longer have websites that can privately store data about their users. This is because every website now is hosted on multiple servers: if they want to provide some form of consistency, they have to share or synchronize that data in some way. This suggests that the data is no longer private, but we cannot have public personal data available to multiple servers, especially when some of them have malicious intents.\\
+	\item \textbf{Privacy} and handling of personal information: in a distributed environment, we no longer have websites that can privately store data about their users. This is because every website now is hosted on multiple servers: if they want to provide some form of consistency, they have to share or synchronize that data in some way. This would imply that the data is no longer private, but we cannot have public personal data available to multiple servers, especially when some of them have malicious intents.\\
 	Among the different possibilities, we mention two options here: either the clients (and the clients only) store the private data, so that it is not shared in the network, or the data is uploaded in the network but in an encrypted way, so that only its owner can access it. We will see how different projects tackle this problem, and whether they solve it.
 \end{itemize}
 
@@ -165,7 +180,7 @@ Another key component is a distributed storage system, but in general of any pee
 
 \section{BitTorrent}\label{proj:bittorrent}
 
-You most surely have already heard about BitTorrent. It is probably the most known and used peer-to-peer file-sharing protocol. We take a look at BitTorrent both because of its popularity and because it is at the basis of ZeroNet, another project discussed in Section \ref{proj:zeronet}.
+BitTorrent is probably the most known and used peer-to-peer file-sharing protocol. We take a look at BitTorrent both because of its popularity and because it is at the basis of ZeroNet, another project discussed in Section \ref{proj:zeronet}.
 
 \subsection{Protocol overview}
 
@@ -191,7 +206,7 @@ To upload a torrent into the network, a user has to collect a set of files that 
 
 To download a torrent from the network, a user has to obtain the torrent file first. The file is then passed to the client that will start to contact the swarm (through trackers, DHT or whichever system the torrent file specifies) and gather information about which peers have which data. It will then start downloading blocks from each peer, and will become a seeder when the download is complete.
 
-BitTorrent's \textbf{incentive scheme} is well explained and analyzed in \cite{cohen2003incentives} and we will just summarize it here. It is based on a \textit{tit-for-tat} algorithm, and uses a mechanism known as \textbf{choking} to select the best peers for collaboration. Choking is refusal from a peer to share its blocks with another peer, who is said to be \textit{choked}; \textit{unchoking} is the opposite operation.
+BitTorrent's \textbf{incentive scheme} is well explained and analyzed by \cite{cohen2003incentives}, the creator of BitTorrent, and we will just summarize it here. It is based on a \textit{tit-for-tat} algorithm, and uses a mechanism known as \textbf{choking} to select the best peers for collaboration. Choking is refusal from a peer to share its blocks with another peer, who is said to be \textit{choked}; \textit{unchoking} is the opposite operation.
 
 BitTorrent peers usually do not share data with all known downloading peers to reduce overhead of communications and best utilize the available bandwidth. Peers will start sending blocks to some other peer in the swarm, hoping that they return the favor and start sending data back. If the favor is not returned, the other peer is choked, and some other peer is chosen instead; otherwise, the peer will increase its bandwidth towards the other peer, and those peers will continue to share data between each other. This is done until a limit of simultaneously connected peers is reached, usually four but this is user-configurable. Every now and then, a peer will unchoke some random peer, hoping that a benevolent uploader is found: this is called an \textit{optimistic unchoke}, and it is done by replacing the worst-performing peer, which becomes choked. This allows to improve performance if the current transfers do not maximize a peer's bandwidth, but it can also degrade it if the new peer does not perform as good as the replaced one: this is why it is said to be \textit{optimistic}.
 
@@ -209,9 +224,21 @@ Let's not forget that BitTorrent also has decentralized peer discovery methods, 
 
 But there's still one element that needs consideration: the source of torrent files. The BitTorrent documentation (specifically in BEP 3) explicitly specifies that torrent files must be served over the Web, but this is not always the case, and it surely isn't enforced by BitTorrent clients: as long as they receive a torrent file, they will start to download the corresponding torrent. It is pretty clear that this source must be trusted, otherwise we would have an invalid torrent definition and the client would download data that is not what the torrent file or its source might suggest to be. %todo - expand on this? it seems pretty simple to me, maybe too much simple
 
-\cite{Zghaibeh2008}
+So far the weakest link in this model is the source of the torrents. A user must find a reputable and trustworthy source from which torrents can be obtained. This is particularly an issue because of the controversial (and often illegal) content that can be obtained through the BitTorrent network: for example, malicious agents might setup websites which offer counterfeit software, while they actually distribute malware, or government agencies might take control of a popular torrent distribution website to track their users and alter or remove the torrent files that are offered (potentially affecting legitimate torrents).
+
+But this is not the only issue in the network. Its incentive scheme has been thoroughly analyzed by the academic community and many publications demonstrate extensive research on the subject (we'll cite \cite{Zghaibeh2008}), outlining defects in the scheme and the possibility of downloading content without contributing to the network: this is known as \textbf{free riding}. \cite{locher2006free} describe a BitTorrent client named BitThief, that exploits optimistic unchokes to successfully download torrents while avoiding to share any resource, by always presenting itself as a new peer. Despite the presence of such behavior, the network is still functional and largely used today. The BitTorrent community has come up with \textit{etiquette} rules to maximize benign usage: for example, it is considered good practice to seed a torrent after downloading it, at least until the same amount of downloaded data has been uploaded (i.e. with a \textit{seed ratio} of 1: most clients will compute this value for the users).
+
+%todo - continue? what can i write next?
 
 \section{IPFS}\label{proj:ipfs}
+
+The InterPlanetary FileSystem (IPFS for short) is a decentralized file system based on content-addressing coupled with a hypermedia distribution protocol. It has become popular as the \textit{Permanent Web}, as one of the goals of the project is ``to make the web faster, safer, and more open''.
+
+\subsection{Protocol Description}
+
+
+
+\subsection{Analysis}
 
 \section{Ethereum Swarm}\label{proj:swarm}
 
@@ -221,7 +248,8 @@ But there's still one element that needs consideration: the source of torrent fi
 
 % todo - possible \chapter{Decentralizing logic}? This would just be Ethereum, and maybe Hashgraph
 
-\chapter{Decentralizing Naming}
+\chapter{Decentralizing Naming}\label{ch:naming}
+%todo - start with DNS
 
 \section{Namecoin}\label{proj:namecoin}
 
