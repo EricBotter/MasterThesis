@@ -34,9 +34,12 @@ morecomment=[l]{//s},
 \frontmatter %generates the frontmatter, this is FIXED
 
 \begin{abstract}
-This is a very abstract abstract.
+The World Wide Web is probably the most popular and used service of the Internet, sometimes even confused with the Internet itself. But the Web has one fundamental problem: it is based on a client-server model, which is not ideal considering the importance of Web services that we use everyday.
 
-\lipsum
+What if some Internet Service Provider decides to block access to a competitor's service, so that it can promote its own? What if some organized attacker wants to deny access to a stronghold of open source software, such as GitHub? What if some government decides to block an important knowledge repository, such as Wikipedia? What if all of these already happened? %todo - fix first one. I want to mention throttling, but can be replaced with some more specific case, even if it is some other attack
+
+The invention of the blockchain and its popularization through projects like Bitcoin and Ethereum brought renewed interest towards fully decentralized and trustless solutions, and this has also impacted the Web. In this thesis, we present and analyze some of the currently implemented and active projects which aim is to move the Web from its centralized client-server environment to a decentralized trustless system.
+
 \end{abstract}
 
 %\begin{abstract}[Zusammenfassung]
@@ -72,7 +75,7 @@ HTTP is a client-server, request-response protocol. Clients specify the details 
 There are different ways to setup a website. A content creator can either setup a custom server and upload a website there, or it can rent a server (either physical or virtual) from an existing provider.
 
 \section{Problems in the current web} \label{sec:problems}
-The main problem in the current Web is vulnerability to \textbf{censorship}. Since we have a direct relationship from domain names to websites (or from IP addresses to websites), it is relatively easy for powerful parties (including governments and ISPs) to block communications from users to a certain service. 
+The main problem in the current Web is vulnerability to \textbf{censorship}. Since we have a direct relationship from domain names to websites (or from IP addresses to websites), it is relatively easy for powerful parties (including governments and ISPs) to block communications from users to a certain service.
 The main attacks that can be used to prevent communication towards a website are:
 \begin{itemize}
 	\item Denial of Service (DoS): a large volume of requests is sent towards the targeted server, which quickly runs out of available resources (such as bandwidth, simultaneously open connections, memory or CPU). Requests can be sent from a single device, but in current days requests are typically sent from multiple sources, in order to both increase the volume of traffic and make it difficult to identify and stop the origin of the attack: this is known as Distributed Denial of Service (DDoS).
@@ -89,11 +92,10 @@ This data can be either automatically collected from user interactions, or can b
 This effectively moves ownership of the data from the user to the company. Data that intrinsically belongs to the user (especially personal information such as name, address and phone number) are stored privately into the company server, and the user has limited control over it, since the only possible actions on the data are the ones defined by the company or required by law.
 
 \section{Thesis structure}
-This thesis has been structured as follows. The first chapter describes the Web in its current state and defines the open issues in its regard. The second chapter introduces some common definitions and describes the models used to analyze the Web and any of the projects that will subsequently be looked at; we also define the characteristics of the Distributed Web. The third chapter describes and analyses some projects that focus on distributing storage.
-%TODO: summary of what we're going to do
+This thesis has been structured as follows. The first chapter describes the Web in its current state and defines the open issues in its regard. The second chapter introduces some common definitions and describes the models used to analyze the Web and any of the projects that will subsequently be explored; we also define the characteristics of the Distributed Web. The following three chapters describe and analyze some projects that focus on distributing storage, distributed naming and offer a complete implementation of a distributed web, respectively. The sixth chapter will elaborate on some upcoming projects that have the possibility to impact the distributed web scenario. We will conclude the thesis in the seventh chapter.
 
 \section{Thesis goals}
-%todo
+The goal of this thesis is to present various projects that empower real-case implementations of the distributed Web, as we explain it above. We also aim to analyze notable features and possible defects of each system we present, with particular interest to the aspects that most closely relate to the distributed Web. This thesis is also meant to serve as a reference for seminars, lectures and possibly courses related to the distributed web. %todo - (replace dot with colon) for this reason, we will sometimes prefer an informal language or sentence tone to describe some scenarios or features, so that we can reach a wider audience.
 
 \chapter{Models and Definitions}
 \label{ch:background}
@@ -111,8 +113,7 @@ In this model, a process can \textbf{fail}, i.e. it stops functioning as intende
 
 This means that we know that each entity will behave as expected, and in case of failure it will not function at all. In other words, we consider that entity as \textbf{trusted}, as it will never give a response which is not conforming to the protocol.
 
-This model allows Web clients (browsers) %TODO - define them in the Introduction
-and content creators to make certain assumptions on the behavior of web servers and other components:
+This model allows Web clients (browsers) and content creators to make certain assumptions on the behavior of web servers and other components:
 \begin{itemize}
 	\item Web clients assume that the content they request is returned without any modification;
 	\item It is assumed that the channel through which the information is sent does not modify that data;
@@ -160,7 +161,7 @@ But most importantly, creating such a protocol is very difficult.
 Keep in mind that many of these projects do not define the model around which their platform is built. They mostly define the possible attacks and the related countermeasures they adopt. We will try to infer a model of the environment whenever we consider appropriate to do so, while trying stay as close to the project specifications as possible.
 
 %\section{Challenges of creating a distributed Web}
-%todo - But how exactly is it difficult to build the distributed Web? 
+%todo - But how exactly is it difficult to build the distributed Web? is this done below?
 
 \chapter{Decentralizing Storage}
 
@@ -226,19 +227,64 @@ But there's still one element that needs consideration: the source of torrent fi
 
 So far the weakest link in this model is the source of the torrents. A user must find a reputable and trustworthy source from which torrents can be obtained. This is particularly an issue because of the controversial (and often illegal) content that can be obtained through the BitTorrent network: for example, malicious agents might setup websites which offer counterfeit software, while they actually distribute malware, or government agencies might take control of a popular torrent distribution website to track their users and alter or remove the torrent files that are offered (potentially affecting legitimate torrents).
 
-But this is not the only issue in the network. Its incentive scheme has been thoroughly analyzed by the academic community and many publications demonstrate extensive research on the subject (we'll cite \cite{Zghaibeh2008}), outlining defects in the scheme and the possibility of downloading content without contributing to the network: this is known as \textbf{free riding}. \cite{locher2006free} describe a BitTorrent client named BitThief, that exploits optimistic unchokes to successfully download torrents while avoiding to share any resource, by always presenting itself as a new peer. Despite the presence of such behavior, the network is still functional and largely used today. The BitTorrent community has come up with \textit{etiquette} rules to maximize benign usage: for example, it is considered good practice to seed a torrent after downloading it, at least until the same amount of downloaded data has been uploaded (i.e. with a \textit{seed ratio} of 1: most clients will compute this value for the users).
+But this is not the only issue in the network. Its incentive scheme has been thoroughly analyzed by the academic community and many publications demonstrate extensive research on the subject (we'll cite \cite{Zghaibeh2008}), outlining defects in the scheme and the possibility of downloading content without contributing to the network: this is known as \textbf{free riding}. \cite{locher2006free} describe a BitTorrent client named BitThief, that exploits optimistic unchokes to successfully download torrents while avoiding to share any resource, by always presenting itself as a new peer. Despite the presence of such behavior, the network is still functional and largely used today. The BitTorrent community has come up with \textit{etiquette} rules to maximize benign usage: for example, it is considered good practice to seed a torrent after downloading it, at least until the same amount of downloaded data has been uploaded (i.e. until a \textit{seed ratio} of 1 is reached: most clients will compute this value for the users).
 
 %todo - continue? what can i write next?
 
 \section{IPFS}\label{proj:ipfs}
 
-The InterPlanetary FileSystem (IPFS for short) is a decentralized file system based on content-addressing coupled with a hypermedia distribution protocol. It has become popular as the \textit{Permanent Web}, as one of the goals of the project is ``to make the web faster, safer, and more open''.
+The InterPlanetary FileSystem (IPFS for short) is a decentralized file system based on content-addressing coupled with a hypermedia distribution protocol. It has become popular as the \textit{Permanent Web}, as one of the goals of the project is ``to make the web faster, safer, and more open'' and ``where links do not die''.
 
 \subsection{Protocol Description}
+
+IPFS is a peer-to-peer system, and each peer is called a \textbf{node}: all nodes share the same roles and no node is privileged. Each node keeps a set \textbf{objects}, that can represent files or other kinds of data: objects are stored in \textbf{local storage}, i.e. some external system on which raw data can be stored or retrieved. This can range from a hard disk drive to some dedicated RAM, but it can also be some more complex, possibly networked system as well.
+
+On initialization, a node generates an asymmetric key pair, then it computes the cryptographic hash of their public key: that hash becomes the node's \textbf{identifier} within the network.
+
+In IPFS there is one global (rather, \textit{interplanetary}) space where all objects are stored, unlike in BitTorrent where each torrent is completely separated from the others. Each object is therefore uniquely identifiable, and the system to generate such an identifier is cryptographic hashing. This is known as \textit{content-addressing}: the \textit{address} that identifies and allows to retrieve some data is directly derivable from the data itself. This method enables the file space to be modeled as a \textit{Merkle DAG}, i.e. a directed acyclic graph where the edges are implemented as cryptographic hashes of the content of the node they are pointing at.
+
+Objects can be of four types:
+\begin{itemize}
+	\item \textbf{blocks}, or \textit{blobs} (the two terms are used interchangeably in the whitepaper): they carry a variable amount of data, of which IPFS does not need to understand the format, which makes it suitable for any kind of application;
+	\item \textbf{lists}: collections of blocks or other lists, usually used to represent large or deduplicated files (i.e. files that have been divided in multiple blobs because of data repetition within the file itself or with other blocks already in IPFS, so that such repeated data is stored only once);
+	\item \textbf{trees}: collections of blocks, lists, trees or commits, but with a name for each object, unlike in lists where only the hashes are present;
+	\item \textbf{commits}: snapshots in the history of some other object, used to enable a form of version control over objects; %todo - this allows to fetch previous versions of stuff and improve on the concept of permanent objects
+	this allows IPFS to be compatible with Git (in the sense that Git repositories can be modeled as IPFS objects while IPFS trees can be exposed as Git repositories).
+\end{itemize}
+
+Each object is identified by a UNIX-style path. Each path starts with \texttt{/ipfs}, but this path alone does not refer to a valid object, as in IPFS there is no ``root'' object, and it must be followed by an hash which identifies the object (and can validate its contents). If the object contains named links (such as trees), then the path can be extended with the names of the child objects to reach these items. Note that such child objects can also be accessed directly by their hash.
+
+This path-style addressing of objects allows IPFS to be mounted through a FUSE interface, or to directly map to other existing path-style identification mechanisms, such as URLs used in the Web.
+
+In IPFS, peer discovery is carried out entirely by a DHT: nodes will publish which objects they have along with a reference to themselves (their identifying information) on the DHT and other nodes can retrieve this information when they need to obtain those items. There is no centralized system like BitTorrent's trackers in IPFS.
+% source for below: https://github.com/ipfs/go-ipfs/issues/3908; https://github.com/ipfs/go-ipfs/blob/master/repo/config/bootstrap_peers.go
+At the time of writing, the DHT is bootstrapped by accessing a list of known nodes, hard-coded in the IPFS source files, as found in the reference implementation in Go. Users of this client can configure the nodes they bootstrap from by using a dedicated command (\texttt{ipfs bootstrap}). As commented in the source code, this is a potential security problem, but we will discuss this later.
+
+To exchange blocks between peers, IPFS introduced a custom protocol named BitSwap, inspired by BitTorrent. Each node has some blocks in local storage, and needs blocks from other peers (for example, they need an HTML page that a browser has requested to the IPFS client). To obtain such needed blocks, a node would search for the corresponding hashes in the DHT and discover a set of nodes that have it: note that the requesting node already knows that hash because it's the locator (or the address) of that block (to stay on the previous example, the hash would be part of the URL that the browser was requested to open). Other nodes can accept or deny requests for blocks, based on two factors:
+\begin{enumerate}
+	\item a \textbf{ledger} that keeps track of previous block exchanges, in particular of the amount of bytes exchanged and verified between each node;
+	\item a \textbf{strategy}, i.e. a function that given the ledger and the requesting node, returns the probability of accepting the request and sending a block to that node.
+\end{enumerate}
+In BitSwap, different ledgers and strategies can be chosen, and each one has large impacts on the performance of the entire IPFS network. We will describe here the default options, integrated in the reference IPFS client.
+
+The default ledger is not a distributed globally-synchronized one, such as, for example, the blockchain-based ledger in Bitcoin, Ethereum, or many other cryptocurrencies. Instead, each node keeps its own ledger of the exchanges that took place between itself and other nodes. This allows to keep track of debit or credit towards any node, and to compute a value known as the \textit{debt ratio} in the following manner:
+$$ \mathit{debt~ratio} = \frac{\mathit{bytes~sent}}{\mathit{bytes~received} + 1} $$
+
+This value is then used in the strategy function to determine the likelihood of sharing blocks with the node from which the debt ratio was computed. In the reference implementation, the strategy function is as follows:
+$$ P\left( \mathit{send}~|~\mathit{debt~ratio} \right) = 1 - \frac{1}{1 + e^{6 - 3\cdot\mathit{debt~ratio}}} $$
+
+This is a type of function known as sigmoid, more specifically it is an inverted logistic function. It yields values between 0 and 1, being close to 1 with input of 0 or below, and rapidly decreasing towards 0 as the input increases. %todo - insert plot?
+It's easy to infer that nodes will be able to obtain blocks from a node towards which there is low debt or no debt at all; also, nodes that have exchanged many blocks in the past will be more tolerant of recent debt, allowing for some form of trust between long-lived well-behaved nodes that is directly proportional to the amount of bytes received from that given node.
+
+When two nodes connect, they exchange their ledgers to verify that the information about previous block transfers matches: if it doesn't, both nodes clear all the information they have on the other node, losing both debt and trust that was accumulated before. A mismatch might also happen when a node is trying to clear its debt, so that another node is willing to transfer blocks with it as if it was a new node, therefore nodes are allowed to refuse communication and disconnect when a ledger mismatch happens, but this is not mandatory.
+
+If the ledgers match, peers are connected and allowed to request and transfer blocks. Each block request is evaluated with the strategy function and accepted or denied accordingly: if a request is refused, the requesting node enters in an \textit{ignored} state and is no longer allowed to communicate for a specific amount of time (10 seconds in the reference implementation); this also happens if a received block fails the hash-based data verification step. After every completed and verified block transfer, both nodes update their ledgers.
 
 
 
 \subsection{Analysis}
+
+%todo - bootstrap issues
 
 \section{Ethereum Swarm}\label{proj:swarm}
 
@@ -266,6 +312,7 @@ The InterPlanetary FileSystem (IPFS for short) is a decentralized file system ba
 
 \section{Analysis}
 
+\subsection{Is decentralization the only solution?}
 
 \chapter{Upcoming projects}
 
