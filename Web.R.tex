@@ -94,6 +94,14 @@ This effectively moves ownership of the data from the user to the company. Data 
 \section{Thesis structure}
 This thesis has been structured as follows. The first chapter describes the Web in its current state and defines the open issues in its regard. The second chapter introduces some common definitions and describes the models used to analyze the Web and any of the projects that will subsequently be explored; we also define the characteristics of the Distributed Web. The following three chapters describe and analyze some projects that focus on distributing storage, distributed naming and offer a complete implementation of a distributed web, respectively. The sixth chapter will elaborate on some upcoming projects that have the possibility to impact the distributed web scenario. We will conclude the thesis in the seventh chapter.
 
+The projects described in this Thesis have been selected based on the following criteria:
+\begin{itemize}
+	\item A project has as one of its goals to replace or provide an alternative to the existing Web;
+	\item A project must have been successfully deployed and must be still active at the time of writing, with a significant user base;
+	\item A project must mainly depend on data replication in a distributed system and must handle Byzantine failures and adversaries;
+	\item A project is a building block for another project in the Thesis.
+\end{itemize}
+
 \section{Thesis goals}
 The goal of this thesis is to present various projects that empower real-case implementations of the distributed Web, as we explain it above. We also aim to analyze notable features and possible defects of each system we present, with particular interest to the aspects that most closely relate to the distributed Web. This thesis is also meant to serve as a reference for seminars, lectures and possibly courses related to the distributed web. %todo - (replace dot with colon) for this reason, we will sometimes prefer an informal language or sentence tone to describe some scenarios or features, so that we can reach a wider audience.
 
@@ -258,7 +266,7 @@ This path-style addressing of objects allows IPFS to be mounted through a FUSE i
 
 In IPFS, peer discovery is carried out entirely by a DHT: nodes will publish which objects they have along with a reference to themselves (their identifying information) on the DHT and other nodes can retrieve this information when they need to obtain those items. There is no centralized system like BitTorrent's trackers in IPFS.
 % source for below: https://github.com/ipfs/go-ipfs/issues/3908; https://github.com/ipfs/go-ipfs/blob/master/repo/config/bootstrap_peers.go
-At the time of writing, the DHT is bootstrapped by accessing a list of known nodes, hard-coded in the IPFS source files, as found in the reference implementation in Go. Users of this client can configure the nodes they bootstrap from by using a dedicated command (\texttt{ipfs bootstrap}). As commented in the source code, this is a potential security problem, but we will discuss this later.
+At the time of writing, the DHT is bootstrapped by accessing a list of known nodes, hard-coded in the IPFS source files, as found in the reference implementation in Go. Users of this client can configure the nodes they bootstrap from by using a dedicated command (\texttt{ipfs bootstrap}). As commented in the source code, ``bootstrap is an important security concern'', but we will discuss this later.
 
 To exchange blocks between peers, IPFS introduced a custom protocol named BitSwap, inspired by BitTorrent. Each node has some blocks in local storage, and needs blocks from other peers (for example, they need an HTML page that a browser has requested to the IPFS client). To obtain such needed blocks, a node would search for the corresponding hashes in the DHT and discover a set of nodes that have it: note that the requesting node already knows that hash because it's the locator (or the address) of that block (to stay on the previous example, the hash would be part of the URL that the browser was requested to open). Other nodes can accept or deny requests for blocks, based on two factors:
 \begin{enumerate}
@@ -274,19 +282,37 @@ This value is then used in the strategy function to determine the likelihood of 
 $$ P\left( \mathit{send}~|~\mathit{debt~ratio} \right) = 1 - \frac{1}{1 + e^{6 - 3\cdot\mathit{debt~ratio}}} $$
 
 This is a type of function known as sigmoid, more specifically it is an inverted logistic function. It yields values between 0 and 1, being close to 1 with input of 0 or below, and rapidly decreasing towards 0 as the input increases. %todo - insert plot?
-It's easy to infer that nodes will be able to obtain blocks from a node towards which there is low debt or no debt at all; also, nodes that have exchanged many blocks in the past will be more tolerant of recent debt, allowing for some form of trust between long-lived well-behaved nodes that is directly proportional to the amount of bytes received from that given node.
+It's easy to infer that nodes will be able to obtain blocks from a node towards which they have low debt or no debt at all; also, nodes that have exchanged many blocks in the past will be more tolerant of recent debt, allowing for some form of trust between long-lived well-behaved nodes that is directly proportional to the amount of bytes received from that given node.
 
 When two nodes connect, they exchange their ledgers to verify that the information about previous block transfers matches: if it doesn't, both nodes clear all the information they have on the other node, losing both debt and trust that was accumulated before. A mismatch might also happen when a node is trying to clear its debt, so that another node is willing to transfer blocks with it as if it was a new node, therefore nodes are allowed to refuse communication and disconnect when a ledger mismatch happens, but this is not mandatory.
 
 If the ledgers match, peers are connected and allowed to request and transfer blocks. Each block request is evaluated with the strategy function and accepted or denied accordingly: if a request is refused, the requesting node enters in an \textit{ignored} state and is no longer allowed to communicate for a specific amount of time (10 seconds in the reference implementation); this also happens if a received block fails the hash-based data verification step. After every completed and verified block transfer, both nodes update their ledgers.
 
+If a node happens to have no blocks to share to other nodes but has some requests to make (either because none of its blocks are needed by the nodes discovered through the DHT or because it just joined IPFS with no blocks at all), it can \textit{work} for other nodes, by retrieving blocks needed by the known nodes in order to increase the trust from such nodes towards itself and allow the credit to be repaid by serving the originally needed blocks.
 
+We can say that in IPFS objects are \textbf{immutable}. Since they are addressed by their hash, the contents of the objects cannot change once deployed on IPFS. This means that updates or new versions of objects will be published under a different address, even in the case of commits since new versions will be additional commit objects and have different hash. This makes difficult to maintain, for example, a website where content could be frequently updated: a webmaster should continuously publish new IPFS links off-band to their users to make them aware of the website changes. To solve this problem, IPFS has a component called \textbf{IPNS}, which stands for InterPlanetary Name Space, and implements a mutable namespace where a unique path can be updated to refer to different IPFS objects. Each node has an IPNS path composed of \texttt{/ipns/}, to distinguish it from the immutable IPFS paths, followed by the identifier of the node, which is the hash of its public key. Under this path, there can only be \textit{signed objects}, a tuple composed by a standard object, its signature and the public key of the node, which can be verified by its hash contained in the path. Every type of standard object is supported, including trees and commits, allowing for more extended paths like in IPFS. This mutable state cannot be stored in IPFS itself, therefore it lives in the DHT used for peer discovery.
 
 \subsection{Analysis}
 
-%todo - bootstrap issues
+Inferring the model in which IPFS is set is relatively straightforward, since we only have one class of entities in the entire system: nodes.
+
+Everything in IPFS suggests that it is meant to be deployed in a Byzantine environment. Every transferred block is verified through its hash, contained in the address, rendering impossible to counterfeit the content of the requested data; moreover, nodes that attempt to do so are detected and penalized by BitSwap through a timeout penalty.
+
+As for the danger of free riding, BitSwap incentivizes nodes to share blocks by introducing a ledger mechanism that, while being based on the \textit{tit-for-tat} like algorithm of BitTorrent, it has been made more robust through the required synchronization of ledgers between nodes: this allows to build trust among well-behaved nodes while maintaining a harsh environment for fresh nodes that join the network or towards nodes that refuse to maintain a ledger, possibly to cancel debts towards other nodes. %todo - continue this?
+
+But IPFS has an issue which is very similar to BitTorrent: just like torrent files must be distributed out-of-band, in IPFS the paths (which include the hashes) of the data must also be distributed out-of-band. But if we consider the current Web, we find the same issue: URLs of websites have to be obtained out-of-band, and the users that connect to a bad URL will not visit the webpage that they were looking for. This has been mitigated by the introduction of search engines, that made discovery of websites possible by keyword and not by URL. If a search engine behaves properly, it will return the correct URLs for the searched services. Some of these have grown to be so popular that they have started to become integrated in browsers, so that a user doesn't need to know the URL of the search engine in the first place. But the problem is only mitigated, not resolved, which allows for attacks such as \textit{typosquatting} and \textit{homograph attacks}. IPFS actually improves over the Web by not being vulnerable to both of these attacks, since URLs are hashes with a strict selection of characters and a typo is almost certainly making the hash a dead link that has no associated object, but an adversary can still deliver a malicious IPFS path to a user and claim that such link leads to some content, while in reality it does not, for example by using scam e-mails or by hosting a standard website in the normal Web. IPFS also makes it more difficult for users to detect such attacks, because its paths are neither human friendly nor related to the content in a semantic way; in other words a path towards a service is not going to contain the name of that service, while in the Web it's very likely that the URL is purposefully chosen to include the service name. %todo - does IPNS with public keys help in this?
+
+IPFS uses a DHT as their peer discovery system. Any node that joins the network has to bootstrap the DHT: while IPFS does not mandate any method for doing so, the reference implementation has a list of nodes coded directly into the application from which the client bootstraps the system. Since the addresses of those nodes are well-known (they are coded in an open source application), powerful attackers can impede access to these nodes by using the censoring techniques described in Section \ref{sec:problems}, rendering a client unable to reach the entire IPFS network. This problem has been discussed in a GitHub issue in the IPFS reference implementation project page, and proposed solutions include:
+\begin{itemize}
+	\item using the Tor network to reach bootstrapping nodes in case of client-side censorship (IP blocking);
+	\item reusing nodes contacted in previous sessions instead of always relying on the bootstrap list;
+	\item adding a command to obtain a list of nodes from other sources, including local files, Tor, or even the BitTorrent DHT.
+\end{itemize}
+A temporary workaround would be to edit the list in the source code to include also more, lesser-known trusted nodes: since IPFS is open source, this is an entirely viable option.
 
 \section{Ethereum Swarm}\label{proj:swarm}
+
+
 
 \section{Filecoin}\label{proj:filecoin}
 
@@ -314,7 +340,9 @@ If the ledgers match, peers are connected and allowed to request and transfer bl
 
 \subsection{Is decentralization the only solution?}
 
-\chapter{Upcoming projects}
+%todo - Tor
+
+\chapter{Upcoming projects} %todo - or honorable mentions?
 
 \section{Substratum}
 
