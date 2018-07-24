@@ -17,8 +17,8 @@ morecomment=[l]{//s},
 \advisor{Prof.}{Fernando}{Pedone} %compulsory
 \coadvisor{}{Leandro Pacheco}{De Sousa}{} %optional
 \end{committee}
-\Day{20} %compulsory
-\Month{June} %compulsory
+\Day{10} %compulsory
+\Month{September} %compulsory
 \Year{2018} %compulsory, put only the year
 \place{Lugano} %compulsory
 
@@ -91,8 +91,11 @@ Another important issue is \textbf{privacy} and handling of personal information
 This data can be either automatically collected from user interactions, or can be provided directly by the user: consider, as an example, a social network, where users provide personal information such as their generalities, and the website collects data such as post interactions, number and timestamps of logins, and so on.
 This effectively moves ownership of the data from the user to the company. Data that intrinsically belongs to the user (especially personal information such as name, address and phone number) are stored privately into the company server, and the user has limited control over it, since the only possible actions on the data are the ones defined by the company or required by law.
 
-\section{Thesis structure}
-This thesis has been structured as follows. The first chapter describes the Web in its current state and defines the open issues in its regard. The second chapter introduces some common definitions and describes the models used to analyze the Web and any of the projects that will subsequently be explored; we also define the characteristics of the Distributed Web. The following three chapters describe and analyze some projects that focus on distributing storage, distributed naming and offer a complete implementation of a distributed web, respectively. The sixth chapter will elaborate on some upcoming projects that have the possibility to impact the distributed web scenario. We will conclude the thesis in the seventh chapter.
+\section{Thesis structure}\label{sec:structure}
+This thesis has been structured as follows. The first chapter describes the Web in its current state and defines the open issues in its regard. The second chapter introduces some common definitions and describes the models used to analyze the Web and any of the projects that will subsequently be explored; we also define the characteristics of the Distributed Web. The following three chapters describe and analyze some projects that focus on distributing storage, distributed naming and offer a complete implementation of a distributed web, respectively.
+%The sixth chapter will elaborate on some upcoming projects that have the possibility to impact the distributed web scenario.
+%todo-removed the above for now
+We will conclude the thesis in the sixth chapter.
 
 The projects described in this Thesis have been selected based on the following criteria:
 \begin{itemize}
@@ -132,7 +135,7 @@ In case of failure of the Web server, a browser will try to communicate with it,
 \begin{figure}[b]
 	\centering
 	\includegraphics[width=0.9\linewidth]{img/browser-timeout-example}
-	\caption{An error message for a connection timeout with a Web server given by Firefox 60.}
+	\caption{An error message for a connection timeout with a Web server given by Firefox 61.}
 	\label{fig:browsertimeoutexample}
 \end{figure}
 
@@ -191,7 +194,7 @@ Another key component is a distributed storage system, but in general of any pee
 
 BitTorrent is probably the most known and used peer-to-peer file-sharing protocol. We take a look at BitTorrent both because of its popularity and because it is at the basis of ZeroNet, another project discussed in Section \ref{proj:zeronet}.
 
-\subsection{Protocol overview}
+\subsection{Protocol Overview}
 
 Let us start with some definitions related to the BitTorrent protocol. A collection of files is known as a \textbf{torrent}, and to make distribution easier, each file is split into \textbf{blocks} of equal size. A torrent is described in a dedicated file called, unsurprisingly, \textbf{torrent file} (they are also known as \textit{metainfo files}), which contains a list of the files contained in that torrent and the cryptographic hash of each block (using the SHA-1 algorithm), plus some metadata, such as the name of the torrent, the block size, etc.
 
@@ -221,7 +224,7 @@ BitTorrent peers usually do not share data with all known downloading peers to r
 
 BitTorrent \textbf{data verification} system is based on cryptographic hashing, and is pretty straightforward: each torrent file contains the SHA-1 hash of every block in the torrent, so that peers can verify the integrity of each block upon downloading it.
 
-\subsection{Analysis}
+\subsection{Analysis}\label{sec:btanalysis}
 
 Let's try to infer the model in which BitTorrent is set. We have two main entities specific to the BitTorrent protocol: peers and trackers. 
 
@@ -243,7 +246,7 @@ But this is not the only issue in the network. Its incentive scheme has been tho
 
 The InterPlanetary FileSystem (IPFS for short) is a decentralized file system based on content-addressing coupled with a hypermedia distribution protocol. It has become popular as the \textit{Permanent Web}, as one of the goals of the project is ``to make the web faster, safer, and more open'' and ``where links do not die''.
 
-\subsection{Protocol Description}
+\subsection{Protocol Overview}
 
 IPFS is a peer-to-peer system, and each peer is called a \textbf{node}: all nodes share the same roles and no node is privileged. Each node keeps a set \textbf{objects}, that can represent files or other kinds of data: objects are stored in \textbf{local storage}, i.e. some external system on which raw data can be stored or retrieved. This can range from a hard disk drive to some dedicated RAM, but it can also be some more complex, possibly networked system as well.
 
@@ -292,13 +295,13 @@ If a node happens to have no blocks to share to other nodes but has some request
 
 We can say that in IPFS objects are \textbf{immutable}. Since they are addressed by their hash, the contents of the objects cannot change once deployed on IPFS. This means that updates or new versions of objects will be published under a different address, even in the case of commits since new versions will be additional commit objects and have different hash. This makes difficult to maintain, for example, a website where content could be frequently updated: a webmaster should continuously publish new IPFS links off-band to their users to make them aware of the website changes. To solve this problem, IPFS has a component called \textbf{IPNS}, which stands for InterPlanetary Name Space, and implements a mutable namespace where a unique path can be updated to refer to different IPFS objects. Each node has an IPNS path composed of \texttt{/ipns/}, to distinguish it from the immutable IPFS paths, followed by the identifier of the node, which is the hash of its public key. Under this path, there can only be \textit{signed objects}, a tuple composed by a standard object, its signature and the public key of the node, which can be verified by its hash contained in the path. Every type of standard object is supported, including trees and commits, allowing for more extended paths like in IPFS. This mutable state cannot be stored in IPFS itself, therefore it lives in the DHT used for peer discovery.
 
-\subsection{Analysis}
+\subsection{Analysis}\label{sec:ipfsanalysis}
 
 Inferring the model in which IPFS is set is relatively straightforward, since we only have one class of entities in the entire system: nodes.
 
 Everything in IPFS suggests that it is meant to be deployed in a Byzantine environment. Every transferred block is verified through its hash, contained in the address, rendering impossible to counterfeit the content of the requested data; moreover, nodes that attempt to do so are detected and penalized by BitSwap through a timeout penalty.
 
-As for the danger of free riding, BitSwap incentivizes nodes to share blocks by introducing a ledger mechanism that, while being based on the \textit{tit-for-tat} like algorithm of BitTorrent, it has been made more robust through the required synchronization of ledgers between nodes: this allows to build trust among well-behaved nodes while maintaining a harsh environment for fresh nodes that join the network or towards nodes that refuse to maintain a ledger, possibly to cancel debts towards other nodes. %todo - continue this?
+As for the danger of free riding, BitSwap incentivizes nodes to share blocks by introducing a ledger mechanism that, while being based on the \textit{tit-for-tat} like algorithm of BitTorrent, it has been made more robust through the required synchronization of ledgers between nodes: this allows to build trust among well-behaved nodes while maintaining a harsh environment for fresh nodes that join the network or towards nodes that refuse to maintain a ledger, possibly to cancel debts towards other nodes. %todo - expand on this?
 
 But IPFS has an issue which is very similar to BitTorrent: just like torrent files must be distributed out-of-band, in IPFS the paths (which include the hashes) of the data must also be distributed out-of-band. But if we consider the current Web, we find the same issue: URLs of websites have to be obtained out-of-band, and the users that connect to a bad URL will not visit the webpage that they were looking for. This has been mitigated by the introduction of search engines, that made discovery of websites possible by keyword and not by URL. If a search engine behaves properly, it will return the correct URLs for the searched services. Some of these have grown to be so popular that they have started to become integrated in browsers, so that a user doesn't need to know the URL of the search engine in the first place. But the problem is only mitigated, not resolved, which allows for attacks such as \textit{typosquatting} and \textit{homograph attacks}. IPFS actually improves over the Web by not being vulnerable to both of these attacks, since URLs are hashes with a strict selection of characters and a typo is almost certainly making the hash a dead link that has no associated object, but an adversary can still deliver a malicious IPFS path to a user and claim that such link leads to some content, while in reality it does not, for example by using scam e-mails or by hosting a standard website in the normal Web. IPFS also makes it more difficult for users to detect such attacks, because its paths are neither human friendly nor related to the content in a semantic way; in other words a path towards a service is not going to contain the name of that service, while in the Web it's very likely that the URL is purposefully chosen to include the service name. %todo - does IPNS with public keys help in this?
 
@@ -310,24 +313,89 @@ IPFS uses a DHT as their peer discovery system. Any node that joins the network 
 \end{itemize}
 A temporary workaround would be to edit the list in the source code to include also more, lesser-known trusted nodes: since IPFS is open source, this is an entirely viable option.
 
-\section{Ethereum Swarm}\label{proj:swarm}
+\section{Summary}\label{sec:storagesummary}
 
+We have explored two solutions to distribute storage of data among a number of devices in a Byzantine environment.
 
+Both BitTorrent and IPFS rely on cryptographic hashing to verify the transmitted data: the hash information is distributed off-band in the form of torrent files and paths, respectively. Since IPFS leverages a Merkle DAG, the hash data needed to verify files is much lower in size than in BitTorrent: in IPFS only one single hash is needed, independently from the size of the data (the only variable is the hashing algorithm used to compute the hash), which allows the system to fit the hash directly into paths and to use them to address data; on the other hand, size of torrent files depends on both the block size and the overall number of blocks, but with opposing effects: torrent file size is inversely proportional to the block size but directly proportional to the number of blocks. In some cases, torrent files can reach an order of magnitude of a hundred kilobytes in size, while IPFS hashing information is in the order of tens of bytes.
 
-\section{Filecoin}\label{proj:filecoin}
+The included incentive system for the protocols is different, since IPFS revisits BitTorrent mechanism and improves on it. The algorithm based on \textit{tit-for-tat} implemented in BitTorrent does not successfully prevent free-riding, as we discussed in Section \ref{sec:btanalysis}, a problem that IPFS attempts to solve with BitSwap, which introduces ledgers and strategies. At the time of writing it is too early to say with confidence that the current implementation correctly prevents free-riding, but BitSwap allows for different ledgers and strategies to be used (even at the same time) which enables flexible evolution of the reference implementation and the introduction of novel, more secure incentive schemes.
 
-\section{Summary}
+Both BitTorrent and IPFS rely on a DHT to perform peer discovery, but IPFS, being more recent, expands on the features of BitTorrent's DHT to achieve improved performance. Neither system defines a way to bootstrap the DHT, which leaves this task to client implementers: here, BitTorrent has an advantage since many clients with different solutions exist, while IPFS has had less time to attract developers into creating their own clients, especially considering the fact that development on the reference implementation is not completed at the time of writing, forcing Protocol Labs to adopt a hopefully temporary solution by hard-coding a list of known nodes: we discuss this in Section \ref{sec:ipfsanalysis}.
 
-% todo - possible \chapter{Decentralizing logic}? This would just be Ethereum, and maybe Hashgraph
+In Table \ref{table:storagecomparison} we summarize the algorithms and mechanisms chosen by BitTorrent and IPFS to implement their solutions.
+
+\begin{table}[b]
+	\begin{center}
+		\begin{tabular}{|l|l|l|} \hline
+			Feature & BitTorrent & IPFS \\ \hline
+			
+			Data verification & Off-band cryptographic hashes &
+					\begin{tabular}{@{}l@{}}
+						Off-band cryptographic hashes \\
+						Merkle DAG
+					\end{tabular} \\ \hline
+			
+			Peer discovery & Tracker servers, DHT & DHT \\ \hline
+			
+			Incentive scheme & Based on \textit{tit-for-tat} & 
+					\begin{tabular}{@{}l@{}}
+						BitSwap strategy\\
+						Reference impl. is baed on \textit{debt ratio}
+					\end{tabular} \\ \hline
+		\end{tabular}
+	\end{center}
+	\caption{Summary of algorithms and techniques used by the presented distributed storage projects}
+	\label{table:storagecomparison}
+\end{table}
+
+\section{Honorable mentions}
+
+Many projects that are interesting and innovative under a scientific point of view have been excluded from this thesis because they do not meet the requirements specified in the Thesis Structure in Section \ref{sec:structure}. We will list here the most important ones, their main characteristics and the motivation behind this choice:
+\begin{itemize}
+	\item \textbf{Ethereum Swarm}: while it features similar properties as IPFS, such as content-addressing, it is based on the Ethereum blockchain and it caters to Ethereum specific needs, such as hosting of distributed applications (or \textit{dapps}). It focuses on fast delivery of small amounts of data and really strong anti-censorship features such as \textit{plausible deniability} of ownership of data, which makes impossible to determine with certainty which node is hosting which content. It was not included because, at the time of writing, development is in early proof-of-concept stages with only a test network available to users.
+	\item \textbf{Filecoin}: developed by Protocol Labs and based on their own IPFS, it introduces complex and innovative methods to verify that data is not only stored correctly but also kept for a large amount of time, ready to be served. These methods are called \textit{Proof-of-Replication} and \textit{Proof-of-Spacetime}. It was not included both because its goal is slightly different from offering a new decentralized Web (it is also suitable for personal cloud storage needs since data can be encrypted by the uploader, but without encryption it can be used to build decentralized apps) and, most importantly, because it has not been deployed at the time of writing, without even a test network available.
+	\item \textbf{Sia} and \textbf{Storj}: two projects similar to Filecoin but simpler in nature. Their explicit goal is to provide a new decentralized cloud-storage service that is cheaper than the centralized ones available on the Web today. This is why these (and similar non-mentioned projects) were not included in the thesis.
+\end{itemize}
 
 \chapter{Decentralizing Naming}\label{ch:naming}
-%todo - start with DNS
+Another key component in the World Wide Web lies underneath the URLs that identify websites: the Domain Name System (or, in short, DNS).
+
+The DNS is a decentralized naming system for devices connected to a network (including the Internet), currently defined with RFC 1034\cite{rfc:1034} and RFC 1035\cite{rfc:1035} and updated with successive RFCs throughout the years. The most important duty of the DNS is to map arbitrary human-friendly names to mainly IP addresses, although it can map to other types of data.
+
+%todo - this is taken pretty much as is from my Bachelor Project report: is this fine?
+The DNS defines three components:
+\begin{itemize}
+	\item The \emph{domain name space} is a tree data structure, where nodes are identified by \emph{labels}: labels compose the domain names in a hierarchical way, by concatenation of labels separated by dots. For example, for the domain ``\texttt{www.example.com}'', ``\texttt{example.com}'' is a child of ``\texttt{com}'' and ``\texttt{www.example.com}'' is a child of ``\texttt{example.com}''.
+	\item \emph{Name servers} are programs which store information about a subset of the domain space and references to other name servers which have information about the rest of the tree. Name servers have \emph{authority} over the parts of the tree of which they have complete information.
+	\item \emph{Resolvers} are programs which receive queries from clients and respond with information extracted from the name servers. Resolvers only need to know directly just one name server to complete all possible queries: if that name server does not contain the requested information, the resolver uses its references to reach other name servers.
+\end{itemize}
+The domain name space has one root node, labeled with an empty string. Children of this node are called \emph{top-level domains}, among which we can find ``\texttt{.com}'' and ``\texttt{.org}'', and two lettered words known as\emph{country codes}, such as ``\texttt{.ch}'' and ``\texttt{.it}''. Currently, there are about one thousand different top-level domains\cite{website:tldlist}.
+
+When resolving a hostname, resolvers query the root name server with the whole domain. The root name server usually replies with the address of the name server which has authority over the top-level domain of the hostname, but it also has facility to reply with the address of the actual server associated with the whole hostname. If the query has not been completed, the query is repeated with the correspondent top-level domain name server, and so on.
+
+To reduce traffic towards the root name servers (and all other name servers), DNS resolvers implement a \emph{caching} system: results from name servers are stored for reuse, together with an optional time-to-live value specified from the name servers themselves.
+
+As we stated in Section \ref{sec:problems}, DNS is susceptible to attacks, including in its caching mechanism: since it is based on UDP, it is substantially easy to forge valid packets, especially responses. The two types of messages that are most often forged are:
+\begin{enumerate}
+	\item Responses to resolver queries: when a browser (or any application) attempts a DNS resolution, it contacts the DNS resolver that is configured in the operating system, which is most often the one provided by the ISP, but can also be configured by the user to be any DNS resolver. If an attacker is in the proper position and quick enough, it can send a valid response before the actual resolver can get its message to the requester, causing improper data to be accepted by the application. In the case of a browser trying to find a website, it will connect to the server specified by the attacker instead of the correct one, while still displaying the original domain name in the address bar.
+	\item Caching messages: a malicious name server that has authority over a domain might provide answers that are valid responses but contain invalid data, such as claims of authority over other unrelated domains or resolutions that are not competent to that name server; such data can be cached by resolvers to be used in the future, compromising access to the actual valid data.
+\end{enumerate}
+
+To counter these (and similar, possibly unknown) attacks, DNS Security Extensions (DNSSEC) have been introduced, which allow for resolvers and name servers to sign their messages using public-key cryptography, to ensure that they originate from the actual source. Implementation of DNSSEC has been
+
+\begin{figure}[b]
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/browser-dns-fail-example}
+	\caption{An error message for a failed DNS resolution given by Firefox 61.}
+	\label{fig:browserdnsfailexample}
+\end{figure}
 
 \section{Namecoin}\label{proj:namecoin}
 
 \section{Ethereum Name Service}\label{proj:ens}
 
-\section{Analysis}
+\section{Summary}
 
 
 \chapter{Distributed Web Projects}
@@ -336,17 +404,21 @@ A temporary workaround would be to edit the list in the source code to include a
 
 \section{Blockstack}\label{proj:blockstack}
 
-\section{Analysis}
+%\section{SAFE Network}\label{proj:safe}
+%todo - investigate this one, but it seems to be in closed testing
+
+\section{Summary}
 
 \subsection{Is decentralization the only solution?}
 
 %todo - Tor
 
-\chapter{Upcoming projects} %todo - or honorable mentions?
+%\chapter{Upcoming projects}
+%todo - or honorable mentions?
 
-\section{Substratum}
+%\section{Substratum}
 
-\section{Hashgraph}
+%\section{Hashgraph}
 
 
 \chapter{Conclusions}
@@ -357,21 +429,6 @@ A temporary workaround would be to edit the list in the source code to include a
 %\nocite{*}
 
 \appendix 
-
-\chapter{The Domain Name System - A brief overview}\label{appx:dns}
-The Domain Name System is a decentralized naming system for devices connected to a network (including the Internet), currently defined with RFC 1034\cite{rfc:1034} and RFC 1035\cite{rfc:1035} and updated with successive RFCs throughout the years.
-
-The DNS defines three components:
-\begin{itemize}
-	\item The \emph{domain name space} is a tree data structure, where nodes are identified by \emph{labels}: labels compose the domain names in a hierarchical way, by concatenation of labels separated by dots. For example, for the domain ``\texttt{www.example.com}'', ``\texttt{example.com}'' is a child of ``\texttt{com}'' and ``\texttt{www.example.com}'' is a child of ``\texttt{example.com}''.
-	\item \emph{Name servers} are programs which store information about a subset of the domain space and references to other name servers which have information about the rest of the tree. Name servers have \emph{authority} over the parts of the tree of which they have complete information.
-	\item \emph{Resolvers} are programs which receive queries from clients and respond with information extracted from the name servers. Resolvers only need to know directly just one name server to complete all possible queries: if that name server does not contain the requested information, the resolver uses its references to reach other name servers.
-\end{itemize}
-The domain name space has one root node, labeled with an empty string. Childs of this node are called \emph{top-level domains}, among which we can find ``\texttt{.com}'' and ``\texttt{.org}'', and two lettered \emph{country codes}, such as ``\texttt{.ch}'' and ``\texttt{.it}''. Currently, there are about one thousand different top-level domains\cite{website:tldlist}.
-
-When resolving a hostname, resolvers query the root name server with the whole domain. The root name server usually replies with the address of the name server which has authority over the top-level domain of the hostname, but it also has facility to reply with the address of the actual server associated with the whole hostname. If the query has not been completed, the query is repeated with the correspondent top-level domain name server, and so on.
-
-To reduce traffic towards the root name servers (and all other name servers), DNS resolvers implement a \emph{caching} system: results from name servers are stored for reuse, together with a time-to-live value specified from the name servers themselves. 
 
 \chapter{Distributed Hash Table}\label{appx:dht}
 %todo
