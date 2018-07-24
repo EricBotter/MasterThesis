@@ -139,9 +139,10 @@ In case of failure of the Web server, a browser will try to communicate with it,
 	\label{fig:browsertimeoutexample}
 \end{figure}
 
-One could argue that this model does not accurately represent the reality. For example, if a malicious third party takes over the communication channel, gaining complete control over each byte that it transports\footnote{An example of such a third party are Internet Service Providers.}, it can interfere and change the data that is transmitted. This is transparent to both the clients and the web server, since there is no mechanism in place to ensure that the data is \textit{integral}\footnote{TCP provides data integrity against transmission errors, which are in the order of few bits per kilobyte, but this is too weak in this scenario, where the entire TCP packet can be rewritten to appear unaltered.} -- and rightfully so, given that the communication channel is assumed to not alter data arbitrarily. This is known as a \textit{man-in-the-middle} attack.
+One could argue that this model does not accurately represent the reality. For example, if a malicious third party takes over the communication channel, gaining complete control over each byte that it transports (an example of such a third party are Internet Service Providers), it can interfere and change the data that is transmitted. This is transparent to both the clients and the web server, since there is no mechanism in place to ensure that the data is \textit{integral}\footnote{TCP provides data integrity against transmission errors, which are in the order of few bits per kilobyte, but this is too weak in this scenario, where the entire TCP packet can be rewritten to appear unaltered.} -- and rightfully so, given that the communication channel is assumed to not alter data arbitrarily. This is known as a \textit{man-in-the-middle} attack.
 
-To allow this scenario in our model we need to weaken it, by removing assumptions on what the communication channel will do during failure. We now allow arbitrary behavior, which means that processes under this weaker model can produce any kind of message, whether it complies to the protocol or not: they can lie, omit information or do just about anything, which also includes stopping and behaving properly. This model is the \textbf{Byzantine failure model}.
+To allow this scenario in our model we need to weaken it, by removing assumptions on what the communication channel will do during failure. We now allow arbitrary behavior, which means that processes under this weaker model can produce any kind of message, whether it complies to the protocol or not: they can lie, omit information or do just about anything\footnotemark{}, which also includes stopping and behaving properly. This model is the \textbf{Byzantine failure model}.
+\footnotetext{We are going to implicitly constrain Byzantine processes just by limiting their computing power. This allows us to use cryptographic algorithms such as hashing, signatures and encryption to counter data alteration. These would be useless against an all-powerful attacker that is able to reverse hashes and break public-key cryptography.}
 This is particularly useful to model malicious intentions: since failed entities can perform arbitrary actions, it is particularly important to consider situations that can cause the most damage to the system. Once we protect against these actions (and all possible other scenarios), we are sure to protect the system from any attacker that takes over the entities that we consider to be Byzantine.
 
 Let's now place the communication channel in this Byzantine failure model.
@@ -163,13 +164,14 @@ Let's see how this scenario can resolve the three problems described in Section 
 
 	\item \textbf{Privacy} and handling of personal information: in a distributed environment, we no longer have websites that can privately store data about their users. This is because every website now is hosted on multiple servers: if they want to provide some form of consistency, they have to share or synchronize that data in some way. This would imply that the data is no longer private, but we cannot have public personal data available to multiple servers, especially when some of them have malicious intents.\\
 	Among the different possibilities, we mention two options here: either the clients (and the clients only) store the private data, so that it is not shared in the network, or the data is uploaded in the network but in an encrypted way, so that only its owner can access it. We will see how different projects tackle this problem, and whether they solve it.
+	%todo - clarify that this is not because of the Byzantine protections, but because our solution is to decentralize.
 \end{itemize}
 
 Many projects claim to implement the distributed Web. Every one of them provides a specific strength or focuses on a particular issue instead of building a complete, all-round system.
 Unfortunately, such protocols are not well-known to the general public, and consequently are not widespread enough to be either standardized or integrated into modern state-of-the-art browsers.
 But most importantly, creating such a protocol is very difficult.
 
-Keep in mind that many of these projects do not define the model around which their platform is built. They mostly define the possible attacks and the related countermeasures they adopt. We will try to infer a model of the environment whenever we consider appropriate to do so, while trying stay as close to the project specifications as possible.
+Keep in mind that many of these projects do not define the model around which their platform is built. They mostly define the possible attacks and the related countermeasures they adopt. We will infer a model of the environment whenever we consider appropriate to do so, while trying to stay as close to the project specifications as possible.
 
 %\section{Challenges of creating a distributed Web}
 %todo - But how exactly is it difficult to build the distributed Web? is this done below?
@@ -188,8 +190,6 @@ The second one is \textbf{data verification}: each system must provide a way to 
 Another key component is a distributed storage system, but in general of any peer-to-peer network, is \textbf{peer discovery}, i.e. a mechanism through which a client can obtain a list of currently active peers that can be contacted. This is because on the Internet, it is impossible to find which devices are offering which services (especially if these devices keep moving and disconnecting all the time), without either knowing them directly, or looking them up using a dedicated directory that lists and keeps track of such devices. This directory can be either centralized or decentralized, and comparing the two options leads to the same advantages and disadvantages that we discussed previously. It would make sense to prefer a decentralized directory to a centralized one, but a completely distributed directory cannot exist, since it also needs to be discovered: a compromise has to be made. Often, projects with a distributed directory have a different process just to make the directory known to a client: this process is often referred to as \textit{peer discovery bootstrap}.
 %todo - the above is probably confusing
 
-%todo - define use cases to describe project functionalities? Like download a file, upload a file, etc.
-
 \section{BitTorrent}\label{proj:bittorrent}
 
 BitTorrent is probably the most known and used peer-to-peer file-sharing protocol. We take a look at BitTorrent both because of its popularity and because it is at the basis of ZeroNet, another project discussed in Section \ref{proj:zeronet}.
@@ -198,11 +198,11 @@ BitTorrent is probably the most known and used peer-to-peer file-sharing protoco
 
 Let us start with some definitions related to the BitTorrent protocol. A collection of files is known as a \textbf{torrent}, and to make distribution easier, each file is split into \textbf{blocks} of equal size. A torrent is described in a dedicated file called, unsurprisingly, \textbf{torrent file} (they are also known as \textit{metainfo files}), which contains a list of the files contained in that torrent and the cryptographic hash of each block (using the SHA-1 algorithm), plus some metadata, such as the name of the torrent, the block size, etc.
 
-A BitTorrent client connected to and participating in the network is called a \textbf{peer}. Peers communicate with each other when they are aware of the same torrent: that group of peers is called a \textbf{swarm}. When a peer has all the parts of a torrent and is sharing them with the rest of network, it is called a \textbf{seeder}, and the operation of sharing data is called \textit{seeding}.
+A BitTorrent client connected to and participating in the network is called a \textbf{peer}. Peers communicate with each other when they are aware of the same torrent: such a group of peers is called a \textbf{swarm}. When a peer has all the blocks of a torrent and is sharing them with the rest of network, it is called a \textbf{seeder}, and the operation of sharing data is called \textit{seeding}.
 
 In BitTorrent, torrents are distributed out-of-band. It is assumed that when a peer obtains a torrent file, that file is legitimate and as intended by the torrent creator. Usually, torrent files can be obtained from the Web, often from dedicated websites and forums where users can upload their own torrent files: the documentation of BitTorrent only mentions the Web as a way to obtain torrent files.
 
-To perform peer discovery, BitTorrent relies on \textbf{trackers}, dedicated servers that keep track of swarms for different torrents. Each torrent file lists the trackers that peers should contact (by announcing themselves) for that particular torrent. Although different torrents can rely on different (and multiple) trackers, this is a centralized peer discovery system: it is often the case that few trackers (in the order of tens) track the majority of torrents. If these trackers are shutdown or blocked, peers will have a hard time discovering each other. To counter this, BitTorrent later integrated two decentralized discovery mechanisms: DHT (which we cover in Appendix \ref{appx:dht}), and \textbf{Peer Exchange} (or PEX) that allows peers to trade information about their common swarm, so that each client can discover more peers, leading to a better connected swarm. Note that peers cannot join a swarm only through PEX: they have to first contact either a tracker or the DHT.
+To perform peer discovery, BitTorrent relies on \textbf{trackers}, dedicated servers that keep track of swarms for different torrents. Each torrent file lists the trackers that peers should contact (by announcing themselves) for that particular torrent. Although different torrents can rely on different (and multiple) trackers, this is a centralized peer discovery system: it is often the case that few trackers (in the order of tens) track the majority of torrents. If these trackers are shutdown or blocked, peers will be unable to discover each other. To counter this, BitTorrent later integrated two decentralized discovery mechanisms: DHT (which we cover in Appendix \ref{appx:dht}), and \textbf{Peer Exchange} (or PEX) that allows peers to trade information about their common swarm, so that each client can discover more peers, leading to a better connected swarm. Note that peers cannot join a swarm only through PEX: they have to first contact either a tracker or the DHT.
 
 BitTorrent does not define how to bootstrap the connection to the DHT, leaving it as an implementation detail. Different clients employ different techniques, among which we can find the following:
 \begin{itemize}
@@ -220,7 +220,7 @@ To download a torrent from the network, a user has to obtain the torrent file fi
 
 BitTorrent's \textbf{incentive scheme} is well explained and analyzed by \cite{cohen2003incentives}, the creator of BitTorrent, and we will just summarize it here. It is based on a \textit{tit-for-tat} algorithm, and uses a mechanism known as \textbf{choking} to select the best peers for collaboration. Choking is refusal from a peer to share its blocks with another peer, who is said to be \textit{choked}; \textit{unchoking} is the opposite operation.
 
-BitTorrent peers usually do not share data with all known downloading peers to reduce overhead of communications and best utilize the available bandwidth. Peers will start sending blocks to some other peer in the swarm, hoping that they return the favor and start sending data back. If the favor is not returned, the other peer is choked, and some other peer is chosen instead; otherwise, the peer will increase its bandwidth towards the other peer, and those peers will continue to share data between each other. This is done until a limit of simultaneously connected peers is reached, usually four but this is user-configurable. Every now and then, a peer will unchoke some random peer, hoping that a benevolent uploader is found: this is called an \textit{optimistic unchoke}, and it is done by replacing the worst-performing peer, which becomes choked. This allows to improve performance if the current transfers do not maximize a peer's bandwidth, but it can also degrade it if the new peer does not perform as good as the replaced one: this is why it is said to be \textit{optimistic}.
+BitTorrent peers usually do not share data with all known downloading peers to reduce overhead of communications and best utilize the available bandwidth. Peers will start sending blocks to some other peer in the swarm, hoping that they return the favor and start sending data back (this is the core of the \textit{tit-for-tat} concept). If the favor is not returned, the other peer is choked, and some other peer is chosen instead; otherwise, the peer will increase its bandwidth towards the other peer, and those peers will continue to share data between each other. This is done until a limit of simultaneously connected peers is reached, usually four but this is user-configurable. Every now and then, a peer will unchoke some random peer, hoping that a benevolent uploader is found: this is called an \textit{optimistic unchoke}, and it is done by replacing the worst-performing peer, which becomes choked. This allows to improve performance if the current transfers do not maximize a peer's bandwidth, but it can also degrade it if the new peer does not perform as good as the replaced one: this is why it is said to be \textit{optimistic}.
 
 BitTorrent \textbf{data verification} system is based on cryptographic hashing, and is pretty straightforward: each torrent file contains the SHA-1 hash of every block in the torrent, so that peers can verify the integrity of each block upon downloading it.
 
@@ -328,7 +328,7 @@ In Table \ref{table:storagecomparison} we summarize the algorithms and mechanism
 \begin{table}[b]
 	\begin{center}
 		\begin{tabular}{|l|l|l|} \hline
-			Feature & BitTorrent & IPFS \\ \hline
+			\textbf{Feature} & \textbf{BitTorrent} & \textbf{IPFS} \\ \hline
 			
 			Data verification & Off-band cryptographic hashes &
 					\begin{tabular}{@{}l@{}}
@@ -341,7 +341,7 @@ In Table \ref{table:storagecomparison} we summarize the algorithms and mechanism
 			Incentive scheme & Based on \textit{tit-for-tat} & 
 					\begin{tabular}{@{}l@{}}
 						BitSwap strategy\\
-						Reference impl. is baed on \textit{debt ratio}
+						Reference impl. is based on \textit{debt ratio}
 					\end{tabular} \\ \hline
 		\end{tabular}
 	\end{center}
@@ -359,18 +359,20 @@ Many projects that are interesting and innovative under a scientific point of vi
 \end{itemize}
 
 \chapter{Decentralizing Naming}\label{ch:naming}
+%todo - It seems like this type of discussion would belong to Chapter 2, when we define the models. It doesn't, because we are not defining any models here, but then the whole discussion about bringing the web to Byzantine should be moved in Chapter 3. But if we do that, we lose the reasoning behind why we would define those models, and the definitions would just be there by themselves. How can we solve this?
+
 Another key component in the World Wide Web lies underneath the URLs that identify websites: the Domain Name System (or, in short, DNS).
 
+%todo - this is taken pretty much as is from my Bachelor Project report: is this fine?
 The DNS is a decentralized naming system for devices connected to a network (including the Internet), currently defined with RFC 1034\cite{rfc:1034} and RFC 1035\cite{rfc:1035} and updated with successive RFCs throughout the years. The most important duty of the DNS is to map arbitrary human-friendly names to mainly IP addresses, although it can map to other types of data.
 
-%todo - this is taken pretty much as is from my Bachelor Project report: is this fine?
 The DNS defines three components:
 \begin{itemize}
 	\item The \emph{domain name space} is a tree data structure, where nodes are identified by \emph{labels}: labels compose the domain names in a hierarchical way, by concatenation of labels separated by dots. For example, for the domain ``\texttt{www.example.com}'', ``\texttt{example.com}'' is a child of ``\texttt{com}'' and ``\texttt{www.example.com}'' is a child of ``\texttt{example.com}''.
 	\item \emph{Name servers} are programs which store information about a subset of the domain space and references to other name servers which have information about the rest of the tree. Name servers have \emph{authority} over the parts of the tree of which they have complete information.
 	\item \emph{Resolvers} are programs which receive queries from clients and respond with information extracted from the name servers. Resolvers only need to know directly just one name server to complete all possible queries: if that name server does not contain the requested information, the resolver uses its references to reach other name servers.
 \end{itemize}
-The domain name space has one root node, labeled with an empty string. Children of this node are called \emph{top-level domains}, among which we can find ``\texttt{.com}'' and ``\texttt{.org}'', and two lettered words known as\emph{country codes}, such as ``\texttt{.ch}'' and ``\texttt{.it}''. Currently, there are about one thousand different top-level domains\cite{website:tldlist}.
+The domain name space has one root node, labeled with an empty string. Children of this node are called \emph{top-level domains}, among which we can find ``\texttt{.com}'' and ``\texttt{.org}'', and two lettered words known as \emph{country codes}, such as ``\texttt{.ch}'' and ``\texttt{.it}''. Currently, there are about one thousand different top-level domains \cite{website:tldlist}.
 
 When resolving a hostname, resolvers query the root name server with the whole domain. The root name server usually replies with the address of the name server which has authority over the top-level domain of the hostname, but it also has facility to reply with the address of the actual server associated with the whole hostname. If the query has not been completed, the query is repeated with the correspondent top-level domain name server, and so on.
 
@@ -382,16 +384,27 @@ As we stated in Section \ref{sec:problems}, DNS is susceptible to attacks, inclu
 	\item Caching messages: a malicious name server that has authority over a domain might provide answers that are valid responses but contain invalid data, such as claims of authority over other unrelated domains or resolutions that are not competent to that name server; such data can be cached by resolvers to be used in the future, compromising access to the actual valid data.
 \end{enumerate}
 
-To counter these (and similar, possibly unknown) attacks, DNS Security Extensions (DNSSEC) have been introduced, which allow for resolvers and name servers to sign their messages using public-key cryptography, to ensure that they originate from the actual source. Implementation of DNSSEC has been
+To counter these and similar attacks (described in RFC 3833 \cite{rfc:3833}), DNS Security Extensions (DNSSEC) have been introduced, which allow for resolvers and name servers to sign their messages using public-key cryptography to ensure that they originate from their actual source. Yet, implementation of DNSSEC has been inconsistent, and the majority of domains still don't support these extensions, at the time of writing.
+
+While DNSSEC prevent tampering of communications from a third-party attacker, it does not prevent other types of misconduct perpetrated by the DNS resolvers and name servers themselves, since they are still able to provide misleading information or to completely omit data regarding domain names that effectively become censored. This is because, from the client, DNS appears to be a centralized system (it is also a client/server protocol): the client only communicates with a DNS resolver, which will then search for the answer to the client's requests as described previously, if it doesn't already have that information.
+
+To include these types of attack, we would have to move (at least) the DNS resolvers into a Byzantine failure model, where they are allowed to omit or modify information.
+
+This discussion is very similar to what is explained in Chapter \ref{ch:background}. Indeed, if we consider in which failure model the DNS is set, we would argue that it lies in a stopping failure model and its messages travel unmodified in a identically modeled channel (an example of a browser detecting a stop failure can be seen in Figure \ref{fig:browserdnsfailexample}). When we move the channel to a Byzantine failure model we introduce public-key cryptography with DNSSEC to avoid tampering with the messages (we are already prepared for refusals to delivery from the previous model). And now we move the servers (at least the ones that communicate with the clients, which are the DNS resolvers) to the Byzantine model.
+
+Now, following the theme of this thesis, the logical answer would be to decentralize the DNS resolvers. This was thought to be impossible by \cite{wilcox2003names}, who conjectured that one cannot obtain a namespace where names are decentralized, secure (in the sense that an attacker cannot fake name resolutions) and human-meaningful at the same time: this \textit{trilemma} would be known as the ``Zooko's Triangle''.
+
+This conjecture sparked discussion and interest about the problem. The birth and popularization of Bitcoin and the blockchain gave \cite{swartz2011names} the idea that the Zooko's Triangle had actually been disproven in this practical and deployed project: his idea was later implemented as Namecoin.
 
 \begin{figure}[b]
 	\centering
 	\includegraphics[width=0.9\linewidth]{img/browser-dns-fail-example}
-	\caption{An error message for a failed DNS resolution given by Firefox 61.}
+	\caption{An error message for a failed DNS resolution given by Firefox 61. Note that while the text says that the browser cannot connect to the website (in this case \texttt{www.google.it}), the ``title'' of the error page states that Firefox is not able to find the site: indeed, the DNS resolution for that domain name failed.}
 	\label{fig:browserdnsfailexample}
 \end{figure}
 
 \section{Namecoin}\label{proj:namecoin}
+
 
 \section{Ethereum Name Service}\label{proj:ens}
 
@@ -406,6 +419,9 @@ To counter these (and similar, possibly unknown) attacks, DNS Security Extension
 
 %\section{SAFE Network}\label{proj:safe}
 %todo - investigate this one, but it seems to be in closed testing
+
+%\section{Freenet}
+%todo - So old, is it worth to talk about this?
 
 \section{Summary}
 
@@ -423,6 +439,7 @@ To counter these (and similar, possibly unknown) attacks, DNS Security Extension
 
 \chapter{Conclusions}
 
+If any information is incorrect, we blame a Byzantine attacker over the standard Web that fooled us with misleading data.
 %As you can easily see from the above listing \citet{bbggs:iet07}
 %define something weird based on the BPEL specification
 %\citep{bpelspec}.
