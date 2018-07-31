@@ -85,7 +85,8 @@ The main attacks that can be used to prevent communication towards a website are
 
 We also have a problem of \textbf{trust}. When you access a website, there is no guarantee that the data you received is from the content creator, because HTTP is vulnerable to man-in-the-middle attacks. There is no mechanism to verify the authenticity of the transmitted data and the protocol does not use encryption, so anyone can forge a valid HTTP communication (even based on an ongoing one) and send it through the wires. We expand on this in Chapter \ref{ch:background}.
 
-HTTPS resolves this issue by asymmetrically encrypting the communication channel, and authenticating the data that is sent, but the current trust system (X.509) is based on certificate authorities and is considered weak, which might allow for identity theft. %TODO - expand on this
+HTTPS resolves this issue by asymmetrically encrypting the communication channel, and authenticating the data that is sent, but the current trust system (X.509) is based on certificate authorities and is considered weak, which might allow for identity theft.
+%TODO - expand on this - possible source: https://www.eff.org/deeplinks/2011/10/how-secure-https-today
 
 Another important issue is \textbf{privacy} and handling of personal information: with the current scenario, whenever you connect to a website, that website privately stores data about you.
 This data can be either automatically collected from user interactions, or can be provided directly by the user: consider, as an example, a social network, where users provide personal information such as their generalities, and the website collects data such as post interactions, number and timestamps of logins, and so on.
@@ -132,7 +133,7 @@ This model allows Web clients (browsers) and content creators to make certain as
 	%TODO - more?
 \end{itemize}
 In case of failure of the Web server, a browser will try to communicate with it, and after some time without receiving a response it will give up and show to the user an error message, of which an example can be found in Figure \ref{fig:browsertimeoutexample}.
-\begin{figure}[b]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=0.9\linewidth]{img/browser-timeout-example}
 	\caption{An error message for a connection timeout with a Web server given by Firefox 61.}
@@ -252,7 +253,7 @@ IPFS is a peer-to-peer system, and each peer is called a \textbf{node}: all node
 
 On initialization, a node generates an asymmetric key pair, then it computes the cryptographic hash of their public key: that hash becomes the node's \textbf{identifier} within the network.
 
-In IPFS there is one global (rather, \textit{interplanetary}) space where all objects are stored, unlike in BitTorrent where each torrent is completely separated from the others. Each object is therefore uniquely identifiable, and the system to generate such an identifier is cryptographic hashing. This is known as \textit{content-addressing}: the \textit{address} that identifies and allows to retrieve some data is directly derivable from the data itself. This method enables the file space to be modeled as a \textit{Merkle DAG}, i.e. a directed acyclic graph where the edges are implemented as cryptographic hashes of the content of the node they are pointing at.
+In IPFS there is one global (rather, \textit{interplanetary}) space where all objects are stored, unlike in BitTorrent where each torrent is completely separated from the others. Each object is therefore uniquely identifiable, and the system to generate such an identifier is cryptographic hashing. This is known as \textbf{content-addressing}: the \textit{address} that identifies and allows to retrieve some data is directly derivable from the data itself. This method enables the file space to be modeled as a \textit{Merkle DAG}, i.e. a directed acyclic graph where the edges are implemented as cryptographic hashes of the content of the node they are pointing at.
 
 Objects can be of four types:
 \begin{itemize}
@@ -276,7 +277,7 @@ To exchange blocks between peers, IPFS introduced a custom protocol named BitSwa
 	\item a \textbf{ledger} that keeps track of previous block exchanges, in particular of the amount of bytes exchanged and verified between each node;
 	\item a \textbf{strategy}, i.e. a function that given the ledger and the requesting node, returns the probability of accepting the request and sending a block to that node.
 \end{enumerate}
-In BitSwap, different ledgers and strategies can be chosen, and each one has large impacts on the performance of the entire IPFS network. We will describe here the default options, integrated in the reference IPFS client.
+In BitSwap, different ledgers and strategies can be chosen, and each one can have large impacts on the performance of the entire IPFS network. We will describe here the default options, integrated in the reference IPFS client.
 
 The default ledger is not a distributed globally-synchronized one, such as, for example, the blockchain-based ledger in Bitcoin, Ethereum, or many other cryptocurrencies. Instead, each node keeps its own ledger of the exchanges that took place between itself and other nodes. This allows to keep track of debit or credit towards any node, and to compute a value known as the \textit{debt ratio} in the following manner:
 $$ \mathit{debt~ratio} = \frac{\mathit{bytes~sent}}{\mathit{bytes~received} + 1} $$
@@ -392,11 +393,11 @@ To include these types of attack, we would have to move (at least) the DNS resol
 
 This discussion is very similar to what is explained in Chapter \ref{ch:background}. Indeed, if we consider in which failure model the DNS is set, we would argue that it lies in a stopping failure model and its messages travel unmodified in a identically modeled channel (an example of a browser detecting a stop failure can be seen in Figure \ref{fig:browserdnsfailexample}). When we move the channel to a Byzantine failure model we introduce public-key cryptography with DNSSEC to avoid tampering with the messages (we are already prepared for refusals to delivery from the previous model). And now we move the servers (at least the ones that communicate with the clients, which are the DNS resolvers) to the Byzantine model.
 
-Now, following the theme of this thesis, the logical answer would be to decentralize the DNS resolvers. This was thought to be impossible by \cite{wilcox2003names}, who conjectured that one cannot obtain a namespace where names are decentralized, secure (in the sense that an attacker cannot fake name resolutions) and human-meaningful at the same time: this \textit{trilemma} would be known as the ``Zooko's Triangle''.
+Now, following the theme of this thesis, the logical answer would be to decentralize the DNS resolvers. This was thought to be impossible by \cite{wilcox2003names}, who conjectured that one cannot obtain a namespace where names are decentralized, secure (in the sense that an attacker cannot fake name resolutions) and human-meaningful at the same time: this \textit{trilemma} would be known as the ``Zooko's Triangle''. While decentralized namespaces already existed, they failed to either be human-meaningful (since they relied on cryptographic hashes or public keys), or to be secure (such as DNSSEC, that cannot protect against failed DNS resolvers).
 
-This conjecture sparked discussion and interest about the problem. The birth and popularization of Bitcoin and the blockchain gave \cite{swartz2011names} the idea that the Zooko's Triangle had actually been disproven in this practical and deployed project: his idea was later implemented as Namecoin.
+This conjecture sparked discussion and interest about the problem. The birth and popularization of Bitcoin and the blockchain gave \cite{swartz2011names} the idea that the validity of Zooko's Triangle's had been challenged by this practical and deployed project: his idea was later implemented as Namecoin.
 
-\begin{figure}[b]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=0.9\linewidth]{img/browser-dns-fail-example}
 	\caption{An error message for a failed DNS resolution given by Firefox 61. Note that while the text says that the browser cannot connect to the website (in this case \texttt{www.google.it}), the ``title'' of the error page states that Firefox is not able to find the site: indeed, the DNS resolution for that domain name failed.}
@@ -405,11 +406,47 @@ This conjecture sparked discussion and interest about the problem. The birth and
 
 \section{Namecoin}\label{proj:namecoin}
 
+\cite{namecoin} is a ``key-value pair registration and transfer system'' that is based on the Bitcoin blockchain. It was its first fork, and it uses \textit{merged mining} to allow Bitcoin miners to also obtain Namecoins as their reward for no additional computations. The key-value directory offered by Namecoin is mainly used to register and lookup \texttt{.bit} domains, but it can also serve multiple purposes.
+
+Note: there is neither official documentation nor a first-party whitepaper describing this technology. Most of the information reported here is based on either the official website or an empirical analysis by \cite{kalodner2015empirical}. %todo - expand list if necessary
+Additional sources of information will be specified throughout the following section as needed. %todo - remove if we don't need more info
+
+\subsection{Protocol description}
+Namecoin is based on a blockchain, which is a distributed data structure whose main goal is to implement Byzantine fault tolerant consensus. We will not explain the mechanisms behind a blockchain and how it achieves this result, since it has extensively been covered by the academic community; %todo - might do this if we have time?
+instead, we will just mention some of its components to better explain the features of Namecoin.
+
+A blockchain is an ordered sequence of \textbf{blocks}. Each block contains some data, which are only transactions in the case of Bitcoin, but they also include operations and records for Namecoin. %todo - not correct, Namecoin seems to use the operations of Bitcoin Script
+Each user of a blockchain is called a \textbf{node}: it can participate in the chain if it has an \textbf{address}, which is a hash of a public key generated by the node. Each address has a non-negative amount of coins, that can be spent or earned by nodes through creation of \textbf{transactions}.
+
+Namecoin also defines \textbf{records}, which are key-value pairs, and \textbf{operations}, which define the actions that are to be applied to a record. %todo - simplify this sentence
+The three operations defined by Namecoin are:
+\begin{enumerate}
+	\item \texttt{NAME\_NEW}: the record %todo - wrong, not in the record
+	contains a salted hash of a name that is intended to be registered (names are used as keys in the namespace): this allows a user to publish its intention to reserve a name without actually exposing the name itself;
+	\item \texttt{NAME\_FIRSTUPDATE}: the record contains the actual name that is being registered and the associated data, which can optionally include an IP address, identity information or custom data used for other services (including ZeroNet); this type of operation can be registered on the blockchain only if there is a distance of at least 12 blocks from its corresponding \texttt{NAME\_NEW} operation;
+	\item \texttt{NAME\_UPDATE}: this operation allows for updating, renewing and trading of existing names; the type of data contained in the record is identical to the one in \texttt{NAME\_FIRSTUPDATE}.
+\end{enumerate}
+
+In Namecoin, a registered name becomes invalid (expires) after 36'000 blocks from the latest update block, including the one that contains the \texttt{NAME\_FIRSTUPDATE} operation.
+
+%todo - fees;
+
+
+
+\subsection{Analysis}
+%todo
+
+For a more complete and in-depth analysis of Namecoin, including the problem of \textit{squatting} %todo - define in not defined above
+and the current state of the network regarding currently valid and active records, we suggest reading the work of \cite{kalodner2015empirical}.
 
 \section{Ethereum Name Service}\label{proj:ens}
 
 \section{Summary}
 
+\section{Honorable Mentions}
+\begin{itemize}
+	\item \textbf{EmerDNS}: part of a larger blockchain-based project known as Emercoin. Not included because the goal of Emercoin is to provide secure and distributed business services and operations, not to develop an alternative to the Web. %todo - reword and expand on this
+\end{itemize}
 
 \chapter{Distributed Web Projects}
 
