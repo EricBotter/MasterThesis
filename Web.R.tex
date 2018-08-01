@@ -34,11 +34,10 @@ morecomment=[l]{//s},
 \frontmatter %generates the frontmatter, this is FIXED
 
 \begin{abstract}
-The World Wide Web is probably the most popular and used service of the Internet, sometimes even confused with the Internet itself. But the Web has one fundamental problem: it is based on a client-server model, which is not ideal considering the importance of Web services that we use everyday.
+The World Wide Web is probably the most popular and used service of the Internet, sometimes even confused with the Internet itself. But the Web has one fundamental problem: it is based on a client-server model, which is not ideal considering the importance of Web services that we use everyday. This allows powerful entities to perform attacks such as Denial of Service, IP blocking and DNS hijacking to control access to websites and services based on the Web. Notable examples of such attacks are the Distributed Denial of Service Attack that hit GitHub (\cite{webarticle:githubddos}) on February 2018, or the blocking of Wikipedia enacted by the Turkish government (\cite{webarticle:turkeywikipedia}) on April 2017.
+%todo - I want to mention throttling too, but I can't find any compelling example of that behavior
 
-What if some Internet Service Provider decides to block access to a competitor's service, so that it can promote its own? What if some organized attacker wants to deny access to a stronghold of open source software, such as GitHub? What if some government decides to block an important knowledge repository, such as Wikipedia? What if all of these already happened? %todo - fix first one. I want to mention throttling, but can be replaced with some more specific case, even if it is some other attack
-
-The invention of the blockchain and its popularization through projects like Bitcoin and Ethereum brought renewed interest towards fully decentralized and trustless solutions, and this has also impacted the Web. In this thesis, we present and analyze some of the currently implemented and active projects which aim is to move the Web from its centralized client-server environment to a decentralized trustless system.
+The invention of the blockchain and its popularization through projects like Bitcoin and Ethereum brought renewed interest towards fully decentralized and trustless solutions, and this has the potential to impact the Web. In this thesis, we present and analyze some of the currently implemented and active projects which aim to move the Web from its centralized client-server environment to a decentralized trustless system.
 
 \end{abstract}
 
@@ -60,56 +59,59 @@ The invention of the blockchain and its popularization through projects like Bit
 
 The World Wide Web is probably the most popular and used service of the Internet, sometimes even confused with the Internet itself. It is very common nowadays to access the WWW (or most commonly known as simply ``the Web'') and browse websites from many platforms, from the typical desktop computer to the modern smartphone.
 
-%TODO: give context about why a distributed web and what is happening at the moment
+%TODO: give context about why a distributed web and what is happening at the moment?
 
-Let us define the scenario in which the Web lives. It is based on a client-server architecture, where Web servers provide objects (such as documents, images or files in general) to clients that request and display them, called \textit{user agents} (e.g. Web browsers).
+The Web is based on a client-server architecture, where Web servers provide objects (such as documents, images or files in general) to clients that request and display them, called \textit{user agents} (e.g. Web browsers).
 
-In the Web, documents and objects are identified by a Uniform Resource Locator (URL), whose most important component is the domain name: it is a human-readable label that identifies a device within the Internet.
-A domain name is composed by sequences of letters and symbols, separated by each other with dots. This separation is needed by the hierarchical structure of domain names, but we won't delve into the details of the Domain Name System here: we will talk more about it when we discuss naming, in Chapter \ref{ch:naming}.
+%todo(leandro) - done partially - I'd merge these two parts and write it a bit differently. What's important: 1) DNS is another critical part of the web 2) objects identified by a URL 3) DNS resolves a domain to an IP
+In the Web, documents and objects are identified by a Uniform Resource Locator (URL), whose most important component is the domain name: it is a human-readable label that identifies a device within the Internet. The Domain Name System (DNS) is responsible to manage organization and ownership of these names and to perform translations from them to IP addresses (this translation is known as \emph{name resolution}).
 
-To access a website, the client has to know the domain name associated to that website. This is usually provided by the user or by services such as search engines. The domain name is resolved to an IP address by using the Domain Name System.
-Once obtained, the client opens a TCP connection towards that address on port 80, and starts exchanging messages using the HyperText Transfer Protocol (HTTP). %TODO - mention HTTPS
+To access a website, the client has to know the domain name associated to that website. This is usually provided by the user or by services such as search engines. The domain name is then resolved to an IP address by using the DNS. Once obtained, the client opens a TCP connection towards that address on port 80, and starts exchanging messages using the HyperText Transfer Protocol (HTTP).
 
-HTTP is a client-server, request-response protocol. Clients specify the details of the needed resource in the request and the server replies with the content or an error status if something went wrong (e.g. 404 Not Found). We won't explore HTTP as none of the projects that we will see rely on HTTP or any of its properties. %TODO explore HTTP? maybe expand on it as needed
+HTTP is a client-server, request-response protocol. Clients specify the details of the needed resource in the request and the server replies with the content or an error status if something went wrong (e.g. 404 Not Found). %todo explore HTTP? maybe expand on it as needed
 
-There are different ways to setup a website. A content creator can either setup a custom server and upload a website there, or it can rent a server (either physical or virtual) from an existing provider.
+There are different ways to setup a website. A content creator can either setup a custom server and upload a website there, or it can rent a server (either physical or virtual) from an existing provider. In both cases, the serving of a website to the public is delegated to the Web server, whether it's owned by the content creator or by a hosting company. Then a domain name has to be purchased through a name \emph{registrar}, so that it can be added in the DNS records with the IP address of the Web server. Once this is completed, the website is effectively public: browsers can resolve the domain name and reach the Web server to obtain the website.
+%todo(leandro) - done? - I'd expand this last paragraph a bit, as it seems fundamental to the problems that follow. It should be clear that there are different parties involved in creating/serving/accessing Web content.
 
-\section{Problems in the current web} \label{sec:problems}
-The main problem in the current Web is vulnerability to \textbf{censorship}. Since we have a direct relationship from domain names to websites (or from IP addresses to websites), it is relatively easy for powerful parties (including governments and ISPs) to block communications from users to a certain service.
+
+\section{Problems with the current Web} \label{sec:problems}
+The interaction between all of the above parties makes the Web vulnerable in a number of ways, that we can summarize in three main classes: vulnerability to censorship, need of trust and disregard of privacy.
+%todo(leandro) - done partially - I'd add a small paragraph in the beginning of this section. It would link the previous part, saying that whatever characteristic (centralization?) of the current web, leads to the three classes of problems you focus on (and list them).
+
+The first and most important class of problems in the current Web is vulnerability to \textbf{censorship}. Since we have a direct relationship from domain names to websites (or from IP addresses to websites), it is relatively easy for powerful parties (including governments and ISPs) to block communications from users to a certain service.
 The main attacks that can be used to prevent communication towards a website are:
 \begin{itemize}
-	\item Denial of Service (DoS): a large volume of requests is sent towards the targeted server, which quickly runs out of available resources (such as bandwidth, simultaneously open connections, memory or CPU). Requests can be sent from a single device, but in current days requests are typically sent from multiple sources, in order to both increase the volume of traffic and make it difficult to identify and stop the origin of the attack: this is known as Distributed Denial of Service (DDoS).
+	\item Denial of Service (DoS): a large volume of requests is sent towards the targeted server, which quickly runs out of available resources (such as bandwidth, simultaneously open connections, memory or CPU). Requests can be sent from a single device, but in current days requests are typically sent from multiple sources, in order to both increase the volume of traffic and make it difficult to identify and stop the origin of the attack: this is known as a Distributed Denial of Service (DDoS) attack.
 	\item IP address blocking: packets towards a given address or address range are blocked. This attack can be enacted by routers that exchange packets regarding the targeted IP address, which can interrupt forwarding of said packets thus preventing any sort of communication, making the server effectively disconnected from the Internet.
-	\item DNS hijacking: by altering DNS resolutions, the domain of the targeted website can either be deleted or edited to make it refer to another IP address, thus preventing access to the original content. This attack can be carried out by both the owners of the DNS resolver (by directly editing their records), or by third parties through an attack called DNS cache poisoning: an attacker pretending to be a valid name server intercepts DNS requests from other name servers and provides fake responses to alter the address of the targeted domain, also setting a high time-to-live so that the redirection is active for as long as possible. Another vector for DNS hijacking, though unrelated to DNS itself, is to remotely edit the configuration of typical home routers through known vulnerabilities, changing the DNS resolver to a malicious one.
+	\item DNS hijacking: by altering DNS resolutions, the domain of the targeted website can either be deleted or edited to make it refer to another IP address, thus preventing access to the original content. This attack can be carried out by both the owners of the DNS resolver (by directly editing their records), or by third parties through an attack called DNS cache poisoning: an attacker pretending to be a valid name server intercepts DNS requests from other name servers and provides fake responses to alter the address of the targeted domain. Another vector for DNS hijacking is to remotely edit the configuration of typical home routers through known vulnerabilities, changing the DNS resolver to a malicious one.
 \end{itemize}
 
-We also have a problem of \textbf{trust}. When you access a website, there is no guarantee that the data you received is from the content creator, because HTTP is vulnerable to man-in-the-middle attacks. There is no mechanism to verify the authenticity of the transmitted data and the protocol does not use encryption, so anyone can forge a valid HTTP communication (even based on an ongoing one) and send it through the wires. We expand on this in Chapter \ref{ch:background}.
+The second class of problems is related to \textbf{trust}. When you access a website, there is no guarantee that the data you received is from the content creator because HTTP is vulnerable to man-in-the-middle attacks. There is no mechanism to verify the authenticity of the transmitted data and the protocol does not use encryption, so anyone can forge valid HTTP communication (even based on an ongoing one) and send it through the wires.
 
-HTTPS resolves this issue by asymmetrically encrypting the communication channel, and authenticating the data that is sent, but the current trust system (X.509) is based on certificate authorities and is considered weak, which might allow for identity theft.
-%TODO - expand on this - possible source: https://www.eff.org/deeplinks/2011/10/how-secure-https-today
+HTTPS resolves this issue by asymmetrically encrypting the communication channel, and authenticating the data that is sent, but the current trust system (X.509) is based on certificate authorities and is considered weak, which might allow for identity theft (an interesting technical analysis of this has been written by \cite{webarticle:httpssecurity}). %todo - you also need to trust the web server/hosting provider
 
-Another important issue is \textbf{privacy} and handling of personal information: with the current scenario, whenever you connect to a website, that website privately stores data about you.
+The final class of problems regards \textbf{privacy} and handling of personal information: with the current scenario, whenever you connect to a website, that website privately stores data about you.
 This data can be either automatically collected from user interactions, or can be provided directly by the user: consider, as an example, a social network, where users provide personal information such as their generalities, and the website collects data such as post interactions, number and timestamps of logins, and so on.
 This effectively moves ownership of the data from the user to the company. Data that intrinsically belongs to the user (especially personal information such as name, address and phone number) are stored privately into the company server, and the user has limited control over it, since the only possible actions on the data are the ones defined by the company or required by law.
 
-\section{Thesis structure}\label{sec:structure}
-This thesis has been structured as follows. The first chapter describes the Web in its current state and defines the open issues in its regard. The second chapter introduces some common definitions and describes the models used to analyze the Web and any of the projects that will subsequently be explored; we also define the characteristics of the Distributed Web. The following three chapters describe and analyze some projects that focus on distributing storage, distributed naming and offer a complete implementation of a distributed web, respectively.
-%The sixth chapter will elaborate on some upcoming projects that have the possibility to impact the distributed web scenario.
-%todo-removed the above for now
-We will conclude the thesis in the sixth chapter.
+\section{Thesis goals}
+The goal of this thesis is to present various projects that empower real-case implementations of the distributed Web, as we explain it above. We also aim to analyze notable features and possible defects of each system we present, with particular interest to the aspects that most closely relate to the distributed Web. This thesis is also meant to serve as a reference for seminars, lectures and possibly courses related to the distributed web.
 
-The projects described in this Thesis have been selected based on the following criteria:
+The projects described in this thesis have been selected based on the following criteria:
 \begin{itemize}
 	\item A project has as one of its goals to replace or provide an alternative to the existing Web;
 	\item A project must have been successfully deployed and must be still active at the time of writing, with a significant user base;
 	\item A project must mainly depend on data replication in a distributed system and must handle Byzantine failures and adversaries;
-	\item A project is a building block for another project in the Thesis.
+	\item A project is a building block for another project in the thesis.
 \end{itemize}
 
-\section{Thesis goals}
-The goal of this thesis is to present various projects that empower real-case implementations of the distributed Web, as we explain it above. We also aim to analyze notable features and possible defects of each system we present, with particular interest to the aspects that most closely relate to the distributed Web. This thesis is also meant to serve as a reference for seminars, lectures and possibly courses related to the distributed web. %todo - (replace dot with colon) for this reason, we will sometimes prefer an informal language or sentence tone to describe some scenarios or features, so that we can reach a wider audience.
+\section{Thesis structure}\label{sec:structure}
+This thesis is structured as follows. Chapter~\ref{ch:background} introduces some common definitions and describes the models used to analyze the Web and any of the projects that will subsequently be explored; we also define the characteristics of the Distributed Web. Chapter~\ref{ch:storage} describes the expected properties of a distributed storage system and explores two projects implementing such a system: BitTorrent and IPFS. Chapter~\ref{ch:naming} describes the issues of the current naming system (DNS) and describes the challenges of implementing a distributed one, then explores two projects that resolve those complications: Namecoin and Ethereum Name Service. Chapter~\ref{ch:projects} describes two projects that combine decentralized naming and storage into one system, including software that allows easy access to that system: ZeroNet and Blockstack.
+%The n-th chapter will elaborate on some upcoming projects that have the possibility to impact the distributed web scenario.
+%todo-removed the above for now
+Chapter~\ref{ch:conclusions} concludes the thesis.
 
-\chapter{Models and Definitions}
+\chapter{Background} %todo - needs rewrite (see also Chapter 4 todo)
 \label{ch:background}
 
 We have to rethink the Web if we want to move it to a decentralized environment. The current Web is a centralized system: each website is owned by a party that we'll define as \textit{content creator}. The content creator owns the website and is responsible for distributing its content, either by using a self-owned and maintained web server or by publishing it to a dedicated service, known as \textit{web hosting} service provider (there are too many services currently online to present a somewhat accurate list of examples here). When using \textit{web server}, we will always refer to both these options, since in both cases there is always a web server that serves the website, whether it's owned by the content provider or by a company.
@@ -117,13 +119,13 @@ Although it's not required, the content creator usually also obtains a domain na
 
 This system is centralized because the website is accessible only through the web server. If obtained, the domain name will always direct towards that server (even if it changes its IP address, since that's one of the main purposes of DNS).
 
-Let us introduce a very important concept in distributed systems: \textbf{failure}, and its related models.
+Let us introduce a very important concept in distributed systems: \emph{failure}, and its related models.
 We introduce it now to highlight the difference between a centralized environment and a decentralized (or distributed) one.
 
-The failure model in which we could place the Web is a \textbf{stopping failure model}.
-In this model, a process can \textbf{fail}, i.e. it stops functioning as intended, and the way a process fails is by stopping, or \textit{halting}. Once a process has halted, it remains in that state. Other processes are able to detect this failure, and the most common way that this is done is by giving a maximum response time to message exchanges with that process: if we expect a communication which does not happen within a time limit, we consider that process as failed (this is called detection by \textit{timeout}).
+The failure model in which we could place the Web is a \emph{stopping failure model}.
+In this model, a process can \emph{fail}, i.e. it stops functioning as intended, and the way a process fails is by stopping, or \textit{halting}. Once a process has halted, it remains in that state. Other processes are able to detect this failure, and the most common way that this is done is by giving a maximum response time to message exchanges with that process: if we expect a communication which does not happen within a time limit, we consider that process as failed (this is called detection by \textit{timeout}).
 
-This means that we know that each entity will behave as expected, and in case of failure it will not function at all. In other words, we consider that entity as \textbf{trusted}, as it will never give a response which is not conforming to the protocol.
+This means that we know that each entity will behave as expected, and in case of failure it will not function at all. In other words, we consider that entity as \emph{trusted}, as it will never give a response which is not conforming to the protocol.
 
 This model allows Web clients (browsers) and content creators to make certain assumptions on the behavior of web servers and other components:
 \begin{itemize}
@@ -132,17 +134,11 @@ This model allows Web clients (browsers) and content creators to make certain as
 	\item Content creators assume that the website that they create is stored in the web server (and distributed) without any modification.
 	%TODO - more?
 \end{itemize}
-In case of failure of the Web server, a browser will try to communicate with it, and after some time without receiving a response it will give up and show to the user an error message, of which an example can be found in Figure \ref{fig:browsertimeoutexample}.
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=0.9\linewidth]{img/browser-timeout-example}
-	\caption{An error message for a connection timeout with a Web server given by Firefox 61.}
-	\label{fig:browsertimeoutexample}
-\end{figure}
+In case of failure of the Web server, a browser will try to communicate with it, and after some time without receiving a response it will give up and show to the user an error message.
 
 One could argue that this model does not accurately represent the reality. For example, if a malicious third party takes over the communication channel, gaining complete control over each byte that it transports (an example of such a third party are Internet Service Providers), it can interfere and change the data that is transmitted. This is transparent to both the clients and the web server, since there is no mechanism in place to ensure that the data is \textit{integral}\footnote{TCP provides data integrity against transmission errors, which are in the order of few bits per kilobyte, but this is too weak in this scenario, where the entire TCP packet can be rewritten to appear unaltered.} -- and rightfully so, given that the communication channel is assumed to not alter data arbitrarily. This is known as a \textit{man-in-the-middle} attack.
 
-To allow this scenario in our model we need to weaken it, by removing assumptions on what the communication channel will do during failure. We now allow arbitrary behavior, which means that processes under this weaker model can produce any kind of message, whether it complies to the protocol or not: they can lie, omit information or do just about anything\footnotemark{}, which also includes stopping and behaving properly. This model is the \textbf{Byzantine failure model}.
+To allow this scenario in our model we need to weaken it, by removing assumptions on what the communication channel will do during failure. We now allow arbitrary behavior, which means that processes under this weaker model can produce any kind of message, whether it complies to the protocol or not: they can lie, omit information or do just about anything\footnotemark{}, which also includes stopping and behaving properly. This model is the \emph{Byzantine failure model}.
 \footnotetext{We are going to implicitly constrain Byzantine processes just by limiting their computing power. This allows us to use cryptographic algorithms such as hashing, signatures and encryption to counter data alteration. These would be useless against an all-powerful attacker that is able to reverse hashes and break public-key cryptography.}
 This is particularly useful to model malicious intentions: since failed entities can perform arbitrary actions, it is particularly important to consider situations that can cause the most damage to the system. Once we protect against these actions (and all possible other scenarios), we are sure to protect the system from any attacker that takes over the entities that we consider to be Byzantine.
 
@@ -154,12 +150,12 @@ But what if we extend the Byzantine model to other entities? For example, if a c
 
 What would we achieve if we protect the data itself from Byzantine attacks? If the data can be distributed by a non-trusted entity, then we don't need to rely on some specific and trusted system: \textit{anyone} can distribute it.
 
-This effectively enables a \textbf{distributed Web}, where content is shared by a network of web servers that anyone can provide. We don't need to trust some hosting service provider with the website data, we can distribute our data to any of them and we will be sure that the information is going to be transmitted safely without modifications.
+This effectively enables a \emph{distributed Web}, where content is shared by a network of web servers that anyone can provide. We don't need to trust some hosting service provider with the website data, we can distribute our data to any of them and we will be sure that the information is going to be transmitted safely without modifications.
 
 Let's see how this scenario can resolve the three problems described in Section \ref{sec:problems}:
 \begin{itemize}
 	\item \textbf{Censorship}: to allow web servers to expose Byzantine behavior means that any one of them can refuse to serve content. But note that we can't assume that every single web server fails with Byzantine consequences, just like we don't assume that in the current Web every single server will crash when contacted. We have to guarantee that some percentage of the servers will behave properly, without failing.\\
-	This is why we need a \textbf{network} of web servers and not just one: that one server not only is exposed to all of the attacks mentioned in Section \ref{sec:problems}, but can also fail by refusing to serve content; if, instead of one, we have multiple web server (of which we are guaranteed that a percentage behaves properly), we know that if some web server fails (either on its own or by means of an attack) the rest of the network can still operate.
+	This is why we need a \emph{network} of web servers and not just one: that one server not only is exposed to all of the attacks mentioned in Section \ref{sec:problems}, but can also fail by refusing to serve content; if, instead of one, we have multiple web server (of which we are guaranteed that a percentage behaves properly), we know that if some web server fails (either on its own or by means of an attack) the rest of the network can still operate.
 
 	\item \textbf{Trust}: by distrusting the web servers, we have made impossible for them to successfully send data different from what the content creator intended. Clients have a way to detect information manipulation and can discard such manipulated data.
 
@@ -177,33 +173,32 @@ Keep in mind that many of these projects do not define the model around which th
 %\section{Challenges of creating a distributed Web}
 %todo - But how exactly is it difficult to build the distributed Web? is this done below?
 
-\chapter{Decentralizing Storage}
+\chapter{Decentralizing Storage}\label{ch:storage}
 
 The first and most fundamental challenge in building the distributed Web is how to store the files that compose websites.
 
 In the current Web, this is not generally a problem: you can either setup your own personal web server, exposed to the internet, that contains the website files, or you can upload those files to a web hosting service provider in order to serve them for you.
-But now we have introduced a network of untrusted servers that are not necessarily going to distribute your files as you intended, if at all. How do we make sure that the files are still getting to the clients? How can clients be sure that they received the files exactly as their author has written them? To answer these two questions, each project has to implement two features, respectively.
+But if we want to move the Web to a network of untrusted servers that are not necessarily going to distribute your files as you intended, if at all, we need to reconsider some fundamental concepts: such a distributed system needs to both guarantee that the files are still getting to the clients and guarantee to the clients that they receive the files exactly as their author has written them. To provide these two features, each project has to implement two systems, respectively.
 
-The first one is an \textbf{incentive scheme}, i.e. a way to encourage nodes in a network to share data. If the incentive is strong enough, there will be more people that genuinely participate in the system, thus reducing the relative amount of intentional Byzantine behavior. Furthermore, if there is no incentive to share data, nodes will just obtain what they need and then leave the network, without contributing to other node's downloads, thus reducing the overall performance of the system, possibly even rendering it useless if this behavior is intentionally brought to the extreme (in other words, an attack is performed).
+The first one is an \emph{incentive scheme}, i.e. a way to encourage nodes in a network to share data. If the incentive is strong enough, there will be more people that genuinely participate in the system. If there is no incentive to share data, nodes will just obtain what they need and leave the network, without contributing to other node's downloads, thus reducing the overall performance of the system, possibly even rendering it useless if this behavior is intentionally brought to the extreme (in other words, an attack is performed).
 
-The second one is \textbf{data verification}: each system must provide a way to verify the integrity of the data that is transmitted. This is needed because everyone in the system can fail and transmit arbitrary data: who receives the data must be able to verify the received information, in order to detect and possibly discard it (maybe going as far as taking action w.r.t. the failed sender, for example by blocking communications). It usually involves cryptographic hashing, sometimes combined with asymmetric cryptography.
+The second one is \emph{data verification}: each system must provide a way to verify the integrity of the data that is transmitted. This is needed because everyone in the system can fail and transmit arbitrary data: who receives the data must be able to verify the received information, in order to detect and possibly discard it (maybe going as far as taking action w.r.t. the failed sender, for example by blocking communications). It usually involves cryptographic hashing, sometimes combined with asymmetric cryptography.
 
-Another key component is a distributed storage system, but in general of any peer-to-peer network, is \textbf{peer discovery}, i.e. a mechanism through which a client can obtain a list of currently active peers that can be contacted. This is because on the Internet, it is impossible to find which devices are offering which services (especially if these devices keep moving and disconnecting all the time), without either knowing them directly, or looking them up using a dedicated directory that lists and keeps track of such devices. This directory can be either centralized or decentralized, and comparing the two options leads to the same advantages and disadvantages that we discussed previously. It would make sense to prefer a decentralized directory to a centralized one, but a completely distributed directory cannot exist, since it also needs to be discovered: a compromise has to be made. Often, projects with a distributed directory have a different process just to make the directory known to a client: this process is often referred to as \textit{peer discovery bootstrap}.
-%todo - the above is probably confusing
+Another key component of a distributed storage system is \emph{peer discovery}, i.e. a mechanism through which a client can obtain a list of currently active clients that can be contacted. This is because on the Internet, it is impossible to find which devices are offering which services (especially if these devices keep moving and disconnecting all the time), without either knowing them directly, or looking them up using a dedicated directory that lists and keeps track of such devices. This directory can be either centralized or decentralized and it would make sense to prefer a decentralized directory to a centralized one, but a completely distributed directory cannot exist, since it also needs to be discovered: a compromise has to be made. Often, projects with a distributed directory have a different mechanism just to make the directory known to a client: this process is often referred to as \textit{peer discovery bootstrap}.
 
 \section{BitTorrent}\label{proj:bittorrent}
 
-BitTorrent is probably the most known and used peer-to-peer file-sharing protocol. We take a look at BitTorrent both because of its popularity and because it is at the basis of ZeroNet, another project discussed in Section \ref{proj:zeronet}.
+BitTorrent is probably the most known and used peer-to-peer file-sharing protocol. It is also the basis of ZeroNet, a project we discuss in Section \ref{proj:zeronet}.
 
 \subsection{Protocol Overview}
 
-Let us start with some definitions related to the BitTorrent protocol. A collection of files is known as a \textbf{torrent}, and to make distribution easier, each file is split into \textbf{blocks} of equal size. A torrent is described in a dedicated file called, unsurprisingly, \textbf{torrent file} (they are also known as \textit{metainfo files}), which contains a list of the files contained in that torrent and the cryptographic hash of each block (using the SHA-1 algorithm), plus some metadata, such as the name of the torrent, the block size, etc.
+Let us start with some definitions related to the BitTorrent protocol. A collection of files is known as a \emph{torrent}, and to make distribution easier, each file is split into \emph{blocks} of equal size. A torrent is described in a dedicated file called \emph{torrent file} (they are also known as \textit{metainfo files}), which contains a list of the files contained in that torrent and the cryptographic hash of each block (using the SHA-1 algorithm), plus some metadata, such as the name of the torrent, the block size, etc.
 
-A BitTorrent client connected to and participating in the network is called a \textbf{peer}. Peers communicate with each other when they are aware of the same torrent: such a group of peers is called a \textbf{swarm}. When a peer has all the blocks of a torrent and is sharing them with the rest of network, it is called a \textbf{seeder}, and the operation of sharing data is called \textit{seeding}.
+A BitTorrent client connected to and participating in the network is called a \emph{peer}. Peers communicate with each other when they are aware of the same torrent: such a group of peers is called a \emph{swarm}. When a peer has all the blocks of a torrent and is sharing them with the rest of network, it is called a \emph{seeder}, and the operation of sharing data is called \textit{seeding}.
 
 In BitTorrent, torrents are distributed out-of-band. It is assumed that when a peer obtains a torrent file, that file is legitimate and as intended by the torrent creator. Usually, torrent files can be obtained from the Web, often from dedicated websites and forums where users can upload their own torrent files: the documentation of BitTorrent only mentions the Web as a way to obtain torrent files.
 
-To perform peer discovery, BitTorrent relies on \textbf{trackers}, dedicated servers that keep track of swarms for different torrents. Each torrent file lists the trackers that peers should contact (by announcing themselves) for that particular torrent. Although different torrents can rely on different (and multiple) trackers, this is a centralized peer discovery system: it is often the case that few trackers (in the order of tens) track the majority of torrents. If these trackers are shutdown or blocked, peers will be unable to discover each other. To counter this, BitTorrent later integrated two decentralized discovery mechanisms: DHT (which we cover in Appendix \ref{appx:dht}), and \textbf{Peer Exchange} (or PEX) that allows peers to trade information about their common swarm, so that each client can discover more peers, leading to a better connected swarm. Note that peers cannot join a swarm only through PEX: they have to first contact either a tracker or the DHT.
+To perform peer discovery, BitTorrent relies on \emph{trackers}, dedicated servers that keep track of swarms for different torrents. Each torrent file lists the trackers that peers should contact (by announcing themselves) for that particular torrent. Although different torrents can rely on different (and multiple) trackers, this is a centralized peer discovery system: it is often the case that few trackers (in the order of tens) track the majority of torrents. If these trackers are shutdown or blocked, peers will be unable to discover each other. To counter this, BitTorrent later integrated two decentralized discovery mechanisms: DHT (which we cover in Appendix \ref{appx:dht}), and \emph{Peer Exchange} (or PEX) that allows peers to trade information about their common swarm, so that each client can discover more peers, leading to a better connected swarm. Note that peers cannot join a swarm only through PEX: they have to first contact either a tracker or the DHT.
 
 BitTorrent does not define how to bootstrap the connection to the DHT, leaving it as an implementation detail. Different clients employ different techniques, among which we can find the following:
 \begin{itemize}
@@ -213,17 +208,18 @@ BitTorrent does not define how to bootstrap the connection to the DHT, leaving i
 	\item Torrent files can contain information about nodes of the DHT or peers in the BitTorrent network.
 \end{itemize}
 
+%todo(leandro) - suggest start a subsection here. something like "sharing a file with BitTorrent"
 To better describe the functionalities and mechanisms of BitTorrent, let's explore two fundamental scenarios: uploading a torrent into the network and downloading a torrent from the network.
 
 To upload a torrent into the network, a user has to collect a set of files that will compose the torrent. By using a client that supports this functionality, the user can create a corresponding torrent file, which can then be distributed by the user on their preferred platform. The user's client now is aware of the torrent and has all its files: it is therefore seeding the torrent to other users.
 
 To download a torrent from the network, a user has to obtain the torrent file first. The file is then passed to the client that will start to contact the swarm (through trackers, DHT or whichever system the torrent file specifies) and gather information about which peers have which data. It will then start downloading blocks from each peer, and will become a seeder when the download is complete.
 
-BitTorrent's \textbf{incentive scheme} is well explained and analyzed by \cite{cohen2003incentives}, the creator of BitTorrent, and we will just summarize it here. It is based on a \textit{tit-for-tat} algorithm, and uses a mechanism known as \textbf{choking} to select the best peers for collaboration. Choking is refusal from a peer to share its blocks with another peer, who is said to be \textit{choked}; \textit{unchoking} is the opposite operation.
+BitTorrent's \emph{incentive scheme} is well explained and analyzed by \cite{cohen2003incentives}, the creator of BitTorrent, and we will just summarize it here. It is based on a \textit{tit-for-tat} algorithm, and uses a mechanism known as \emph{choking} to select the best peers for collaboration. Choking is refusal from a peer to share its blocks with another peer, who is said to be \textit{choked}; \textit{unchoking} is the opposite operation.
 
 BitTorrent peers usually do not share data with all known downloading peers to reduce overhead of communications and best utilize the available bandwidth. Peers will start sending blocks to some other peer in the swarm, hoping that they return the favor and start sending data back (this is the core of the \textit{tit-for-tat} concept). If the favor is not returned, the other peer is choked, and some other peer is chosen instead; otherwise, the peer will increase its bandwidth towards the other peer, and those peers will continue to share data between each other. This is done until a limit of simultaneously connected peers is reached, usually four but this is user-configurable. Every now and then, a peer will unchoke some random peer, hoping that a benevolent uploader is found: this is called an \textit{optimistic unchoke}, and it is done by replacing the worst-performing peer, which becomes choked. This allows to improve performance if the current transfers do not maximize a peer's bandwidth, but it can also degrade it if the new peer does not perform as good as the replaced one: this is why it is said to be \textit{optimistic}.
 
-BitTorrent \textbf{data verification} system is based on cryptographic hashing, and is pretty straightforward: each torrent file contains the SHA-1 hash of every block in the torrent, so that peers can verify the integrity of each block upon downloading it.
+BitTorrent \emph{data verification} system is based on cryptographic hashing, and is pretty straightforward: each torrent file contains the SHA-1 hash of every block in the torrent, so that peers can verify the integrity of each block upon downloading it.
 
 \subsection{Analysis}\label{sec:btanalysis}
 
@@ -231,51 +227,52 @@ Let's try to infer the model in which BitTorrent is set. We have two main entiti
 
 We can safely place peers in a Byzantine failure model. This is because BitTorrent implements a data verification mechanism to ensure that the blocks received by the network are valid, by computing their hash and matching it with the one reported in the torrent file. It also discourages malicious activity by implementing a \textit{tit-for-tat}-like incentive scheme, of which we'll talk about later.
 
-Identifying the failure model for the trackers is not so easy. This is because there is no method in place to ensure data validity: technically, a rouge tracker can omit data during communication with a peer or craft arbitrary responses, and a BitTorrent client would not notice this misbehavior. But what kind of damage can a Byzantine response from a tracker possibly cause? The simplest one is refusing to communicate, but this can also happen in a stopping failure model: a solution is to use data from another tracker (also note that clients can detect a missing response through timeout). A similar but more elaborate attack would be to provide a valid response, but without most if not all peers of the requested swarm: this is practically a denial of service attack, because a client would not be able to perform a download since it can't find any other peer to get the data from. To counter this attack, a client would have to lookup multiple trackers: it is often the case that a torrent file has references to more than one tracker, besides, a client can contact additional trackers than the ones specified in the torrent file, either automatically (a list of trackers that is added to torrents when starting the download process) or by user interaction. Lastly, a malicious tracker can include in a response fake peers that don't actually exist, that are currently unavailable or that only exhibit Byzantine behavior. Also this kind of attack falls under denial of service, since a client has to waste time contacting all these fake peers that will never respond correctly, if at all: a solution to this is, again, to combine data from multiple trackers.
+Identifying the failure model for the trackers is not so easy. This is because there is no method in place to ensure data validity: technically, a rogue tracker can omit data during communication with a peer or craft arbitrary responses, and a BitTorrent client would not notice this misbehavior. Let's consider the possible damage that a Byzantine response from a tracker can cause. The simplest one is refusing to communicate, but this can also happen in a stopping failure model: a solution is to use data from another tracker (also note that clients can detect a missing response through timeout). A similar but more elaborate attack would be to provide a valid response, but without most if not all peers of the requested swarm: this is practically a denial of service attack, because a client would not be able to perform a download since it can't find any other peer to get the data from. To counter this attack, a client would have to lookup multiple trackers: it is often the case that a torrent file has references to more than one tracker, besides, a client can contact additional trackers than the ones specified in the torrent file, either automatically (a list of trackers that is added to torrents when starting the download process) or by user interaction. Lastly, a malicious tracker can include in a response fake peers that don't actually exist, that are currently unavailable or that only exhibit Byzantine behavior. Also this kind of attack falls under denial of service, since a client has to waste time contacting all these fake peers that will never respond correctly, if at all: a solution to this is, again, to combine data from multiple trackers.
 
-Let's not forget that BitTorrent also has decentralized peer discovery methods, including a DHT. These systems, if available, will always be used alongside the tracker-based system, and since the DHT runs in a Byzantine failure model, we can consider it more reliable and trustworthy. Therefore, we can also place the trackers in a Byzantine model, since we won't be losing functionalities in doing so, although we might suffer from a performance perspective.
+Let's not forget that BitTorrent also has decentralized peer discovery methods, including a DHT. These systems, if available, will always be used alongside the tracker-based system, and since the DHT is already Byzantine fault-tolerant, we can also place the trackers in a Byzantine model, since we won't be losing functionalities in doing so, although we might suffer from a performance perspective.
 
-But there's still one element that needs consideration: the source of torrent files. The BitTorrent documentation (specifically in BEP 3) explicitly specifies that torrent files must be served over the Web, but this is not always the case, and it surely isn't enforced by BitTorrent clients: as long as they receive a torrent file, they will start to download the corresponding torrent. It is pretty clear that this source must be trusted, otherwise we would have an invalid torrent definition and the client would download data that is not what the torrent file or its source might suggest to be. %todo - expand on this? it seems pretty simple to me, maybe too much simple
+But there's still one element that needs consideration: the source of torrent files. The BitTorrent documentation (as written in BitTorrent Enhancement Proposal 3 by \cite{bep:3}) explicitly specifies that torrent files are served over the Web, but this is not always the case, and it surely isn't enforced by BitTorrent clients: as long as they receive a torrent file, they will start to download the corresponding torrent. It is pretty clear that this source must be trusted, otherwise we would have an invalid torrent definition and the client would download data that is not what the torrent file or its source might suggest to be. %todo - expand on this? it seems pretty simple to me, maybe too much simple
 
-So far the weakest link in this model is the source of the torrents. A user must find a reputable and trustworthy source from which torrents can be obtained. This is particularly an issue because of the controversial (and often illegal) content that can be obtained through the BitTorrent network: for example, malicious agents might setup websites which offer counterfeit software, while they actually distribute malware, or government agencies might take control of a popular torrent distribution website to track their users and alter or remove the torrent files that are offered (potentially affecting legitimate torrents).
+So far the most vulnerable point we described is the source of the torrents. A user must find a reputable and trustworthy source from which torrents can be obtained. This is particularly an issue because of the controversial (and often illegal) content that can be obtained through the BitTorrent network: for example, malicious agents might setup websites which offer counterfeit software, while they actually distribute malware, or government agencies might take control of a popular torrent distribution website to track their users and alter or remove the torrent files that are offered, potentially affecting legitimate torrents.
 
-But this is not the only issue in the network. Its incentive scheme has been thoroughly analyzed by the academic community and many publications demonstrate extensive research on the subject (we'll cite \cite{Zghaibeh2008}), outlining defects in the scheme and the possibility of downloading content without contributing to the network: this is known as \textbf{free riding}. \cite{locher2006free} describe a BitTorrent client named BitThief, that exploits optimistic unchokes to successfully download torrents while avoiding to share any resource, by always presenting itself as a new peer. Despite the presence of such behavior, the network is still functional and largely used today. The BitTorrent community has come up with \textit{etiquette} rules to maximize benign usage: for example, it is considered good practice to seed a torrent after downloading it, at least until the same amount of downloaded data has been uploaded (i.e. until a \textit{seed ratio} of 1 is reached: most clients will compute this value for the users).
-
-%todo - continue? what can i write next?
+But this is not the only issue in the network. Its incentive scheme has been thoroughly analyzed by the academic community including \cite{Zghaibeh2008}, and the research outlines defects in the scheme and the possibility of downloading content without contributing to the network: this is known as \emph{free riding}. \cite{locher2006free} describe a BitTorrent client named BitThief, that exploits optimistic unchokes to successfully download torrents while avoiding to share any resource, by always presenting itself as a new peer. Despite the presence of such behavior, the network is still functional and largely used today. The BitTorrent community has come up with \textit{etiquette} rules to maximize benign usage: for example, it is considered good practice to seed a torrent after downloading it, at least until the same amount of downloaded data has been uploaded (i.e. until a \textit{seed ratio} of 1 is reached: most clients will compute this value for the users).
 
 \section{IPFS}\label{proj:ipfs}
 
-The InterPlanetary FileSystem (IPFS for short) is a decentralized file system based on content-addressing coupled with a hypermedia distribution protocol. It has become popular as the \textit{Permanent Web}, as one of the goals of the project is ``to make the web faster, safer, and more open'' and ``where links do not die''.
+The InterPlanetary FileSystem (IPFS) is a decentralized file system based on content-addressing coupled with a hypermedia distribution protocol. It has become popular as the \textit{Permanent Web} % todo(leandro) - what is the permanent web? a citation?
+, as one of the goals of the project is ``to make the web faster, safer, and more open'' and ``where links do not die''.
 
 \subsection{Protocol Overview}
 
-IPFS is a peer-to-peer system, and each peer is called a \textbf{node}: all nodes share the same roles and no node is privileged. Each node keeps a set \textbf{objects}, that can represent files or other kinds of data: objects are stored in \textbf{local storage}, i.e. some external system on which raw data can be stored or retrieved. This can range from a hard disk drive to some dedicated RAM, but it can also be some more complex, possibly networked system as well.
+IPFS is a peer-to-peer system, and each peer is called a \emph{node}: all nodes share the same roles and no node is privileged. Each node keeps a set of \emph{objects}, that can represent files or other kinds of data: objects are stored in \emph{local storage}, i.e. some external system on which raw data can be stored or retrieved. This can range from a hard disk drive to dedicated RAM, but it can also be some more complex, possibly networked system as well.
 
-On initialization, a node generates an asymmetric key pair, then it computes the cryptographic hash of their public key: that hash becomes the node's \textbf{identifier} within the network.
+On initialization, a node generates an asymmetric key pair, then it computes the cryptographic hash of their public key: that hash becomes the node's \emph{identifier} within the network.
 
-In IPFS there is one global (rather, \textit{interplanetary}) space where all objects are stored, unlike in BitTorrent where each torrent is completely separated from the others. Each object is therefore uniquely identifiable, and the system to generate such an identifier is cryptographic hashing. This is known as \textbf{content-addressing}: the \textit{address} that identifies and allows to retrieve some data is directly derivable from the data itself. This method enables the file space to be modeled as a \textit{Merkle DAG}, i.e. a directed acyclic graph where the edges are implemented as cryptographic hashes of the content of the node they are pointing at.
+In IPFS there is one global (rather, \textit{interplanetary}) %todo(leandro) - cut?
+namespace where all objects are stored, unlike in BitTorrent where each torrent is completely separated from the others. Each object is therefore uniquely identifiable, and the system to generate such an identifier is cryptographic hashing. This is known as \emph{content-addressing}: the \textit{address} that identifies and allows to retrieve some data is directly derivable from the data itself. This method enables the file space to be modeled as a \textit{Merkle DAG} % todo(leandro) - citation?
+, i.e. a directed acyclic graph where the edges are implemented as cryptographic hashes of the content of the node they are pointing at.
 
 Objects can be of four types:
 \begin{itemize}
-	\item \textbf{blocks}, or \textit{blobs} (the two terms are used interchangeably in the whitepaper): they carry a variable amount of data, of which IPFS does not need to understand the format, which makes it suitable for any kind of application;
-	\item \textbf{lists}: collections of blocks or other lists, usually used to represent large or deduplicated files (i.e. files that have been divided in multiple blobs because of data repetition within the file itself or with other blocks already in IPFS, so that such repeated data is stored only once);
-	\item \textbf{trees}: collections of blocks, lists, trees or commits, but with a name for each object, unlike in lists where only the hashes are present;
-	\item \textbf{commits}: snapshots in the history of some other object, used to enable a form of version control over objects; %todo - this allows to fetch previous versions of stuff and improve on the concept of permanent objects
-	this allows IPFS to be compatible with Git (in the sense that Git repositories can be modeled as IPFS objects while IPFS trees can be exposed as Git repositories).
+	\item \emph{blocks}, or \textit{blobs}: they carry a variable amount of data; IPFS is agnostic of the content of the blocks, which makes it suitable for any kind of application;
+	\item \emph{lists}: linear collection of blocks or other lists, usually used to represent split files; a file is divided either because that file is large or because the file has been deduplicated, i.e. divided in multiple blobs because of data repetition within the file itself or with other blocks already in IPFS, so that such repeated data is stored only once;
+	\item \emph{commits}: snapshots in the history of some other object, used to enable a form of version control over objects; %todo - this allows to fetch previous versions of stuff and improve on the concept of permanent objects
+	this allows IPFS to be compatible with Git, in the sense that Git repositories can be modeled as IPFS objects while IPFS trees can be exposed as Git repositories.
+	\item \emph{trees}: linear collection of blocks, lists, commits or other trees, but with a name for each object, unlike in lists where only the hashes are present. %todo(leandro) - not clear that they are just named lists
 \end{itemize}
 
-Each object is identified by a UNIX-style path. Each path starts with \texttt{/ipfs}, but this path alone does not refer to a valid object, as in IPFS there is no ``root'' object, and it must be followed by an hash which identifies the object (and can validate its contents). If the object contains named links (such as trees), then the path can be extended with the names of the child objects to reach these items. Note that such child objects can also be accessed directly by their hash.
+IPFS uses UNIX-style paths to refer to objects: each path starts with \texttt{/ipfs}, but this path alone does not refer to a valid object, as in IPFS there is no ``root'' object, and it must be followed by the hash that identifies the object (and that can validate its contents). If the object contains named links (such as trees), then the path can be extended with the names of the child objects to reach these items. Note that such child objects can also be accessed directly by \texttt{/ipfs/} followed by their hash.
 
-This path-style addressing of objects allows IPFS to be mounted through a FUSE interface, or to directly map to other existing path-style identification mechanisms, such as URLs used in the Web.
+This path-style addressing of objects allows IPFS to be mounted through a FUSE interface % todo(leandro) - citation
+, or to directly map to other existing path-style identification mechanisms, such as URLs used in the Web.
 
 In IPFS, peer discovery is carried out entirely by a DHT: nodes will publish which objects they have along with a reference to themselves (their identifying information) on the DHT and other nodes can retrieve this information when they need to obtain those items. There is no centralized system like BitTorrent's trackers in IPFS.
-% source for below: https://github.com/ipfs/go-ipfs/issues/3908; https://github.com/ipfs/go-ipfs/blob/master/repo/config/bootstrap_peers.go
-At the time of writing, the DHT is bootstrapped by accessing a list of known nodes, hard-coded in the IPFS source files, as found in the reference implementation in Go. Users of this client can configure the nodes they bootstrap from by using a dedicated command (\texttt{ipfs bootstrap}). As commented in the source code, ``bootstrap is an important security concern'', but we will discuss this later.
+At the time of writing, the DHT is bootstrapped by accessing a list of known nodes, hard-coded in the IPFS source files, as found in the reference implementation in Go (\cite{website:ipfsbootstrapsourcefile}). Users of this client can configure the nodes they bootstrap from by using a dedicated command (\texttt{ipfs bootstrap}). As commented in the source code, ``bootstrap is an important security concern'', but we will discuss this later.
 
 To exchange blocks between peers, IPFS introduced a custom protocol named BitSwap, inspired by BitTorrent. Each node has some blocks in local storage, and needs blocks from other peers (for example, they need an HTML page that a browser has requested to the IPFS client). To obtain such needed blocks, a node would search for the corresponding hashes in the DHT and discover a set of nodes that have it: note that the requesting node already knows that hash because it's the locator (or the address) of that block (to stay on the previous example, the hash would be part of the URL that the browser was requested to open). Other nodes can accept or deny requests for blocks, based on two factors:
 \begin{enumerate}
-	\item a \textbf{ledger} that keeps track of previous block exchanges, in particular of the amount of bytes exchanged and verified between each node;
-	\item a \textbf{strategy}, i.e. a function that given the ledger and the requesting node, returns the probability of accepting the request and sending a block to that node.
+	\item a \emph{ledger} that keeps track of previous block exchanges, in particular of the amount of bytes exchanged and verified between each node;
+	\item a \emph{strategy}, i.e. a function that given the ledger and the requesting node, returns the probability of accepting the request and sending a block to that node.
 \end{enumerate}
 In BitSwap, different ledgers and strategies can be chosen, and each one can have large impacts on the performance of the entire IPFS network. We will describe here the default options, integrated in the reference IPFS client.
 
@@ -292,9 +289,10 @@ When two nodes connect, they exchange their ledgers to verify that the informati
 
 If the ledgers match, peers are connected and allowed to request and transfer blocks. Each block request is evaluated with the strategy function and accepted or denied accordingly: if a request is refused, the requesting node enters in an \textit{ignored} state and is no longer allowed to communicate for a specific amount of time (10 seconds in the reference implementation); this also happens if a received block fails the hash-based data verification step. After every completed and verified block transfer, both nodes update their ledgers.
 
-If a node happens to have no blocks to share to other nodes but has some requests to make (either because none of its blocks are needed by the nodes discovered through the DHT or because it just joined IPFS with no blocks at all), it can \textit{work} for other nodes, by retrieving blocks needed by the known nodes in order to increase the trust from such nodes towards itself and allow the credit to be repaid by serving the originally needed blocks.
+If a node happens to have no blocks to share with other nodes but has some requests to make (either because none of its blocks are needed by the nodes discovered through the DHT or because it just joined IPFS with no blocks at all), it can \textit{work} for other nodes, by retrieving blocks needed by the known nodes in order to increase the trust from such nodes towards itself and allow the credit to be repaid by serving the originally needed blocks.
 
-We can say that in IPFS objects are \textbf{immutable}. Since they are addressed by their hash, the contents of the objects cannot change once deployed on IPFS. This means that updates or new versions of objects will be published under a different address, even in the case of commits since new versions will be additional commit objects and have different hash. This makes difficult to maintain, for example, a website where content could be frequently updated: a webmaster should continuously publish new IPFS links off-band to their users to make them aware of the website changes. To solve this problem, IPFS has a component called \textbf{IPNS}, which stands for InterPlanetary Name Space, and implements a mutable namespace where a unique path can be updated to refer to different IPFS objects. Each node has an IPNS path composed of \texttt{/ipns/}, to distinguish it from the immutable IPFS paths, followed by the identifier of the node, which is the hash of its public key. Under this path, there can only be \textit{signed objects}, a tuple composed by a standard object, its signature and the public key of the node, which can be verified by its hash contained in the path. Every type of standard object is supported, including trees and commits, allowing for more extended paths like in IPFS. This mutable state cannot be stored in IPFS itself, therefore it lives in the DHT used for peer discovery.
+IPFS objects are \emph{immutable}. Since they are addressed by their hash, the contents of the objects cannot change once deployed on IPFS. This means that updates or new versions of objects will be published under a different address, even in the case of commits since new versions will be additional commit objects and have different hash. This makes it difficult to maintain, for example, a website where content could be frequently updated: a webmaster should continuously publish new IPFS links off-band to their users to make them aware of the website changes. To solve this problem, IPFS has a component called \emph{IPNS} %todo(leandro) - citation
+, which stands for InterPlanetary Name Space, and implements a mutable namespace where a unique path can be updated to refer to different IPFS objects. Each node has an IPNS path composed of \texttt{/ipns/}, to distinguish it from the immutable IPFS paths, followed by the identifier of the node, which is the hash of its public key. Under this path, there can only be \textit{signed objects}, a tuple composed by a standard object, its signature and the public key of the node, which can be verified by its hash contained in the path. Every type of standard object is supported, including trees and commits, allowing paths to reference child objects by name, similarly to IPFS. This mutable state cannot be stored in IPFS itself, therefore it lives in the DHT used for peer discovery.
 
 \subsection{Analysis}\label{sec:ipfsanalysis}
 
@@ -304,15 +302,25 @@ Everything in IPFS suggests that it is meant to be deployed in a Byzantine envir
 
 As for the danger of free riding, BitSwap incentivizes nodes to share blocks by introducing a ledger mechanism that, while being based on the \textit{tit-for-tat} like algorithm of BitTorrent, it has been made more robust through the required synchronization of ledgers between nodes: this allows to build trust among well-behaved nodes while maintaining a harsh environment for fresh nodes that join the network or towards nodes that refuse to maintain a ledger, possibly to cancel debts towards other nodes. %todo - expand on this?
 
-But IPFS has an issue which is very similar to BitTorrent: just like torrent files must be distributed out-of-band, in IPFS the paths (which include the hashes) of the data must also be distributed out-of-band. But if we consider the current Web, we find the same issue: URLs of websites have to be obtained out-of-band, and the users that connect to a bad URL will not visit the webpage that they were looking for. This has been mitigated by the introduction of search engines, that made discovery of websites possible by keyword and not by URL. If a search engine behaves properly, it will return the correct URLs for the searched services. Some of these have grown to be so popular that they have started to become integrated in browsers, so that a user doesn't need to know the URL of the search engine in the first place. But the problem is only mitigated, not resolved, which allows for attacks such as \textit{typosquatting} and \textit{homograph attacks}. IPFS actually improves over the Web by not being vulnerable to both of these attacks, since URLs are hashes with a strict selection of characters and a typo is almost certainly making the hash a dead link that has no associated object, but an adversary can still deliver a malicious IPFS path to a user and claim that such link leads to some content, while in reality it does not, for example by using scam e-mails or by hosting a standard website in the normal Web. IPFS also makes it more difficult for users to detect such attacks, because its paths are neither human friendly nor related to the content in a semantic way; in other words a path towards a service is not going to contain the name of that service, while in the Web it's very likely that the URL is purposefully chosen to include the service name. %todo - does IPNS with public keys help in this?
+IPFS has an issue which is very similar to BitTorrent: just like torrent files must be distributed out-of-band, in IPFS the paths (which include the hashes) of the data must also be distributed out-of-band. But if we consider the current Web, we find the same issue: URLs of websites have to be obtained out-of-band, and the users that connect to a bad URL will not visit the webpage that they were looking for. This has been mitigated by the introduction of search engines, that made discovery of websites possible by keyword and not by URL. If a search engine behaves properly, it will return the correct URLs for the searched services. Some of these have grown to be so popular that they have started to become integrated in browsers, so that a user doesn't need to know the URL of the search engine in the first place. But the problem is only mitigated, not resolved, which allows for attacks such as \textit{typosquatting} and \textit{homograph attacks}. %todo(leandro) - define
+IPFS actually improves over the Web by not being vulnerable to both of these attacks, since URLs are hashes with a strict selection of characters and a typo is almost certainly making the hash a dead link that has no associated object, but an adversary can still deliver a malicious IPFS path to a user and claim that such link leads to some content, while in reality it does not, for example by using scam e-mails or by hosting a standard website in the normal Web. IPFS also makes it more difficult for users to detect such attacks, because its paths are neither human friendly nor related to the content in a semantic way; in other words a path towards a service is not going to contain the name of that service, while in the Web it's very likely that the URL is purposefully chosen to include the service name. %todo - does IPNS with public keys help in this?
 
-IPFS uses a DHT as their peer discovery system. Any node that joins the network has to bootstrap the DHT: while IPFS does not mandate any method for doing so, the reference implementation has a list of nodes coded directly into the application from which the client bootstraps the system. Since the addresses of those nodes are well-known (they are coded in an open source application), powerful attackers can impede access to these nodes by using the censoring techniques described in Section \ref{sec:problems}, rendering a client unable to reach the entire IPFS network. This problem has been discussed in a GitHub issue in the IPFS reference implementation project page, and proposed solutions include:
+IPFS uses a DHT as their peer discovery system. Any node that joins the network has to bootstrap the DHT: while IPFS does not mandate any method for doing so, the reference implementation has a list of nodes coded directly into the application from which the client bootstraps the system. Since the addresses of those nodes are well-known (they are coded in an open source application), powerful attackers can impede access to these nodes by using the censoring techniques described in Section \ref{sec:problems}, rendering a client unable to reach the entire IPFS network. This problem has been reported by GitHub user \cite{website:ipfsbootstrap} in a GitHub issue in the IPFS reference implementation project page and during discussion some solutions were proposed, including:
 \begin{itemize}
-	\item using the Tor network to reach bootstrapping nodes in case of client-side censorship (IP blocking);
+	\item using the Tor network (discussed in Section~\ref{proj:tor}) to reach bootstrapping nodes in case of client-side censorship (IP blocking);
 	\item reusing nodes contacted in previous sessions instead of always relying on the bootstrap list;
 	\item adding a command to obtain a list of nodes from other sources, including local files, Tor, or even the BitTorrent DHT.
 \end{itemize}
 A temporary workaround would be to edit the list in the source code to include also more, lesser-known trusted nodes: since IPFS is open source, this is an entirely viable option.
+
+\section{Other solutions}
+
+Many projects that are interesting and innovative under a scientific point of view have been excluded from this thesis because they do not meet the requirements specified in the Thesis Structure in Section \ref{sec:structure}. We will list here the most important ones, their main characteristics and the motivation behind this choice:
+\begin{itemize}
+	\item \textbf{Ethereum Swarm}: while it features similar properties as IPFS, such as content-addressing, it is based on the Ethereum blockchain and it caters to Ethereum specific needs, such as hosting of distributed applications (or \textit{dapps}). It focuses on fast delivery of small amounts of data and really strong anti-censorship features such as \textit{plausible deniability} of ownership of data, which makes impossible to determine with certainty which node is hosting which content. At the time of writing, development is in early proof-of-concept stages with only a test network available to users.
+	\item \textbf{Filecoin}: developed by Protocol Labs and based on their own IPFS, it introduces methods to verify that data is not only stored correctly but also kept for a large amount of time, ready to be served. These methods are called \textit{Proof-of-Replication} and \textit{Proof-of-Spacetime}. Its goal is slightly different from offering a new decentralized Web (it is also suitable for personal cloud storage needs since data can be encrypted by the uploader, but without encryption it can be used to build decentralized apps). It has not been deployed at the time of writing, without even a test network available.
+	\item \textbf{Sia} and \textbf{Storj}: two projects similar to Filecoin but simpler in nature. Their explicit goal is to provide a new decentralized cloud-storage service that is cheaper than the centralized ones available on the Web today.
+\end{itemize}
 
 \section{Summary}\label{sec:storagesummary}
 
@@ -326,43 +334,36 @@ Both BitTorrent and IPFS rely on a DHT to perform peer discovery, but IPFS, bein
 
 In Table \ref{table:storagecomparison} we summarize the algorithms and mechanisms chosen by BitTorrent and IPFS to implement their solutions.
 
-\begin{table}[b]
+\begin{table}[h]
 	\begin{center}
 		\begin{tabular}{|l|l|l|} \hline
 			\textbf{Feature} & \textbf{BitTorrent} & \textbf{IPFS} \\ \hline
 			
 			Data verification & Off-band cryptographic hashes &
-					\begin{tabular}{@{}l@{}}
-						Off-band cryptographic hashes \\
-						Merkle DAG
-					\end{tabular} \\ \hline
+			\begin{tabular}{@{}l@{}}
+				Off-band cryptographic hashes \\
+				Merkle DAG
+			\end{tabular} \\ \hline
 			
 			Peer discovery & Tracker servers, DHT & DHT \\ \hline
 			
 			Incentive scheme & Based on \textit{tit-for-tat} & 
-					\begin{tabular}{@{}l@{}}
-						BitSwap strategy\\
-						Reference impl. is based on \textit{debt ratio}
-					\end{tabular} \\ \hline
+			\begin{tabular}{@{}l@{}}
+				BitSwap strategy\\
+				Reference impl. is based on \textit{debt ratio}
+			\end{tabular} \\ \hline
 		\end{tabular}
 	\end{center}
 	\caption{Summary of algorithms and techniques used by the presented distributed storage projects}
 	\label{table:storagecomparison}
 \end{table}
 
-\section{Honorable mentions}
-
-Many projects that are interesting and innovative under a scientific point of view have been excluded from this thesis because they do not meet the requirements specified in the Thesis Structure in Section \ref{sec:structure}. We will list here the most important ones, their main characteristics and the motivation behind this choice:
-\begin{itemize}
-	\item \textbf{Ethereum Swarm}: while it features similar properties as IPFS, such as content-addressing, it is based on the Ethereum blockchain and it caters to Ethereum specific needs, such as hosting of distributed applications (or \textit{dapps}). It focuses on fast delivery of small amounts of data and really strong anti-censorship features such as \textit{plausible deniability} of ownership of data, which makes impossible to determine with certainty which node is hosting which content. It was not included because, at the time of writing, development is in early proof-of-concept stages with only a test network available to users.
-	\item \textbf{Filecoin}: developed by Protocol Labs and based on their own IPFS, it introduces complex and innovative methods to verify that data is not only stored correctly but also kept for a large amount of time, ready to be served. These methods are called \textit{Proof-of-Replication} and \textit{Proof-of-Spacetime}. It was not included both because its goal is slightly different from offering a new decentralized Web (it is also suitable for personal cloud storage needs since data can be encrypted by the uploader, but without encryption it can be used to build decentralized apps) and, most importantly, because it has not been deployed at the time of writing, without even a test network available.
-	\item \textbf{Sia} and \textbf{Storj}: two projects similar to Filecoin but simpler in nature. Their explicit goal is to provide a new decentralized cloud-storage service that is cheaper than the centralized ones available on the Web today. This is why these (and similar non-mentioned projects) were not included in the thesis.
-\end{itemize}
-
 \chapter{Decentralizing Naming}\label{ch:naming}
-%todo - It seems like this type of discussion would belong to Chapter 2, when we define the models. It doesn't, because we are not defining any models here, but then the whole discussion about bringing the web to Byzantine should be moved in Chapter 3. But if we do that, we lose the reasoning behind why we would define those models, and the definitions would just be there by themselves. How can we solve this?
+%todo - It seems like this type of discussion would belong to Chapter 2, when we define the models. It doesn't, because we are not defining any models here, but then the whole discussion about bringing the web to Byzantine should be moved in Chapter 3. But if we do that, we lose the reasoning behind why we would define those models, and the definitions would just be there by themselves. Solve this by rewriting Chapter 2 and move some stuff to Chapter 3, to make a similar intro to this one here.
 
-Another key component in the World Wide Web lies underneath the URLs that identify websites: the Domain Name System (or, in short, DNS).
+In the Web, websites are identified by Uniform Resource Locators, or URLs, which support a very important feature: domain names. These are strings composed by words and dots that are easy for humans to understand and memorize: the reason that we need such names is that otherwise we would have to use IP addresses in URLs which have none of those properties (especially since the introduction of IPv6, which makes IP addresses much longer). Since the Internet still needs IP addresses to locate servers (and devices in general), we need a system that can translate from names to IP addresses: this is accomplished by the Domain Name System (or, in short, DNS).
+
+\subsection{Domain Name System}
 
 %todo - this is taken pretty much as is from my Bachelor Project report: is this fine?
 The DNS is a decentralized naming system for devices connected to a network (including the Internet), currently defined with RFC 1034\cite{rfc:1034} and RFC 1035\cite{rfc:1035} and updated with successive RFCs throughout the years. The most important duty of the DNS is to map arbitrary human-friendly names to mainly IP addresses, although it can map to other types of data.
@@ -373,11 +374,13 @@ The DNS defines three components:
 	\item \emph{Name servers} are programs which store information about a subset of the domain space and references to other name servers which have information about the rest of the tree. Name servers have \emph{authority} over the parts of the tree of which they have complete information.
 	\item \emph{Resolvers} are programs which receive queries from clients and respond with information extracted from the name servers. Resolvers only need to know directly just one name server to complete all possible queries: if that name server does not contain the requested information, the resolver uses its references to reach other name servers.
 \end{itemize}
-The domain name space has one root node, labeled with an empty string. Children of this node are called \emph{top-level domains}, among which we can find ``\texttt{.com}'' and ``\texttt{.org}'', and two lettered words known as \emph{country codes}, such as ``\texttt{.ch}'' and ``\texttt{.it}''. Currently, there are about one thousand different top-level domains \cite{website:tldlist}.
+The domain name space has one root node, labeled with an empty string. Children of this node are called \emph{top-level domains}, among which we can find ``\texttt{.com}'' and ``\texttt{.org}'', and two lettered words known as \emph{country codes}, such as ``\texttt{.ch}'' and ``\texttt{.it}''. Currently, there are about one thousand different top-level domains (\cite{website:tldlist}).
 
 When resolving a hostname, resolvers query the root name server with the whole domain. The root name server usually replies with the address of the name server which has authority over the top-level domain of the hostname, but it also has facility to reply with the address of the actual server associated with the whole hostname. If the query has not been completed, the query is repeated with the correspondent top-level domain name server, and so on.
 
 To reduce traffic towards the root name servers (and all other name servers), DNS resolvers implement a \emph{caching} system: results from name servers are stored for reuse, together with an optional time-to-live value specified from the name servers themselves.
+
+\subsection{DNS Security Extensions}
 
 As we stated in Section \ref{sec:problems}, DNS is susceptible to attacks, including in its caching mechanism: since it is based on UDP, it is substantially easy to forge valid packets, especially responses. The two types of messages that are most often forged are:
 \begin{enumerate}
@@ -387,22 +390,15 @@ As we stated in Section \ref{sec:problems}, DNS is susceptible to attacks, inclu
 
 To counter these and similar attacks (described in RFC 3833 \cite{rfc:3833}), DNS Security Extensions (DNSSEC) have been introduced, which allow for resolvers and name servers to sign their messages using public-key cryptography to ensure that they originate from their actual source. Yet, implementation of DNSSEC has been inconsistent, and the majority of domains still don't support these extensions, at the time of writing.
 
-While DNSSEC prevent tampering of communications from a third-party attacker, it does not prevent other types of misconduct perpetrated by the DNS resolvers and name servers themselves, since they are still able to provide misleading information or to completely omit data regarding domain names that effectively become censored. This is because, from the client, DNS appears to be a centralized system (it is also a client/server protocol): the client only communicates with a DNS resolver, which will then search for the answer to the client's requests as described previously, if it doesn't already have that information.
+While DNSSEC can prevent tampering of communications from a third-party attacker, it does not prevent other types of misconduct perpetrated by the DNS resolvers and name servers themselves, since they are still able to provide misleading information or to completely omit data regarding domain names that effectively become censored. This is because, from the client, DNS appears to be a centralized system (it is also a client/server protocol): the client only communicates with a DNS resolver, which will then search for the answer to the client's requests as described previously, if it doesn't already have that information.
 
 To include these types of attack, we would have to move (at least) the DNS resolvers into a Byzantine failure model, where they are allowed to omit or modify information.
 
-This discussion is very similar to what is explained in Chapter \ref{ch:background}. Indeed, if we consider in which failure model the DNS is set, we would argue that it lies in a stopping failure model and its messages travel unmodified in a identically modeled channel (an example of a browser detecting a stop failure can be seen in Figure \ref{fig:browserdnsfailexample}). When we move the channel to a Byzantine failure model we introduce public-key cryptography with DNSSEC to avoid tampering with the messages (we are already prepared for refusals to delivery from the previous model). And now we move the servers (at least the ones that communicate with the clients, which are the DNS resolvers) to the Byzantine model.
+This discussion is very similar to what is explained in Chapter \ref{ch:background}. Indeed, if we consider in which failure model the DNS is set, we would argue that it lies in a stopping failure model and its messages travel unmodified in a identically modeled channel. When we move the channel to a Byzantine failure model we introduce public-key cryptography with DNSSEC to avoid tampering with the messages (we are already prepared for refusals to delivery from the previous model). And now we move the servers (at least the ones that communicate with the clients, which are the DNS resolvers) to the Byzantine model.
 
 Now, following the theme of this thesis, the logical answer would be to decentralize the DNS resolvers. This was thought to be impossible by \cite{wilcox2003names}, who conjectured that one cannot obtain a namespace where names are decentralized, secure (in the sense that an attacker cannot fake name resolutions) and human-meaningful at the same time: this \textit{trilemma} would be known as the ``Zooko's Triangle''. While decentralized namespaces already existed, they failed to either be human-meaningful (since they relied on cryptographic hashes or public keys), or to be secure (such as DNSSEC, that cannot protect against failed DNS resolvers).
 
 This conjecture sparked discussion and interest about the problem. The birth and popularization of Bitcoin and the blockchain gave \cite{swartz2011names} the idea that the validity of Zooko's Triangle's had been challenged by this practical and deployed project: his idea was later implemented as Namecoin.
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=0.9\linewidth]{img/browser-dns-fail-example}
-	\caption{An error message for a failed DNS resolution given by Firefox 61. Note that while the text says that the browser cannot connect to the website (in this case \texttt{www.google.it}), the ``title'' of the error page states that Firefox is not able to find the site: indeed, the DNS resolution for that domain name failed.}
-	\label{fig:browserdnsfailexample}
-\end{figure}
 
 \section{Namecoin}\label{proj:namecoin}
 
@@ -415,10 +411,10 @@ Additional sources of information will be specified throughout the following sec
 Namecoin is based on a blockchain, which is a distributed data structure whose main goal is to implement Byzantine fault tolerant consensus. We will not explain the mechanisms behind a blockchain and how it achieves this result, since it has extensively been covered by the academic community; %todo - might do this if we have time?
 instead, we will just mention some of its components to better explain the features of Namecoin.
 
-A blockchain is an ordered sequence of \textbf{blocks}. Each block contains some data, which are only transactions in the case of Bitcoin, but they also include operations and records for Namecoin. %todo - not correct, Namecoin seems to use the operations of Bitcoin Script
-Each user of a blockchain is called a \textbf{node}: it can participate in the chain if it has an \textbf{address}, which is a hash of a public key generated by the node. Each address has a non-negative amount of coins, that can be spent or earned by nodes through creation of \textbf{transactions}.
+A blockchain is an ordered sequence of \emph{blocks}. Each block contains some data, which are only transactions in the case of Bitcoin, but they also include operations and records for Namecoin. %todo - not correct, Namecoin seems to use the operations of Bitcoin Script
+Each user of a blockchain is called a \emph{node}: it can participate in the chain if it has an \emph{address}, which is a hash of a public key generated by the node. Each address has a non-negative amount of coins, that can be spent or earned by nodes through creation of \emph{transactions}.
 
-Namecoin also defines \textbf{records}, which are key-value pairs, and \textbf{operations}, which define the actions that are to be applied to a record. %todo - simplify this sentence
+Namecoin also defines \emph{records}, which are key-value pairs, and \emph{operations}, which define the actions that are to be applied to a record. %todo - simplify this sentence
 The three operations defined by Namecoin are:
 \begin{enumerate}
 	\item \texttt{NAME\_NEW}: the record %todo - wrong, not in the record
@@ -441,14 +437,14 @@ and the current state of the network regarding currently valid and active record
 
 \section{Ethereum Name Service}\label{proj:ens}
 
-\section{Summary}
-
-\section{Honorable Mentions}
+\section{Other solutions}
 \begin{itemize}
-	\item \textbf{EmerDNS}: part of a larger blockchain-based project known as Emercoin. Not included because the goal of Emercoin is to provide secure and distributed business services and operations, not to develop an alternative to the Web. %todo - reword and expand on this
+	\item \textbf{EmerDNS}: part of a larger blockchain-based project known as Emercoin, whose goal is to provide secure and distributed business services and operations, not to develop an alternative to the Web. %todo - expand on this?
 \end{itemize}
 
-\chapter{Distributed Web Projects}
+\section{Summary}
+
+\chapter{Distributed Web Projects}\label{ch:projects}
 
 \section{ZeroNet}\label{proj:zeronet}
 
@@ -464,6 +460,7 @@ and the current state of the network regarding currently valid and active record
 
 \subsection{Is decentralization the only solution?}
 
+\subsubsection{Tor}\label{proj:tor}
 %todo - Tor
 
 %\chapter{Upcoming projects}
@@ -474,7 +471,7 @@ and the current state of the network regarding currently valid and active record
 %\section{Hashgraph}
 
 
-\chapter{Conclusions}
+\chapter{Conclusions}\label{ch:conclusions}
 
 If any information is incorrect, we blame a Byzantine attacker over the standard Web that fooled us with misleading data.
 %As you can easily see from the above listing \citet{bbggs:iet07}
