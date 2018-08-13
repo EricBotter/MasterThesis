@@ -403,8 +403,7 @@ This conjecture sparked discussion and interest about the problem. The birth and
 
 \cite{namecoin} is a ``key-value pair registration and transfer system'' that is based on the Bitcoin blockchain. It was its first fork, and it uses \textit{merged mining} to allow Bitcoin miners to also obtain Namecoins as their reward for no additional computations. The key-value directory offered by Namecoin is mainly used to register and lookup \texttt{.bit} domains, but it can also serve multiple purposes.
 
-Note: there is neither official documentation nor a first-party whitepaper describing this technology. Most of the information reported here is based on either the official website or an empirical analysis by~\cite{kalodner2015empirical}. %todo - expand list if necessary
-Additional sources of information will be specified throughout the following section as needed. %todo - remove if we don't need more info
+Note: there is neither official documentation nor a first-party whitepaper describing this technology. Most of the information reported here is based on either the official website or an empirical analysis by~\cite{kalodner2015empirical}.
 
 \subsection{Protocol Overview}
 Namecoin is based on a blockchain, which is a distributed data structure whose main goal is to implement Byzantine fault tolerant consensus. We will not explain the mechanisms behind a blockchain and how it achieves this result, since it has extensively been covered by the academic community; %todo - briefly describe the blockchain in Chapter 2 (move some of the below there)
@@ -456,8 +455,6 @@ Namecoin does not prevent \emph{domain squatting}: this occurs when an attacker 
 
 Since Namecoin cannot prevent domain squatting, also \emph{typosquatting} and \emph{homograph attacks} are viable. Typosquatting is very similar to normal squatting, but instead of reserving the correct name, the attacker obtains a very similar name, so that if a user makes a mistake in typing the name on the keyboard (such an error is commonly referred to as a \emph{typo}), that user will obtain the attacker's website instead of being presented with an error message. DNS does not prevent this as well, and many typosquatting websites are present on the normal Web. Homograph attacks, instead, do not rely on typos but on maliciously placed links: the name obtained is visually similar if not identical to the attacked name, but the characters used are not from the ASCII set, but instead use the full Unicode character map, which contains glyphs similar or identical to the ones in the ASCII set but with a different byte value associated to it. Such Unicode characters are needed to support internationalized domain names, to avoid restricting users with different alphabets than the Latin one. Users would not be able to tell the difference between the original name and the look-alike, and would clicks on links that seem legitimate but instead lead to an attacker's website. DNS leaves full Unicode support up to the authorities of single top level domains, therefore some TLDs support Unicode and others don't. Also, if a browser detects a mixture of character sets in a domain name it will display that URL with a technique known as \emph{Punycode}, described in RFC 3492 (\cite{rfc:3492}), that shows multi-byte characters as strings of ASCII text instead of their Unicode glyph. While Namecoin uses Punycode to encode internationalized domain names into the blockchain, this does not prevent any type of attack as clients are very likely to decode names from Punycode before displaying them.%todo - move definitions of these attacks to introduction or Chapter 2?
 
-%todo - more?
-
 \section{Ethereum Name Service}\label{proj:ens}
 
 Ethereum Name Service (ENS) is a name resolution system implemented on top of the Ethereum blockchain. It allows name registration and mapping towards different network resources and it was first proposed as Ethereum Improvement Proposal 137 (\cite{eip:137}).
@@ -474,7 +471,7 @@ of every label in the domain name (as defined by DNS) and then combines them tog
 
 ENS is divided in three components:
 \begin{itemize}
-	\item the \emph{registrars}, smart contracts that own domains and can issue subdomains for users following the rules and fees of the smart contract corresponding to the parent domain; %todo fix/expand this
+	\item the \emph{registrars}, smart contracts that own domains and can issue subdomains for users following the rules and fees of the smart contract corresponding to the parent domain; 
 	\item the \emph{resolvers}, smart contracts that are responsible for translating names into the associated records, such as Ethereum address or hashes for content in Ethereum Swarm.
 	\item the \emph{registry}, consisting in a single smart contract that keeps track of all domains and subdomains: with each domain (specifically its node), the registry associates the owner's address, the resolver's address and the caching time-to-live for that domain and all its records;
 \end{itemize}
@@ -510,8 +507,6 @@ forbid such powerful attacks on the network, therefore we can claim that ENS is 
 We now move our attention to more general naming concerns, starting with name stealing. ENS successfully prevents this attack by implementing a \emph{Vickrey auction}: bids happen independently from one another over a three day time span and are followed by two more days in which bids can only be revealed. Once a bid is revealed, no other user can place a higher bid on that name, therefore it is safe to reveal bids. Also, if one would want to revert the blockchain back to undo both the reveal and the bid and replace them with their own, it would need to revert and propose potentially several thousand blocks: Ethereum's target block time is 15 seconds, which means that the network will most likely produce more than 5'000 blocks per day. If the bid and its reveal are distant enough (some hours should suffice), this attack becomes unfeasible under our model assumptions.
 
 ENS does not have mechanisms in place to prevent \emph{domain squatting} and the related attacks, \emph{typosquatting} and \emph{homograph attacks}. We can consider the fact that the ``centralized'' ownership of ENS allows for interventions to resolve situations where suck attacks were enacted, but it seems unlikely that this would be done at the current stage, knowing that the deployed registrar is considere temporary. We also have to note that in the ENS FAQ document~(\cite{website:ensfaq}) it's stated that the next permanent registrar will aim to provide fairness (``The system should not unduly favor people who happen to be in the right place at the right time'') and to implement a principle of least surprise (``Wherever possible, names should resolve to the resource most users would expect it to resolve to''), so this is likely to impact feasibility of these attacks, but this is not part of the current registrar.
-
-%todo - more?
 
 \section{Other solutions}
 ENS supersedes other previous attempts to implement DNS-like functionality on the Ethereum blockchain: such projects were either simpler in nature or did not include Ethereum specific features, so it would be redundant to include them here.
@@ -591,6 +586,8 @@ In Table~\ref{table:namingcomparison} we summarize the main features and accompl
 
 
 \chapter{Distributed Web Projects}\label{ch:projects}
+
+
 
 \section{ZeroNet}\label{proj:zeronet}
 
