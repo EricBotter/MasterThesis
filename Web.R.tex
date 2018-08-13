@@ -416,7 +416,7 @@ Each user of a blockchain is called a \emph{node}: it can participate in the cha
 The Bitcoin blockchain support execution of non-Turing complete scripts; Namecoin in particular also defines \emph{records}, which are key-value pairs, and three additional \emph{operations} that are exclusive to Namecoin and define what functions are available to their users: %todo - verify that Namecoin introduces records and they are not also in Bitcoin Script
 \begin{enumerate}
 	\item \texttt{NAME\_NEW}: the block contains a salted hash of a name that is intended to be registered (names are used as keys in the namespace): this allows a user to publish its intention to reserve a name without actually revealing the name itself;
-	\item \texttt{NAME\_FIRSTUPDATE}: the record contains the actual name that is being registered and the associated data, which can optionally include an IP address, identity information or custom data used for other services (including ZeroNet); this type of operation can be registered on the blockchain only if there is a distance of at least 12 blocks from its corresponding \texttt{NAME\_NEW} operation;
+	\item \texttt{NAME\_FIRSTUPDATE}: the record contains the actual name that is being registered and the associated data, which can optionally include an IP address, identity information or custom data used for other services (including ZeroNet); this type of operation can be registered on the blockchain only if there is a distance of at least 12 blocks from its corresponding \texttt{NAME\_NEW} operation, and since Namecoin takes 10 minutes on average to mine a block, the wait time between reservation and reveal amounts to about 2 hours;
 	\item \texttt{NAME\_UPDATE}: this operation allows for updating, renewing and trading of existing names; the type of data contained in the record is identical to the one in \texttt{NAME\_FIRSTUPDATE}.
 \end{enumerate}
 
@@ -444,7 +444,7 @@ Let's consider Zooko's Triangle applied to Namecoin and verify that this solutio
 
 The first and probably most trivial one is decentralization: since Namecoin relies on a blockchain to store names and associated data, and due to the decentralized, trustless nature of the blockchain, we can easily claim that there is no central authority that has control over name registration; instead, the Namecoin community, in the form of blockchain miners, collects name registrations from individuals and produces blocks that are verified by that same community and included in the blockchain, updating its state for both miners and standard users. Namecoin is decentralized.
 
-Another trivial property is human-meaningful names, which Namecoin definitely supports: users are free to choose the name to register instead of having to rely on computer-generated hashes or other mechanisms that produce seemingly random strings. The purchased names are stored in the blockchain as-is (after a 12 block reservation phase in which only the hash is registered) and are shared among all nodes that maintain a valid copy of the blockchain. %todo - expand on names, squatting etc.
+Another trivial property is human-meaningful names, which Namecoin definitely supports: users are free to choose the name to register instead of having to rely on computer-generated hashes or other mechanisms that produce seemingly random strings. The purchased names are stored in the blockchain as-is (after a 12 block reservation phase in which only the hash is registered) and are shared among all nodes that maintain a valid copy of the blockchain.
 
 The most important property and the most difficult to achieve is security. This is because, like most other characteristics, Namecoin entirely depends on the underlying blockchain, which has a probabilistic system to provide security. While some attacks are possible that would compromise the security of the blockchain (some of which derive from Bitcoin and extend to Namecoin since the design of the blockchain is really similar; more modern cryptocurrencies resolve some of these issues), the practicality of such attacks is extremely low. For example, an attack on the Bitcoin blockchain that allows \emph{double spending} (i.e. reverting a previous expense through replacement of the associated block to allow a new spending of the same coins) requires that the attacker has at least the same computing power as the sum of the power of every other Bitcoin miner in the network, thus the name \emph{majority attack}, or \emph{51\% attack}. This attack has been successfully executed against other, smaller cryptocurrencies (some examples have been reported by \cite{website:realwordmajorityattacks}), which confirms that in and of itself the blockchain is not as secure as a centralized system, but the years that both the Bitcoin and Namecoin cryptocurrency have spent in operational state have demonstrated that their blockchain is secure \emph{enough} to withstand real-world attacks. %todo - might need to rewrite this after Chapter 2 is rewritten
 
@@ -507,14 +507,14 @@ As for human-meaningful names, we can easily claim that they are supported by EN
 Like in Namecoin, when it comes to security ENS entirely depends on the Ethereum blockchain. Just like Bitcoin and Namecoin, Ethereum suffers from 51\% attacks, which are unlikely to occur in the current real-world setting. Moreover, our assumptions on the Byzantine model described in Chapter~\ref{ch:background} %todo <--
 forbid such powerful attacks on the network, therefore we can claim that ENS is secure. We should also consider failures from the deployed ENS smart contracts, possibly deriving from bugs or issues in the implementation that have not been discovered yet: this is one of the reasons that led to assigning ownership of the ENS system to a group of seven trustworthy people in the Ethereum community, so that if any problem arises with the contracts themselves or with the system those people can intervene and potentially fix the implementation bugs and/or recover from loss or unauthorized alteration of records. While this fact by itself does not inherently guarantee security, it is an additional measure to counter potential incidents or attacks.
 
-We now move our attention to more general naming concerns, starting with name stealing. ENS successfully prevents this attack by implementing a \emph{Vickrey auction}: bids happen independently from one another over a three day time span and are followed by two more days in which bids can only be revealed. Once a bid is revealed, no other user can place a higher bid on that name, therefore it is safe to reveal bids. Also, if one would want to revert the blockchain back to undo both the reveal and the bid and replace them with their own, it would need to revert and propose potentially several thousand blocks: Ethereum's target block time is 15 seconds, which means that the network will most likely produce more than 5'000 blocks per day. If the bid and its reveal are distant enough (some hours should suffice), this attack is not feasible under our model assumptions.
+We now move our attention to more general naming concerns, starting with name stealing. ENS successfully prevents this attack by implementing a \emph{Vickrey auction}: bids happen independently from one another over a three day time span and are followed by two more days in which bids can only be revealed. Once a bid is revealed, no other user can place a higher bid on that name, therefore it is safe to reveal bids. Also, if one would want to revert the blockchain back to undo both the reveal and the bid and replace them with their own, it would need to revert and propose potentially several thousand blocks: Ethereum's target block time is 15 seconds, which means that the network will most likely produce more than 5'000 blocks per day. If the bid and its reveal are distant enough (some hours should suffice), this attack becomes unfeasible under our model assumptions.
 
-ENS does not have mechanisms in place to prevent \emph{domain squatting} and the related attacks, \emph{typosquatting} and \emph{homograph attacks}. We can consider the fact that the ``centralized'' ownership of ENS allows for interventions to resolve situations where suck attacks were enacted, but it seems unlikely that this would be done at the current stage, with the temporary registrar in place. We also have to note that in the ENS FAQ document~(\cite{website:ensfaq}) it's stated that the next permanent registrar will aim to provide fairness (``The system should not unduly favor people who happen to be in the right place at the right time'') and to implement a principle of least surprise (``Wherever possible, names should resolve to the resource most users would expect it to resolve to''), so this is likely to impact feasibility of these attacks, but this is not implemented in the current registrar.
+ENS does not have mechanisms in place to prevent \emph{domain squatting} and the related attacks, \emph{typosquatting} and \emph{homograph attacks}. We can consider the fact that the ``centralized'' ownership of ENS allows for interventions to resolve situations where suck attacks were enacted, but it seems unlikely that this would be done at the current stage, knowing that the deployed registrar is considere temporary. We also have to note that in the ENS FAQ document~(\cite{website:ensfaq}) it's stated that the next permanent registrar will aim to provide fairness (``The system should not unduly favor people who happen to be in the right place at the right time'') and to implement a principle of least surprise (``Wherever possible, names should resolve to the resource most users would expect it to resolve to''), so this is likely to impact feasibility of these attacks, but this is not part of the current registrar.
 
 %todo - more?
 
 \section{Other solutions}
-ENS supersedes other previous attempts to implement DNS-like functionality on the Ethereum blockchain: such projects were either simpler in nature or not suitable for the needs of Ethereum itself, so it would be redundant to include them here.
+ENS supersedes other previous attempts to implement DNS-like functionality on the Ethereum blockchain: such projects were either simpler in nature or did not include Ethereum specific features, so it would be redundant to include them here.
 
 Other projects non related to Ethereum are:
 \begin{itemize}
@@ -525,7 +525,70 @@ Other projects non related to Ethereum are:
 
 \section{Summary}
 
-%todo
+We have explored two solutions to decentralize naming systems by replicating information to multiple devices in a Byzantine environment.
+
+To implement such features, both Namecoin and ENS rely on the blockchain, a data structure that implements Byzantine fault tolerant consensus. Both projects store names on the blockchain, which is then used to synchronize information among all participants of the network. While Namecoin uses and expands on the operations provided by Bitcoin, ENS takes advantage of Ethereum's smart contracts (which are more powerful as they are Turing complete, while Bitcoin scripting is not) to provide more capabilities, for example by fully taking advantage of domain hierarchies with the possibility of custom resolvers, and more structure, since record formats are enforced by the resolver smart contracts instead of being stored as JSON objects, whose content and format cannot be enforced by the Namecoin system.
+
+Regarding Zooko's Triangle, both projects have the potential to challenge this idea by implementing a decentralized secure system for handling human-meaningful names. But, if we consider the details, we cannot claim that ENS is decentralized because of the ownership of the system by seven estimated people in the Ethereum community, which have complete control over every single record in the system. Instead, Namecoin does not have this weakness and successfully refutes Zooko's triangle under our Byzantine model.
+
+Both systems successfully prevent name stealing by hiding the domain name through hashing at the moment of expressing interest for it, for later revealing the clear-text name to prove the claim. Namecoin will allow only one name claim and will assign the name when it is revealed, while ENS implements a more complex auction system in which also the bid amount is hidden (known as a Vickrey auction). The time between claim and reveal also differs in the two projects, with Namecoin having a minimum wait time corresponding to mining of 12 blocks (approximately two hours) and ENS allowing up to 5 days.
+
+None of the two systems resolves attacks such as squatting, typosquatting and homograph attacks. If we consider DNS, which by itself does not solve this problem, its centralized ownership allows for interventions by governments or other similarly powerful parties that can resolve cases in which these attacks were successful. ENS technically allows this as well by having the owners of the system intervene in case such attacks were enacted, but there is no actual mechanism in place that prevents the attacks from succeeding. Namecoin on the other hand can neither prevent nor recover from these attacks. It would seem like this vulnerability appears to be directly caused by assigning human-meaningful names to a free, unregulated market, which is the one the blockchain has become popular for. In such a market, it all comes down to who obtains the name first, which disregards company names, trademarks or other types of already existing recognizable names: vulnerability to the attacks are a direct consequence of this. Though, it is worth noting that ENS has plans to forbid the attacks through a smart contract that owns the ENS records: in the future we will see if the ENS teams can accomplish this and how they will manage to do so.
+
+In Table~\ref{table:namingcomparison} we summarize the main features and accomplishments that characterize Namecoin and ENS.
+
+\begin{table}[h]
+	\begin{center}
+		\begin{tabular}{|p{4.5cm}|p{3cm}|p{4.5cm}|} \hline
+			\textbf{Feature} & \textbf{Namecoin} & \textbf{ENS} \\ \hline
+			
+			Underlying technology & 
+			\begin{tabular}{@{}l@{}}
+				Blockchain \\
+				(Bitcoin fork) \\
+			\end{tabular} &
+			Blockchain (Ethereum)	\\ \hline
+			
+			\begin{tabular}{@{}l@{}}
+				Refutation of Zooko's Triangle \\
+				1. Decentralized \\
+				2. Secure \\
+				3. Human-meaningful names \\
+			\end{tabular} &
+
+			\begin{tabular}{@{}l@{}}
+				Yes\\
+				1. Yes \\
+				2. Yes \\
+				3. Yes \\
+			\end{tabular} &
+
+			\begin{tabular}{@{}l@{}}
+				No\\
+				1. No (has central ownership) \\
+				2. Yes \\
+				3. Yes \\
+			\end{tabular} \\ \hline
+
+%			\begin{tabular}{@{}l@{}}
+%				Prevention of squatting \\
+%				and related attacks 
+%			\end{tabular} &
+				
+			Prevention of name stealing & Yes (hashed name) & Yes (hashed name, auction) \\ \hline
+			
+			Prevention of squatting and related attacks & No & No (but can recover through human intervention)
+%			\begin{tabular}{@{}l@{}}
+%				No (but can recover through \\
+%				
+%			\end{tabular}
+			\\ \hline
+		\end{tabular}
+	\end{center}
+	\caption{Summary of features and accomplishments of the presented distributed naming projects}
+	\label{table:namingcomparison}
+\end{table}
+
 
 \chapter{Distributed Web Projects}\label{ch:projects}
 
@@ -556,25 +619,26 @@ Other projects non related to Ethereum are:
 
 \chapter{Conclusions}\label{ch:conclusions}
 
-If any information is incorrect, we blame a Byzantine attacker over the standard Web that fooled us with misleading data.
-%As you can easily see from the above listing \citet{bbggs:iet07}
-%define something weird based on the BPEL specification
-%\citep{bpelspec}.
-%\nocite{*}
+We have described the current state-of-the-art in the decentralized Web scenario. %todo - describe thesis
+
+Development of these systems is in its early stages. New projects and solutions continue to arise, making this scenario very dynamic and full of innovation. Also, events such as the Decentralized Web Summit~(\cite{website:dws}) are gaining popularity and traction, hosting informative talks and making the scene more interconnected by having members of different organizations talking with each other and confronting ideas. This document is bound to become obsolete within the next years as more projects evolve and reach stable deployment, but it is still interesting to explore the current technologies since they create the foundation for what is next to come.
+
+It's also worth stating that none of the projects described here have become massively popular among Internet users as alternatives to the standard Web. The most popular one, BitTorrent, is well known for its file sharing capabilities instead of being the basis of ZeroNet's data transfer system. %todo - continue?
+
+Most of the research on which this document is based was done on current technologies, so if any information reported in this document is incorrect, we blame a Byzantine attacker over the standard Web that fooled us with misleading data.
 
 \appendix 
 
 \chapter{Distributed Hash Table}\label{appx:dht}
-%todo
+%todo - move DHT to Chapter 2
 
 \backmatter
 
-\chapter{Glossary}
-\begin{itemize}
-	\item TCP
-	\item ISP
-	
-\end{itemize}
+%\chapter{Glossary}
+%\begin{itemize}
+%	\item TCP
+%	\item ISP	
+%\end{itemize}
 
 %\bibliographystyle{alpha}
 %\bibliographystyle{dcu}
