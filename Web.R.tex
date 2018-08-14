@@ -106,13 +106,11 @@ The projects described in this thesis have been selected based on the following 
 
 \section{Thesis structure}\label{sec:structure}
 This thesis is structured as follows. Chapter~\ref{ch:background} introduces some common definitions and describes the models used to analyze the Web and any of the projects that will subsequently be explored; we also define the characteristics of the Distributed Web. Chapter~\ref{ch:storage} describes the expected properties of a distributed storage system and explores two projects implementing such a system: BitTorrent and IPFS. Chapter~\ref{ch:naming} describes the issues of the current naming system (DNS) and describes the challenges of implementing a distributed one, then explores two projects that resolve those complications: Namecoin and Ethereum Name Service. Chapter~\ref{ch:projects} describes two projects that combine decentralized naming and storage into one system, including software that allows easy access to that system: ZeroNet and Blockstack.
-%The n-th chapter will elaborate on some upcoming projects that have the possibility to impact the distributed web scenario.
-%todo-removed the above for now
 Chapter~\ref{ch:conclusions} concludes the thesis.
 
 \chapter{Background} %todo - needs rewrite (see also Chapter 4 todo)
 \label{ch:background}
-%todo - add a definition of the blockchain (at least mention what it provides)
+%todo - add a definition of the blockchain (at least mention what it provides) and the DHT
 
 We have to rethink the Web if we want to move it to a decentralized environment. The current Web is a centralized system: each website is owned by a party that we'll define as \textit{content creator}. The content creator owns the website and is responsible for distributing its content, either by using a self-owned and maintained web server or by publishing it to a dedicated service, known as \textit{web hosting} service provider (there are too many services currently online to present a somewhat accurate list of examples here). When using \textit{web server}, we will always refer to both these options, since in both cases there is always a web server that serves the website, whether it's owned by the content provider or by a company.
 Although it's not required, the content creator usually also obtains a domain name to associate with the website.
@@ -188,9 +186,9 @@ Another key component of a distributed storage system is \emph{peer discovery}, 
 
 \section{BitTorrent}\label{proj:bittorrent}
 
-BitTorrent is probably the most known and used peer-to-peer file-sharing protocol. It is also the basis of ZeroNet, a project we discuss in Section~\ref{proj:zeronet}.
+BitTorrent is probably the most known and used peer-to-peer file-sharing protocol. It is also part of ZeroNet, a project we discuss in Section~\ref{proj:zeronet}.
 
-\subsection{Protocol Overview}
+\subsection{Protocol overview}
 
 Let us start with some definitions related to the BitTorrent protocol. A collection of files is known as a \emph{torrent}, and to make distribution easier, each file is split into \emph{blocks} of equal size. A torrent is described in a dedicated file called \emph{torrent file} (they are also known as \textit{metainfo files}), which contains a list of the files contained in that torrent and the cryptographic hash of each block (using the SHA-1 algorithm), plus some metadata, such as the name of the torrent, the block size, etc.
 
@@ -242,7 +240,7 @@ But this is not the only issue in the network. Its incentive scheme has been tho
 The InterPlanetary FileSystem (IPFS) is a decentralized file system based on content-addressing coupled with a hypermedia distribution protocol. It has been referred to as the \textit{Permanent Web} %todo(leandro) - refer to an example of where this is used
 , as one of the goals of the project is ``to make the web faster, safer, and more open'' and ``where links do not die''. %todo - citation to whitepaper
 
-\subsection{Protocol Overview}
+\subsection{Protocol overview}
 
 IPFS is a peer-to-peer system, and each peer is called a \emph{node}: all nodes share the same roles and no node is privileged. Each node keeps a set of \emph{objects}, that can represent files or other kinds of data: objects are stored in \emph{local storage}, i.e. some external system on which raw data can be stored or retrieved. This can range from a hard disk drive to dedicated RAM, but it can also be some more complex, possibly networked system as well.
 
@@ -315,6 +313,7 @@ Many projects that are interesting and innovative under a scientific point of vi
 \begin{itemize}
 	\item \textbf{Ethereum Swarm}: while it features similar properties as IPFS, such as content-addressing, it is based on the Ethereum blockchain and it caters to Ethereum specific needs, such as hosting of distributed applications (or \textit{dapps}). It focuses on fast delivery of small amounts of data and really strong anti-censorship features such as \textit{plausible deniability} of ownership of data, which makes impossible to determine with certainty which node is hosting which content. At the time of writing, development is in early proof-of-concept stages with only a test network available to users.
 	\item \textbf{Filecoin}: developed by Protocol Labs and based on their own IPFS, it introduces methods to verify that data is not only stored correctly but also kept for a large amount of time, ready to be served. These methods are called \textit{Proof-of-Replication} and \textit{Proof-of-Spacetime}. Its goal is slightly different from offering a new decentralized Web (it is also suitable for personal cloud storage needs since data can be encrypted by the uploader, but without encryption it can be used to build decentralized apps). It has not been deployed at the time of writing, without even a test network available.
+	\item \textbf{Dat}: a dataset synchronization protocol designed to replicate and transfer large sets of data between peers, based on Merkle trees and public key cryptography for data verification and a DHT for peer discovery. It's the technology at the foundation of Beaker Browser, which we mention in Section~\ref{sec:browserprojects}.
 	\item \textbf{Sia} and \textbf{Storj}: two projects similar to Filecoin but simpler in nature. Their explicit goal is to provide a new decentralized cloud-storage service that is cheaper than the centralized ones available on the Web today.
 \end{itemize}
 
@@ -405,7 +404,7 @@ This conjecture sparked discussion and interest about the problem. The birth and
 
 Note: there is neither official documentation nor a first-party whitepaper describing this technology. Most of the information reported here is based on either the official website or an empirical analysis by~\cite{kalodner2015empirical}.
 
-\subsection{Protocol Overview}
+\subsection{Protocol overview}\label{sec:namecoindesc}
 Namecoin is based on a blockchain, which is a distributed data structure whose main goal is to implement Byzantine fault tolerant consensus. We will not explain the mechanisms behind a blockchain and how it achieves this result, since it has extensively been covered by the academic community; %todo - briefly describe the blockchain in Chapter 2 (move some of the below there)
 instead, we will just mention some of its components to better explain the features of Namecoin.
 
@@ -459,7 +458,7 @@ Since Namecoin cannot prevent domain squatting, also \emph{typosquatting} and \e
 
 Ethereum Name Service (ENS) is a name resolution system implemented on top of the Ethereum blockchain. It allows name registration and mapping towards different network resources and it was first proposed as Ethereum Improvement Proposal 137 (\cite{eip:137}).
 
-\subsection{Protocol Overview}
+\subsection{Protocol overview}
 
 ENS is built on the Ethereum blockchain, which supports Turing-complete scripts (called \emph{smart contracts}) that run on the Ethereum Virtual Machine (EVM). The EVM is a specification of a virtual machine that is to be executed (or emulated) by all Ethereum nodes. The EVM state is derived from all the transactions stored in Ethereum's blockchain, so that it can be synchronized among the entire network. ENS is implemented as a collection of smart contracts and is currently deployed on the Ethereum mainnet, the ``production'' blockchain.
 
@@ -509,14 +508,17 @@ We now move our attention to more general naming concerns, starting with name st
 ENS does not have mechanisms in place to prevent \emph{domain squatting} and the related attacks, \emph{typosquatting} and \emph{homograph attacks}. We can consider the fact that the ``centralized'' ownership of ENS allows for interventions to resolve situations where suck attacks were enacted, but it seems unlikely that this would be done at the current stage, knowing that the deployed registrar is considere temporary. We also have to note that in the ENS FAQ document~(\cite{website:ensfaq}) it's stated that the next permanent registrar will aim to provide fairness (``The system should not unduly favor people who happen to be in the right place at the right time'') and to implement a principle of least surprise (``Wherever possible, names should resolve to the resource most users would expect it to resolve to''), so this is likely to impact feasibility of these attacks, but this is not part of the current registrar.
 
 \section{Other solutions}
-ENS supersedes other previous attempts to implement DNS-like functionality on the Ethereum blockchain: such projects were either simpler in nature or did not include Ethereum specific features, so it would be redundant to include them here.
+ENS supersedes other previous attempts to implement DNS-like functionality on the Ethereum blockchain: such projects were either simpler in nature or did not allow different types of records to be registered, %todo - reference: https://github.com/ethereum/EIPs/blob/4938bcbf91/EIPS/eip-137.md#motivation
+so it would be redundant to include them here.
 
 Other projects non related to Ethereum are:
 \begin{itemize}
 	\item \textbf{EmerDNS}: part of a larger blockchain-based project known as Emercoin, whose goal is to provide secure and distributed business services and operations, not to develop an alternative to the Web; %todo - expand on this?
 	\item \textbf{NXT Aliases}: part of another blockchain-based project called NXT, aliases are  generic key-value associations that allow any string to be associated with any other, possibly shorter string. Similarly to Emercoin, NXT provides many features but not a distributed Web;
-	\item \textbf{Blockstack DNS}: we discuss this in Section~\ref{proj:blockstack}.
+	\item \textbf{Blockchain Name System}: we discuss this in Section~\ref{proj:blockstack}.
 \end{itemize}
+
+%todo - mention OpenNIC?
 
 \section{Summary}
 
@@ -587,17 +589,52 @@ In Table~\ref{table:namingcomparison} we summarize the main features and accompl
 
 \chapter{Distributed Web Projects}\label{ch:projects}
 
+We have previously discussed how key Web components like storage of data and naming can be moved from a stopping-failure environment to a Byzantine failure scenario, and we explored real case projects that have implemented and exemplified our descriptions. Now we will combine the two components to obtain a unique environment that can be called the distributed Web.
 
+%todo
+
+The projects that we're going to explore provide a more complete, Web-like user experience instead of just providing distributed storage or naming. They need to both provide access to the distributed storage by extending functionalities of existing browsers or through a first-party browser-like interface, and they need to support some form of distributed naming to access websites. %todo - continue?
 
 \section{ZeroNet}\label{proj:zeronet}
 
+ZeroNet is the first distributed Web project that we present. It combines BitTorrent and elliptic-curve cryptography (the same system used in Bitcoin) to provide distributed storage of data, and takes advantage of the Namecoin system to provide support for decentralized domain names.
+
+\subsection{Project overview}
+
+Let us start with defining some general concepts of the ZeroNet system. Being a peer-to-peer system, a client is called a \emph{peer}. A ZeroNet website (or \emph{zite}, as the community has grown to call them, but we will just use ``website'' in this Section) consists of a collection of files that are listed in a special file named \texttt{content.json}. To exchange messages between peers, ZeroNet uses MessagePack~(\cite{website:msgpack}), which provides a JSON-like interface but a more compact data representation.
+
+ZeroNet implements a custom data transfer protocol, of which we will just state the basics and the main accomplishments, as it is not the focus of this part to present a full exploration of this protocol.
+
+ZeroNet's data verification mechanism is based on the same elliptic-curve public key cryptography used in Bitcoin\footnote{This allows website owners to receive Bitcoin payments since the public key is also a valid Bitcoin address. This feature is planned to be integrated into ZeroNet, but this is not implemented at the time of writing.}: each website is identified by a public key that is also used to address it. Once a client fetches a website, the first request is to the \texttt{content.json} file, which is signed by the website creator using the corresponding private key; the client verifies the file against the website's public key. This file is essential to the data verification mechanism since it contains the SHA-512 hash of every single file of that website. The client will then download these files from the network and will be able to verify their integrity against their previously obtained and already verified hash.
+
+ZeroNet does not really implement an incentive scheme, instead it applies a very simple rule to replicate data: peers that visit a website will also start to serve the downloaded files to other peers. %todo - considerations on this will be on the Analysis?
+
+ZeroNet bases its peer discovery solution on BitTorrent, more specifically on BitTorrent's trackers: a client will request to a tracker which peers are currently serving a specific website and the tracker will return those peers. This action also adds the requesting peer to the list of currently serving peer because of the above stated rule. ZeroNet also implemented a peer exchange system equivalent to BitTorrent's PEX, in which clients can suggest the IP addresses of other peers by using a dedicated message of the protocol. ZeroNet also includes a tracker server in its code, so that any client can also function as a tracker server if configured accordingly.
+
+Since websites are identified and address by their public key, ZeroNet URLs are not human-meaningful, as they contain a seemingly random sequence of characters. While this identification mechanism is sufficient to retrieve websites, ZeroNet supports Namecoin's \texttt{.bit} domain names: clients will obtain the record for the requested domain name and search for the key \texttt{zeronet} in the obtained JSON, which is expected to contain the ZeroNet public key of the corresponding website; clients will then proceed to obtain the list of peers and the website files as described above. As we stated in Section~\ref{sec:namecoindesc}, to perform resolutions a client would need to download the entire Namecoin blockchain: ZeroNet neither includes the blockchain nor attempts to download it to perform resolutions, instead, it relies on ZeroName, an internal ZeroNet site that stores all ZeroNet enabled domains registered on Namecoin. ZeroNet can also be configured to use a locally running Namecoin client in case the user wants to perform resolution against the actual blockchain.
+
+The ZeroNet client is not a browser, thus it is not able to render websites in its own. Instead, when launched it also starts an HTTP server on port 43110: the way that this server is meant to be accessed is by pointing existing browsers towards that server and to pass, through the URL, information on which website the ZeroNet client needs to retrieve. This is the reason behind the unique format of ZeroNet URLs: they all start with \texttt{http://127.0.0.1:43110/}, since this would be the address of the Web server run by the ZeroNet client when run in the same computer in which the browser is making the requests. The element that follows the URL identifies the website, either by its public key or by a ZeroNet enabled Namecoin domain, and then the rest of the path specifies which file to load. If the path is empty, the browser is redirected to ZeroHello, a ZeroNet website that is meant to serve as a ``homepage'' for the network. The browser by itself is not aware that the data is coming from the ZeroNet network instead of a locally running HTTP server.
+
+It is worth noting that the ZeroNet client does not simply relay content from the network to the browser, instead it provides a more complex Web interface that allows features such as displaying a loading page while the website is retrieved, or \emph{real-time website updates}. This last feature uses WebSocket API to let the interface know that content on the page has changed and that new data has to be displayed accordingly; under the hood, the content creator has sent a message to some current visitors, which are then going to relay the message to other peers, that a newer \texttt{content.json} file is available: the notified clients will compare the timestamps contained in that file to verify that it is actually newer and then download the modified files accordingly.
+
+A key feature of the so called Web 2.0 that allowed the rise and popularization of social medias is the ability to get, store and serve user-generated content. %todo - might move this to intro
+ZeroNet supports this through \emph{multi-user sites}: this feature allows website owners to give other users the ability of modifying some appropriate files of the website, effectively enabling user-generated content. The key of the user that obtains editing permission is stored in a \texttt{content.json} file and the user has to sign its changes when publishing them, so that the new content can be verified not only for integrity, but also for checking that no other user is submitting content without permission.
+
+ZeroNet is not made with anonymity as a priority and it is stated in various resources (\cite{website:zeronetpresentation}, \cite{website:zeronetfaq}) that ZeroNet is ``not more anonymous than BitTorrent'', in the sense that it is possible to identify which IP address created a website and uploaded its content into the network, and also who is currently serving files of some website. On the other hand, ZeroNet supports interoperability with Tor, an anonymizing network, so that all traffic can be routed through it without the risk of being de-anonymized by some Tor-unaware part of the system, which is the opposite of what happens in the already mentioned BitTorrent, as presented and analyzed by~\cite{manils2010compromising}.
+
+\subsection{Analysis}
+
+
+
 \section{Blockstack}\label{proj:blockstack}
 
-%\section{SAFE Network}\label{proj:safe}
-%todo - investigate this one, but it seems to be in closed testing
+\section{Other solutions}\label{sec:browserprojects}
 
-%\section{Freenet}
-%todo - So old, is it worth to talk about this?
+\begin{itemize}
+	\item \textbf{SAFE Network} %todo - investigate this one, but it seems to be in closed testing	
+	\item \textbf{Freenet} %todo - So old, is it worth to talk about this?
+	\item \textbf{Beaker Browser}: based on the dataset synchronization protocol known as Dat, Beaker Browser allows for creation and visualization of distributed websites, although it fails to provide or reuse a distributed naming system, relying instead on HTTP and DNS to resolve names.
+\end{itemize}
 
 \section{Summary}
 
