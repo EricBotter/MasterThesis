@@ -569,18 +569,9 @@ In Table~\ref{table:namingcomparison} we summarize the main features and accompl
 				3. Yes \\
 			\end{tabular} \\ \hline
 
-%			\begin{tabular}{@{}l@{}}
-%				Prevention of squatting \\
-%				and related attacks 
-%			\end{tabular} &
-				
 			Prevention of name stealing & Yes (hashed name) & Yes (hashed name, auction) \\ \hline
 			
 			Prevention of squatting and related attacks & No & No (but can recover through human intervention)
-%			\begin{tabular}{@{}l@{}}
-%				No (but can recover through \\
-%				
-%			\end{tabular}
 			\\ \hline
 		\end{tabular}
 	\end{center}
@@ -595,9 +586,14 @@ We have previously discussed how key Web components like storage of data and nam
 
 %todo - define the distributed Web as the combination of decentralized storage and naming
 
-%todo - mention what we want to achieve: resistency to censorship, improved trust and handling of privacy
+The projects that we're going to explore provide a more complete, Web-like user experience instead of just providing distributed storage or naming. They need to both provide access to the distributed storage by extending functionalities of existing browsers or through a first-party browser-like interface, and they need to support some form of distributed naming to access websites.
 
-The projects that we're going to explore provide a more complete, Web-like user experience instead of just providing distributed storage or naming. They need to both provide access to the distributed storage by extending functionalities of existing browsers or through a first-party browser-like interface, and they need to support some form of distributed naming to access websites. %todo - continue?
+We will also verify that the platforms effectively resolve the problems described in Section~\ref{sec:problems}, by providing:
+\begin{itemize}
+	\item Resistance to \textbf{censorship}, by using a distributed data storage system that correctly decouples websites from IP addresses and by relying on a valid peer discovery system and good incentive scheme;
+	\item Lack of \textbf{trust}, by using Byzantine fault tolerant protocols to transfer data and to resolve names without the need of trusting any external party;
+	\item Support for \textbf{privacy}, by implementing mechanisms that allow users to fully control the data that they share and who they share it with.
+\end{itemize}
 
 \section{ZeroNet}\label{proj:zeronet}
 
@@ -635,9 +631,10 @@ On the other hand, the other two characteristics are sources of concern: first, 
 From the above we derive that ZeroNet data transfer protocol does not fit our model, %todo- define the model please, Chapter 2
 since peer discovery can be compromised. The lack of a Byzantine fault tolerant peer discovery system exposes ZeroNet to potential censorship as trackers and peers alike can refuse to provide correct information when requesting clients that share some given sites. On the other hand, it is worth noting that, in order to function, peer discovery only needs one non-failed tracker that provides enough information to discover a sufficiently large portion of the network, which then allows for peer exchange to be viable and improve on connectivity with other peers. But since our worst case scenario does not allow us to trust any tracker, the situation we just described also lies outside of the model.
 
-The naming system used by ZeroNet is Namecoin, which we extensively discussed in Section~\ref{proj:namecoin}. What is of interest for us here is the way that ZeroNet uses Namecoin: instead of contacting the blockchain directly, which would be the safest solution, naming data is obtained from the blockchain off-band and stored in the internal site ZeroName, against which the client performs name resolutions. Assuming that the off-band channel is trusted (apparently the main ZeroNet developer known as ``nofish'' has a script that updates ZeroName regularly~\cite{website:zeronameupdate}), this method is as secure (in the Zooko's Triangle sense) as performing resolutions on the blockchain directly: this is because data from the website is verified against the \texttt{content.json} file, which is itself verified against the ZeroName's public key stored in the client itself. Compromises in the peer discovery system might make this website inaccessible, but do not hamper transfer of information once enough valid peer data is obtained.
+The naming system used by ZeroNet is Namecoin, which we extensively discussed in Section~\ref{proj:namecoin}. What is of interest for us here is the way that ZeroNet uses Namecoin information: instead of contacting the blockchain directly, which would be the safest solution, naming data is obtained from the blockchain off-band and stored in the internal site ZeroName, against which the client performs name resolutions. Assuming that the off-band channel is trusted (apparently the main ZeroNet developer known as ``nofish'' has a script that updates ZeroName regularly~\cite{website:zeronameupdate}), this method is as secure (in the Zooko's Triangle sense) as performing resolutions on the blockchain directly: this is because data from the website is verified against the \texttt{content.json} file, which is itself verified against the ZeroName's public key stored in the client. Compromises in the peer discovery system might make this website inaccessible, but do not hamper transfer of information once enough valid peer data is obtained. But the assumption we just made implies that this system cannot be considered trustless, as we need to trust ZeroName's maintainer with the naming resolution data. The solution here is to rely on an actual Namecoin client and configure ZeroNet to use that instead of ZeroName.
 
-In ZeroNet, every information contained in websites is public. There is no mechanism in place to privatize content or to make some data available to few selected users. This makes it impossible to keep personal information secure, in fact no private or identifying information should be shared on this platform and any of its websites. A feature that would enable some form of private data management called ``private sites'' is planned, although development has stagnated and no progress is being made~(\cite{website:zeronetprivatesites}).
+In ZeroNet, every information contained in websites is public. There is no mechanism in place to privatize content or to make some data available to few selected users. This makes it impossible to keep personal information secure, in fact no private or identifying information should be shared on this platform and any of its websites. 
+A feature that would enable some form of private data management called ``private sites'' is planned, although development has stagnated and no progress is being made~(\cite{website:zeronetprivatesites}).
 
 \section{Blockstack}\label{proj:blockstack}
 
