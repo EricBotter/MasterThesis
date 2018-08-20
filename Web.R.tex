@@ -23,7 +23,8 @@ morecomment=[l]{//s},
 \place{Lugano} %compulsory
 
 \dedication{} %optional
-\openepigraph{Someone said \dots}{Someone} %optional
+\openepigraph{In short, individual freedom of speech leads to a stronger society. But knowing that principle is not enough. You have to know how to put it to use on the Net.}{Mike Godwin}
+%https://en.wikiquote.org/wiki/Mike_Godwin
 
 %\makeindex %optional, also comment out \theindex at the end
 
@@ -46,7 +47,11 @@ The invention of the blockchain and its popularization through projects like Bit
 %\end{abstract}
 
 \begin{acknowledgements}
-\lipsum
+Firstly, I personally thank my Master Thesis advisors, Prof. Fernando Pedone and Ph.D. student Leandro Pacheco De Sousa, for allowing me to complete this thesis and for supporting me throughout the research and writing process, in particular for keeping up with my often difficult schedule. I would also like to thank my Bachelor Project advisor Prof. Antonio Carzaniga, since that project helped realizing the basis from which this Thesis was created.
+
+I would like to express my gratitude for my fellow Master students which have sustained me during the whole Master course and helped me in numerous occasions, both in classes and outside. %A special thank you goes out to Ted Price and everyone at Insomniac Games, Scott ``Xem'' Cuva, Linus Sebastian and everyone at Linus Media Group for providing me with valuable entertainment that sustained me morally during my studies in this Master course.
+
+Last but not least, I also thank my friends and family for supporting me spiritually throughout writing this thesis and my life in general.
 \end{acknowledgements}
 
 \tableofcontents
@@ -452,7 +457,7 @@ Some of the most important keys used in domain name records (\cite{website:namec
 	\item \texttt{ip} specifies the IP address associated with that domain name (\texttt{ip6} is used for IPv6 addresses), equivalently to the \texttt{A} DNS record type (and \texttt{AAAA} for IPv6);
 	\item \texttt{service} is used to indicate what types of services does the associated IP provide, similarly to the DNS \texttt{SRV} record type;
 	\item \texttt{alias} specifies that this name is an alias for another domain, similarly to the \texttt{CNAME} DNS record type;
-	\item \texttt{email} contains the e-mail address of the registrar/webmaster, similar to the \textsf{SOA} or \textsf{RP} DNS records;
+	\item \texttt{email} contains the e-mail address of the registrar/webmaster, similar to the \texttt{SOA} or \texttt{RP} DNS records;
 	\item \texttt{tor} specifies a hidden service domain name usable in the Tor network, which exemplifies one of the goals of Namecoin, which is to provide mappings for different types of services, including ones that may not be based on the IP network;
 	\item \texttt{tls} contains TLS certificate fingerprints, allowing to specify for which protocols and ports they are used.
 \end{itemize}
@@ -645,7 +650,7 @@ ZeroNet is not made with anonymity as a priority and it is stated in various res
 
 Let us first quickly verify that ZeroNet data transfer protocol fits our Byzantine failure model described in Section~\ref{ch:background}. Assuming that elliptic-curve cryptography is strong enough to resist to computationally limited attackers, ZeroNet's data verification system correctly functions under our assumptions: the \texttt{content.json} file is verified against the website's address, which is either known or provided by the Byzantine fault tolerant Namecoin, to avoid tampering.
 
-On the other hand, the other two characteristics are sources of concern: first, the chosen incentive scheme does not help in replicating all data that is stored in the network. This could be considered intentional and justifiable as the rationale behind this choice is to penalize content which is not worth to be replicated, instead of simply and blindly replicate all content inconditionally, creating some sort of ``tribunal'' provided by the community. Secondly, the peer discovery system is not decentralized, as it is based on BitTorrent's trackers that we already discussed in Section~\ref{proj:bittorrent}: while BitTorrent solves this by providing both a DHT and PeX as alternatives, ZeroNet only provides an equivalent to PeX, and this is not sufficient as this method is not Byzantine fault tolerant, since peers can refuse to share or provide misleading information about other peers, just like trackers. Similarly, peers can also setup their own tracker servers to be used by the rest of the community, but this has the exact same issues as peer exchange, with the added hassle of having to configure the client to contact these new trackers, instead of having the feature work out of the box.
+On the other hand, the other two characteristics are sources of concern: first, the chosen incentive scheme does not help in replicating all data that is stored in the network. This could be considered intentional and justifiable as the rationale behind this choice is to penalize content which is not worth to be replicated, instead of simply and blindly replicate all content inconditionally, creating some sort of ``tribunal'' provided by the community. Secondly, the peer discovery system is centralized, as it is based on BitTorrent's trackers that we already discussed in Section~\ref{proj:bittorrent}: while BitTorrent solves this by providing both a DHT and PeX as alternatives, ZeroNet only provides an equivalent to PeX, and this is not sufficient as this method is not reliable, since peers can refuse to share or provide misleading information about other peers, just like trackers. Similarly, peers can also setup their own tracker servers to be used by the rest of the community, but this has the exact same issues as peer exchange, with the added hassle of having to configure the client to contact these new trackers, instead of having the feature work out of the box.
 
 From the above we derive that ZeroNet data transfer protocol does not fit our model, %todo- define the model please, Chapter 2
 since peer discovery can be compromised. The lack of a Byzantine fault tolerant peer discovery system exposes ZeroNet to potential censorship as trackers and peers alike can refuse to provide correct information when requesting clients that share some given sites. On the other hand, it is worth noting that, in order to function, peer discovery only needs one non-failed tracker that provides enough information to discover a sufficiently large portion of the network, which then allows for peer exchange to be viable and improve on connectivity with other peers. But since our worst case scenario does not allow us to trust any tracker, the situation we just described also lies outside of the model.
@@ -657,11 +662,54 @@ A feature that would enable some form of private data management called ``privat
 
 \section{Blockstack}\label{proj:blockstack}
 
+Blockstack is a blockchain based decentralized platform that aims to provide a new, distributed internet. This network can be accessed through the first-party Blockstack Browser, available as either a normal website~(\cite{website:blockstackbrowser}) or as a downloadable client~(\cite{website:blockstackdownload}). The Blockstack system is described in a technical whitepaper by~\cite{blockstack} %dot from et al.
+
+\subsection{Project overview}
+
+The Blockstack network is divided into three layers:
+\begin{enumerate}
+	\item The foundation of the entire network are \emph{virtualchains}, data structures that rely on existing blockchains to store the information while providing all logic themselves;
+	\item The peer network called \emph{Atlas}, which provides information on where to retrieve data;
+	\item The \emph{Gaia} storage system, that allows users to store data on custom servers or on existing cloud storage providers, all through the same interface.
+\end{enumerate}
+
+Let us start by defining what is a virtualchain and how it's used in Blockstack. A virtualchain is essentially a virtual blockchain that abstracts some information away from existing blockchains and provides the capability to construct state machines on top of this abstraction. The only requirements that a virtualchain needs from a blockchain are that transactions are totally ordered (a feature that all blockchains provide) and that additional arbitrary data can be stored with transactions. Virtualchains use this extra data space to store a \emph{consensus hash}: a hash derived from both the virtualchain transactions in the current block and the consensus hashes of previous blocks. This hash is used to verify data in virtualchain blocks and to avoid accepting new transactions that either contain unknown hashes or that are based on blocks that are too old, with stale consensus hashes. Since hashes are stored in a standard blockchain, they are protected from Byzantine attackers, and thus all virtualchain data can be verified without the need of trusting anyone in the network.
+
+Virtualchains provide a very important feature: the ability to migrate from a blockchain to another. This allows virtualchains to continue to function even after the blockchain on which the system is based is compromised. A virtualchain migration starts from announcing the block number from which that blockchain will no longer be used (this has to be an unreleased future block). Then, the state currently on the virtualchain is written to the target blockchain, and once this operation is complete, the current virtualchain users will verify that the transferred state is indeed consistent with their internal state. From here, new virtualchain blocks will be accepted on the new blockchain. Blockstack used this feature to migrate its virtualchains from Namecoin to Bitcoin~(\cite{website:blockstackmigration}).
+
+We placed virtualchains at the foundation of the network because they are the root component that provides verification data for the rest of the elements in this system: in the whitepaper, this concept is defined as \emph{bootstrapping trust}. Blockstack uses virtualchains to implement the Blockchain Name Service (BNS).
+
+The BNS system divides names into \emph{namespaces}, which correspond to the top-level domains in DNS. Each namespace has its own virtualchain and all namespaces are handled by a root virtualchain, which makes it possible to purchase new namespaces if some user wishes to do so. A namespace virtualchain handles name operations such as purchase, update, transfer and revocation of names. In particular, the purchase operation is very similar to Namecoin's: users first \emph{preorder} a name and then confirm it with a \emph{registration} transaction, that effectively assigns ownership of that name to the user.
+
+Even if there is no auction to assign names, BNS purchase fees are not fixed, instead, they are based on \emph{pricing functions} that determine the price for a name based on factors such as the name itself. For example, the pricing function for the \texttt{.id} namespace will yield a lower price for long names than for short ones, and will lower the price even more if the name contains non alphanumeric characters: this is to discourage users to purchase short names (which are potentially more desirable than longer and complex ones) if they don't plan on actually using it.
+
+To describe associations from names to records, BNS uses \emph{zone files}, which are short text files with a table-like format that define the records for that particular name. Zone files are also used in DNS to define records for a particular zone, and are the inspiration for BNS' own files, which use the same format. On the other hand, zone files are not stored directly into BNS: instead, they are stored in the Atlas network, and BNS only keeps the public key of the owner, the record keys and hashes of the record values, so that the content of zone files can be retrieved and verified in a trustless manner.
+
+Atlas is an \emph{unstructured} peer-to-peer network. This means that there is no data structure to collect information about peers, such as a DHT: instead, each node randomly chooses a set of neighbors, thus shaping the network as a regular graph. Traversing such a graph would be difficult, therefore Blockstack developers removed this need by fully replicating the data in the network: all nodes have a complete copy of all the data.
+
+Information in the network cannot be added without first announcing it on the BNS virtualchain, so that the data can be verified by the nodes. This effectively implements a whitelist of data allowed to join the network, which prevents flooding attacks where massive amounts of data are being uploaded into the network: such attacks would be devastating in a 100\% replicated setting.
+
+Atlas zone files contain URIs that point to where the actual data is located. This data belongs to the storage system known as Gaia, which is very different from the distributed storage systems we have seen in Chapter~\ref{ch:storage}. In Gaia, storage is separated by user, or in other words, each user with a record in BNS has ownership of its own data. In fact, the user is also responsible for providing the disk space in which the owned data is to be stored: in addition to privately owned servers, Gaia supports online cloud storage providers such as Amazon S3 and Dropbox. The user chooses which service is to be used (more than one can be chosen to provide replication of data) and then stores through Gaia its files on those services. Gaia clients are responsible for handling data verification: files stored through Gaia are signed with the user's private key so that they can be later verified with the public key stored in BNS. Gaia also supports encryption of data and access-control capabilities to limit data access to some known addresses (explained in more detail in the Gaia GitHub repository:~\cite{website:gaiaaccesscontrol}).
+
+When considering the scopes of such a system, Blockstack developers put the emphasis on storage of personal data, to be used in Blockstack-enabled applications and websites, including standard ones. In fact, they implemented this scenario as Blockstack IDs, which are identifiers on the BNS that are connected through Atlas and Gaia to personal data that can be used on all Blockstack-enabled services. Users define through Gaia where they prefer to store their data and who can see it. Applications request access to this data directly to the user through the Blockstack Browser, which acts as a client for the Blockstack network.
+
+\subsection{Analysis}
+
+The solution proposed by the Blockstack team is really unique in its structure, especially considering the storage system Gaia. Data verification is guaranteed throughout all the sub-projects that compose the network: at the bottom, virtualchains rely on the blockchain's BFT consensus to build a trustless state machine, used to implement the Blockchain Name Service; then the Atlas network uses the BNS to verify and index all data that it contains; then, at the top, Atlas' zone files are used to locate the Gaia storage provider chosen by the name owner, whose content is verified against the name owner's public key, stored in BNS. This makes Blockstack a fully trustless system.
+
+But we can spot a vulnerability in Gaia's replication system: all addresses to the data associated to a name are contained in a public zone file, and all of these addresses are standard URIs, often even HTTP URLs in case of cloud storage services like Amazon S3 or Dropbox. The data is ultimately stored in a \emph{centralized} manner and is vulnerable to censorship. Even if this data can be replicated among different services, including custom servers operated by the owner itself, this does not resolve the issue as custom servers are likely to fail under a DDoS attack, while cloud storage providers are vulnerable to powerful parties such as public pressure or governments, assuming that they don't decide to remove the data themselves.
+
+A solution to this problem would be to add support for storage providers that are decentralized and censorship resistant, since the most important information that Gaia needs is a URI coming from Atlas, so technically any storage system that supports URIs could be implemented. This has been discussed and the Blockstack team is open for contributions from the open source community to provide support for Sia, Storj and IPFS~(\cite{website:gaiaimprovements}).
+
+The most important part of Blockstack is the focus on privacy of user data. This is directly expressed in the realization of Blockstack IDs and its surrounding API that allow developers to build applications based on it. Users have full control over their data through the Gaia system, including its location (on which service it is hosted, including personally owned servers) and which applications can access it. This data can also be shared among different services, which allow for better interoperability between applications, even if they are potential competitors (say, for example, two social media websites). Blockstack developers have also encouraged adoption of this feature by registering on BNS a \texttt{.id.blockstack} namespace where users can register a Blockstack ID without paying a fee, directly through the Blockstack Browser.
+
+As of now, the Blockstack network is not used to directly serve websites, even if the system technically supports it. Instead, Blockstack-enabled applications are either served in the standard Web or distributed as standalone, native executable files. An example of this is Diffuse~(\cite{website:diffuse}), a music player application that supports, among other features, login with Blockstack IDs: it is both reachable at its web address or by downloading a standalone client from their GitHub project page.
+
 \section{Other solutions}\label{sec:browserprojects}
 
 \begin{itemize}
 	\item \textbf{SAFE Network} %todo - investigate this one, but it seems to be in closed testing	
-	\item \textbf{Freenet} %todo - So old, is it worth to talk about this?
+	\item \textbf{Freenet}: a peer-to-peer platform focused on anonymity and censorship resistance; Freenet allows browsing websites, known as \emph{freesites}, but the naming scheme is based on nicknames, which are simply labels defined by single users and not shared globally;
 	\item \textbf{Beaker Browser}: based on the dataset synchronization protocol known as Dat, Beaker Browser allows for creation and visualization of distributed websites, although it fails to provide or reuse a distributed naming system, relying instead on HTTP and DNS to resolve names.
 \end{itemize}
 
