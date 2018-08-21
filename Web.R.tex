@@ -47,7 +47,7 @@ The invention of the blockchain and its popularization through projects like Bit
 %\end{abstract}
 
 \begin{acknowledgements}
-Firstly, I personally thank my Master Thesis advisors, Prof. Fernando Pedone and Ph.D. student Leandro Pacheco De Sousa, for allowing me to complete this thesis and for supporting me throughout the research and writing process, in particular for keeping up with my often difficult schedule. I would also like to thank my Bachelor Project advisor Prof. Antonio Carzaniga, since that project helped realizing the basis from which this Thesis was created.
+Firstly, I personally thank my Master Thesis advisors, Prof. Fernando Pedone and Leandro Pacheco De Sousa, for allowing me to complete this thesis and for supporting me throughout the research and writing process, in particular for keeping up with my often difficult schedule. I would also like to thank my Bachelor Project advisor Prof. Antonio Carzaniga, since that project helped realizing the basis from which this Thesis was created.
 
 I would like to express my gratitude for my fellow Master students which have sustained me during the whole Master course and helped me in numerous occasions, both in classes and outside. %A special thank you goes out to Ted Price and everyone at Insomniac Games, Scott ``Xem'' Cuva, Linus Sebastian and everyone at Linus Media Group for providing me with valuable entertainment that sustained me morally during my studies in this Master course.
 
@@ -650,7 +650,7 @@ ZeroNet is not made with anonymity as a priority and it is stated in various res
 
 Let us first quickly verify that ZeroNet data transfer protocol fits our Byzantine failure model described in Section~\ref{ch:background}. Assuming that elliptic-curve cryptography is strong enough to resist to computationally limited attackers, ZeroNet's data verification system correctly functions under our assumptions: the \texttt{content.json} file is verified against the website's address, which is either known or provided by the Byzantine fault tolerant Namecoin, to avoid tampering.
 
-On the other hand, the other two characteristics are sources of concern: first, the chosen incentive scheme does not help in replicating all data that is stored in the network. This could be considered intentional and justifiable as the rationale behind this choice is to penalize content which is not worth to be replicated, instead of simply and blindly replicate all content inconditionally, creating some sort of ``tribunal'' provided by the community. Secondly, the peer discovery system is centralized, as it is based on BitTorrent's trackers that we already discussed in Section~\ref{proj:bittorrent}: while BitTorrent solves this by providing both a DHT and PeX as alternatives, ZeroNet only provides an equivalent to PeX, and this is not sufficient as this method is not reliable, since peers can refuse to share or provide misleading information about other peers, just like trackers. Similarly, peers can also setup their own tracker servers to be used by the rest of the community, but this has the exact same issues as peer exchange, with the added hassle of having to configure the client to contact these new trackers, instead of having the feature work out of the box.
+On the other hand, the other two characteristics are sources of concern: first, the chosen incentive scheme does not help in replicating all data that is stored in the network. This could be considered intentional and justifiable since the rationale behind this choice is to penalize content which is not worth to be replicated, instead of simply and blindly replicate all content inconditionally, creating some sort of ``tribunal'' provided by the community. Secondly, the peer discovery system is centralized, as it is based on BitTorrent's trackers that we already discussed in Section~\ref{proj:bittorrent}: while BitTorrent solves this by providing both a DHT and PeX as alternatives, ZeroNet only provides an equivalent to PeX, and this is not sufficient as this method is not reliable, since peers can refuse to share or provide misleading information about other peers, just like trackers. Similarly, peers can also setup their own tracker servers to be used by the rest of the community, but this has the exact same issues as peer exchange, with the added hassle of having to configure the client to contact these new trackers, instead of having the feature work out of the box.
 
 From the above we derive that ZeroNet data transfer protocol does not fit our model, %todo- define the model please, Chapter 2
 since peer discovery can be compromised. The lack of a Byzantine fault tolerant peer discovery system exposes ZeroNet to potential censorship as trackers and peers alike can refuse to provide correct information when requesting clients that share some given sites. On the other hand, it is worth noting that, in order to function, peer discovery only needs one non-failed tracker that provides enough information to discover a sufficiently large portion of the network, which then allows for peer exchange to be viable and improve on connectivity with other peers. But since our worst case scenario does not allow us to trust any tracker, the situation we just described also lies outside of the model.
@@ -697,7 +697,9 @@ When considering the scopes of such a system, Blockstack developers put the emph
 
 The solution proposed by the Blockstack team is really unique in its structure, especially considering the storage system Gaia. Data verification is guaranteed throughout all the sub-projects that compose the network: at the bottom, virtualchains rely on the blockchain's BFT consensus to build a trustless state machine, used to implement the Blockchain Name Service; then the Atlas network uses the BNS to verify and index all data that it contains; then, at the top, Atlas' zone files are used to locate the Gaia storage provider chosen by the name owner, whose content is verified against the name owner's public key, stored in BNS. This makes Blockstack a fully trustless system.
 
-But we can spot a vulnerability in Gaia's replication system: all addresses to the data associated to a name are contained in a public zone file, and all of these addresses are standard URIs, often even HTTP URLs in case of cloud storage services like Amazon S3 or Dropbox. The data is ultimately stored in a \emph{centralized} manner and is vulnerable to censorship. Even if this data can be replicated among different services, including custom servers operated by the owner itself, this does not resolve the issue as custom servers are likely to fail under a DDoS attack, while cloud storage providers are vulnerable to powerful parties such as public pressure or governments, assuming that they don't decide to remove the data themselves.
+BNS' pricing functions provide an interesting potential solution to name squatting and related attacks: since the pricing depends on the name, a function that increases cost of potentially valuable names can discourage squatters to buy such names in the first place. The pricing function for the \texttt{.id} namespace considers short names more valuable than long names, which is a justifiable reasoning, since short names tend to be more memorable and therefore more valuable, but fails to consider actual popular names that can have a very high value, even if they are long. It would be interesting to see if a more complex function that considers real-world popularity data would be effective in preventing squatting entirely.
+
+If we move our attention to censorship resistance, we can spot a vulnerability in Gaia's replication system: all addresses to the data associated to a name are contained in a public zone file, and all of these addresses are standard URIs, often even HTTP URLs in case of cloud storage services like Amazon S3 or Dropbox. The data is ultimately stored in a \emph{centralized} manner and is vulnerable to censorship. Even if this data can be replicated among different services, including custom servers operated by the owner itself, this does not resolve the issue as custom servers are likely to fail under a DDoS attack, while cloud storage providers are vulnerable to powerful parties such as public pressure or governments, assuming that they don't decide to remove the data themselves.
 
 A solution to this problem would be to add support for storage providers that are decentralized and censorship resistant, since the most important information that Gaia needs is a URI coming from Atlas, so technically any storage system that supports URIs could be implemented. This has been discussed and the Blockstack team is open for contributions from the open source community to provide support for Sia, Storj and IPFS~(\cite{website:gaiaimprovements}).
 
@@ -707,41 +709,71 @@ As of now, the Blockstack network is not used to directly serve websites, even i
 
 \section{Other solutions}\label{sec:browserprojects}
 
+The development scene in the distributed Web scope is active, with many projects currently in early stages or still in planning phase, sparked by the current trend of blockchains and decentralization, but there are also other, older projects that were born from activism promoting freedom of speech and communication. Among all these projects, the most notable are:
+
 \begin{itemize}
-	\item \textbf{SAFE Network} %todo - investigate this one, but it seems to be in closed testing	
-	\item \textbf{Freenet}: a peer-to-peer platform focused on anonymity and censorship resistance; Freenet allows browsing websites, known as \emph{freesites}, but the naming scheme is based on nicknames, which are simply labels defined by single users and not shared globally;
+	\item \textbf{SAFE Network}: a project developed by MaidSafe that aims to reuse available hard disk space of computers to provide a distributed storage system, which can be accessed and explored with the SAFE browser; at the time of writing, this project is only available on an Alpha test network;
 	\item \textbf{Beaker Browser}: based on the dataset synchronization protocol known as Dat, Beaker Browser allows for creation and visualization of distributed websites, although it fails to provide or reuse a distributed naming system, relying instead on HTTP and DNS to resolve names.
+	\item \textbf{Freenet}: a very mature project, with its initial release dating back to the year 2000, it's a peer-to-peer platform focused on anonymity and censorship resistance; Freenet allows browsing websites, known as \emph{freesites}, but the naming scheme is based on nicknames, which are simply labels defined by single users and not shared globally;
 \end{itemize}
 
 \section{Summary}
 
-\subsection{Is decentralization the only solution?}
+We have explored two solutions that attempt to implement the distributed Web through combining or developing solutions for managing decentralized storage and naming.
 
-\subsubsection{Tor}\label{proj:tor}
+The two projects, ZeroNet and Blockstack, differ in nature. ZeroNet offers more ``classical'' peer-to-peer networking, taking heavy inspiration from BitTorrent and completing its solution by relying on Namecoin, while Blockstack follows the blockchain based approach and provides an original, custom network stack by augmenting its basis with virtualchains, the Atlas network and the Gaia storage system.
+
+If we consider censorship resistance, ZeroNet provides the better solution, even if it's not perfect: website visitors automatically copy and serve its contents, building a somewhat ``popular-first'' replication system that favors frequently visited websites over rarely accessed ones. ZeroNet's vulnerability to censorship resides in the peer discovery system, based on BitTorrent's trackers, which are a centralized entity and allows for attackers to impede access to the network or to take over and control data returned by them. Blockstack is also vulnerable to censorship, but the attack vector directly targets the data, since its location is static and known publicly through Atlas zone files. At the time of writing, Gaia does not support decentralized ``back-end'' storage systems that are not vulnerable to attacks based on URLs, such as IPFS.
+
+As for trust, ZeroNet technically needs to trust the trackers in order to function correctly, for the same reasons that we discussed above, but once the peer network is bootstrapped, no trust is required as all received data can be verified with the website hash, which is either known or from the trustless Namecoin system. Blockstack, on the other hand, does not need trust in order to function: the blockchain ``bootstraps trust'' for the entire network, since all data contained in virtualchains, in the Atlas network and in Gaia ultimately can be verified with data contained in the blockchain. While cloud-storage providers supported by Gaia may need to be trusted to keep the data, a user can also setup a personally owned server which can act as fail-over in case said providers fail, removing the need to trust them.
+
+When it comes to privacy the two systems provide radically opposite offerings: ZeroNet completely lacks support for privacy of data, instead every file stored in the network is public (although it plans to support ``private sites''). Blockstack, on the contrary, fully implements privacy controls, making them central to the whole system through Blockstack IDs: with Gaia, users can control where to store their data and who to share that information with; Blockstack-enabled applications have to request access to user data directly to the user, through the Blockstack Browser.
+
+In Table~\ref{table:dwebcomparison} we summarize the main features and characteristics that ZeroNet and Blockstack exhibit.
+
+\begin{table}[h]
+	\begin{center}
+		\begin{tabular}{|p{3.5cm}|p{4.5cm}|p{4cm}|} \hline
+			\textbf{Feature} & \textbf{ZeroNet} & \textbf{Blockstack} \\ \hline
+			
+			Underlying technology & 
+			\begin{tabular}{@{}l@{}}
+				Custom data transfer protocol \\
+				BitTorrent trackers \\
+				Namecoin \\
+			\end{tabular} &
+			\begin{tabular}{@{}l@{}}
+				Blockchain (Bitcoin) \\
+				Atlas peer network \\
+				Gaia storage system \\
+			\end{tabular}	\\ \hline
+			
+			Censorship resistance & No (uses trackers) & No (centralized storage) \\ \hline
+			
+			Lack of trust & No (uses trackers) & Yes \\ \hline
+			
+			Privacy controls & No & Yes \\ \hline
+		\end{tabular}
+	\end{center}
+	\caption{Summary of features and characteristics of the presented distributed Web projects}
+	\label{table:dwebcomparison}
+\end{table}
+
+\section{Is decentralization the only solution?}\label{proj:tor}
+
 %todo - Tor
-
-%\chapter{Upcoming projects}
-%todo - or honorable mentions?
-
-%\section{Substratum}
-
-%\section{Hashgraph}
-
 
 \chapter{Conclusions}\label{ch:conclusions}
 
 We have described the current state-of-the-art in the decentralized Web scenario. We first have defined a Byzantine failure model that more appropriately represents the Web and its vulnerabilities. We then have shown that BitTorrent and IPFS provide a feasible solution for storing data in such a model, with even more projects such as Filecoin and Ethereum Swarm potentially launching in the future. We then moved our attention to implementing human-meaningful naming in such a model, presenting Namecoin and ENS as currently viable solutions that resolve this challenge. Then we defined the distributed Web as the combination of decentralized storage and naming and explored two projects that satisfy our definition: ZeroNet and Blockstack. We also mentioned alternatives to decentralization to provide features such as censorship resistance, such as onion routing, implemented by the Tor project.
 
-Development of these systems is in its early stages. New projects and solutions continue to arise, making this scenario very dynamic and full of innovation. Also, events such as the Decentralized Web Summit~(\cite{website:dws}) are gaining popularity and traction, hosting informative talks and making the scene more interconnected by having members of different organizations talking with each other and confronting ideas. This document is bound to become obsolete within the next years as more projects evolve and reach stable deployment, but it is still interesting to explore the current technologies since they create the foundation for what is next to come.
+Development of the decentralized Web is in its early stages. New projects and solutions continue to arise, making this scenario very dynamic and full of innovation. Also, events such as the Decentralized Web Summit~(\cite{website:dws}) are gaining popularity and traction, hosting informative talks and making the scene more interconnected by having members of different organizations talking with each other and confronting ideas. This document is bound to become obsolete within the next years as more projects evolve and reach stable deployment, but it is still interesting to explore the current technologies since they create the foundation for what is next to come.
 
 It's also worth stating that none of the projects described here have become massively popular among Internet users as alternatives to the standard Web. The most popular one, BitTorrent, is well known for its file sharing capabilities instead of being part of ZeroNet's data transfer system. %todo - continue?
 
 Most of the research on which this document is based was done on current technologies, so if any information reported in this document is incorrect, we blame a Byzantine attacker over the standard Web that fooled us with misleading data.
 
 %\appendix 
-
-%\chapter{Distributed Hash Table}\label{appx:dht}
-%todo - move DHT to Chapter 2
 
 \backmatter
 
