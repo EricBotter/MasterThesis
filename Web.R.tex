@@ -22,7 +22,7 @@ morecomment=[l]{//s},
 \Year{2018} %compulsory, put only the year
 \place{Lugano} %compulsory
 
-\dedication{} %optional
+%\dedication{} %optional
 \openepigraph{In short, individual freedom of speech leads to a stronger society. But knowing that principle is not enough. You have to know how to put it to use on the Net.}{Mike Godwin}
 %https://en.wikiquote.org/wiki/Mike_Godwin
 
@@ -99,7 +99,7 @@ This data can be either automatically collected from user interactions, or can b
 This effectively moves ownership of the data from the user to the company. Data that intrinsically belongs to the user (especially personal information such as name, address and phone number) are stored privately into the company server, and the user has limited control over it, since the only possible actions on the data are the ones defined by the company or required by law.
 
 \section{Thesis goals}
-The goal of this thesis is to present various projects that empower real-case implementations of the distributed Web, as we explain it above. We also aim to analyze notable features and possible defects of each system we present, with particular interest to the aspects that most closely relate to the distributed Web. This thesis is also meant to serve as a reference for seminars, lectures and possibly courses related to the distributed web.
+The goal of this thesis is to present various projects that empower real-case implementations of the distributed Web, as we explain it above. We also aim to analyze notable features and possible defects of each system we present, with particular interest to the aspects that most closely relate to the distributed Web. This thesis is also meant to serve as a reference for seminars, lectures and possibly courses related to the distributed Web.
 
 The projects described in this thesis have been selected based on the following criteria:
 \begin{itemize}
@@ -227,7 +227,7 @@ BitTorrent peers usually do not share data with all known downloading peers to r
 BitTorrent \emph{data verification} system is based on cryptographic hashing, and is pretty straightforward: each torrent file contains the SHA-1 hash of every block in the torrent, so that peers can verify the integrity of each block upon downloading it.
 
 \subsection{Analysis}\label{sec:btanalysis}
-
+%todo - fix this sentence
 Let's try to infer the model in which BitTorrent is set. We have two main entities specific to the BitTorrent protocol: peers and trackers. 
 
 We can safely place peers in a Byzantine failure model. This is because BitTorrent implements a data verification mechanism to ensure that the blocks received by the network are valid, by computing their hash and matching it with the one reported in the torrent file. It also discourages malicious activity by implementing a \textit{tit-for-tat}-like incentive scheme, of which we'll talk about later.
@@ -729,7 +729,7 @@ As for trust, ZeroNet technically needs to trust the trackers in order to functi
 
 When it comes to privacy the two systems provide radically opposite offerings: ZeroNet completely lacks support for privacy of data, instead every file stored in the network is public (although it plans to support ``private sites''). Blockstack, on the contrary, fully implements privacy controls, making them central to the whole system through Blockstack IDs: with Gaia, users can control where to store their data and who to share that information with; Blockstack-enabled applications have to request access to user data directly to the user, through the Blockstack Browser.
 
-In Table~\ref{table:dwebcomparison} we summarize the main features and characteristics that ZeroNet and Blockstack exhibit.
+In Table~\ref{table:dwebcomparison} we summarize the main features and characteristics that ZeroNet and Blockstack exhibit. From the table it looks clear how ZeroNet does not reach our requirements to be a decentralized Web, while Blockstack is more fit but still lacks some properties, especially considering how the current system is used for user data only, instead of also storing websites.
 
 \begin{table}[h]
 	\begin{center}
@@ -759,9 +759,23 @@ In Table~\ref{table:dwebcomparison} we summarize the main features and character
 	\label{table:dwebcomparison}
 \end{table}
 
-\section{Is decentralization the only solution?}\label{proj:tor}
+\section{Alternatives to decentralization}\label{proj:tor}
 
-%todo - Tor
+If we consider the three properties that we want to achieve (censorship resistance, lack of trust and better privacy), we can't help but mention other projects that offer these characteristics without recurring to decentralization. Instead, heavy use of encryption and redirection of traffic through multiple hops allow to \emph{anonymize} communications, possibly achieving all three of the mentioned properties. Such projects are known as \emph{anonymity networks}, of which the most popular one is Tor~(\cite{tor}).
+
+Tor is a peer-to-peer network composed by nodes that act as \emph{relays} of traffic. The core mechanism of Tor, known as \emph{onion routing}, is to encrypt messages exchanged within the network as many times as the number of relays (also known as \emph{onion routers} or simply routers) through which communication happens. To accomplish this, a Tor client first establishes a \emph{circuit}, i.e. selects three ordered random nodes through which passes all communication to the rest of the Internet. It then obtains the public key of each router, and encrypts the message three times, using each time the key of the latest relay that will receive the message: for example, if the circuit is composed of routers A, B and C, the message is encrypted first with the key of C, then with B's key and then with A's key. Each time the message is encrypted for a router, the destination that the message should be delivered next is included in the packet (e.g. when encrypting for B, C's address is included with the message), so that each router (and only the single router) knows where to deliver the message.
+
+This routing method achieves the following properties: the first router doesn't know the content of the message, nor its final destination; the second relay knows neither who the message originated from, nor the content of the message nor its final destination; the third router (also known as the \emph{exit node}) knows the content of the message and its final destination, but not who generated the message. This is done such that if any one (but only one) of the nodes is owned by a malicious attacker, this attacker does not have enough information to de-anonymize the user.
+
+Tor also supports websites internal to the network, a type of \emph{hidden service} (the term refers to all types of services, including mail or chat servers). They can be reached by typing their address in the Tor Browser, a version of Firefox tuned to better protect users from losing their anonymity. These address are effectively domain names that use the \texttt{.onion} top level domain, but are not human-meaningful, as they are directly derived form the public key of the website.
+
+Tor achieves censorship resistance as the IP address of users and of hidden servers is not available to the rest of the network (hidden services' address is protected through a mechanism described here:~\cite{website:torhiddenservice}). Since the address of users and service owners is not known, standard attacks like the ones described in Section~\ref{sec:problems} are not possible without performing a de-anonymizing attack first, which we will not delve into as they are outside the scope of this Section: assuming such attacks are impractical, Tor can be considered censorship resistant.
+
+The level of trust required to utilize Tor depends on the task that a user wants to accomplish: the system is trustless when used to access hidden services, as the communication between the server and the user is end-to-end encrypted and the server's identity can be verified through its address (more details here:~\cite{website:torhiddenservice}); on the other hand, when Tor is used to access the external Internet anonymously, users need to trust the exit node of their circuit as it can see, and potentially tamper with, the data that passes through it. A solution to this is to encrypt communication between the user and its external service through methods like HTTPS, so that the exit nodes cannot modify the data they relay without notifying the user or the service.
+
+While Tor provides anonymity to its users, the user's data needed in the interaction with hidden services is handled in the same way as in the standard Web: the services keep user data in their servers, outside of user's control. Privacy controls are not provided by Tor, but instead the responsibility of offering such tools reside on the hidden services themselves. Not even the law here can enforce privacy rules, as hidden services are protected from identification and therefore not accountable for their conduct.
+
+Projects similar to Tor are the Invisible Internet Project, also known as I2P~(\cite{i2p}) and Freenet, already mentioned in Section~\ref{sec:browserprojects}. Anonymity networks provide a potential alternative to the distributed Web for resolving the issues of the current Web.
 
 \chapter{Conclusions}\label{ch:conclusions}
 
