@@ -51,7 +51,7 @@ Firstly, I personally thank my Master Thesis advisors, Prof. Fernando Pedone and
 
 I would like to express my gratitude for my fellow Master students which have sustained me during the whole Master course and helped me in numerous occasions, both in classes and outside. %A special thank you goes out to Ted Price and everyone at Insomniac Games, Scott ``Xem'' Cuva, Linus Sebastian and everyone at Linus Media Group for providing me with valuable entertainment that sustained me morally during my studies in this Master course.
 
-Last but not least, I also thank my friends and family for supporting me spiritually throughout writing this thesis and my life in general.
+Last but not least, I also thank my friends and family for supporting me spiritually throughout production of this thesis, my studies in this Master course and my life in general.
 \end{acknowledgements}
 
 \tableofcontents
@@ -64,7 +64,7 @@ Last but not least, I also thank my friends and family for supporting me spiritu
 
 The World Wide Web is probably the most popular and used service of the Internet, sometimes even confused with the Internet itself. It is very common nowadays to access the WWW (or most commonly known as simply ``the Web'') and browse websites from many platforms, from the typical desktop computer to the modern smartphone.
 
-%TODO: give context about why a distributed web and what is happening at the moment?
+%todo - give context about why a distributed web and what is happening at the moment?
 
 The Web is based on a client-server architecture, where Web servers provide objects (such as documents, images or files in general) to clients that request and display them, called \textit{user agents} (e.g. Web browsers).
 
@@ -72,15 +72,12 @@ In the Web, documents and objects are identified by a Uniform Resource Locator (
 
 To access a website, the client has to know the domain name associated to that website. This is usually provided by the user or by services such as search engines. The domain name is then resolved to an IP address by using the DNS. Once obtained, the client opens a TCP connection towards that address on port 80, and starts exchanging messages using the HyperText Transfer Protocol (HTTP).
 
-HTTP is a client-server, request-response protocol. Clients specify the details of the needed resource in the request and the server replies with the content or an error status if something went wrong (e.g. 404 Not Found). %todo explore HTTP? maybe expand on it as needed
+HTTP is a client-server, request-response protocol. Clients specify the details of the needed resource in the request and the server replies with the content or an error status if something went wrong (e.g. 404 Not Found).
 
-There are different ways to setup a website. A content creator can either setup a custom server and upload a website there, or it can rent a server (either physical or virtual) from an existing provider. In both cases, the serving of a website to the public is delegated to the Web server, whether it's owned by the content creator or by a hosting company. Then a domain name has to be purchased through a name \emph{registrar}, so that it can be added in the DNS records with the IP address of the Web server. Once this is completed, the website is effectively public: browsers can resolve the domain name and reach the Web server to obtain the website.
-%todo(leandro) - done? - I'd expand this last paragraph a bit, as it seems fundamental to the problems that follow. It should be clear that there are different parties involved in creating/serving/accessing Web content.
-
+There are different ways to setup a website. A content creator can either setup a custom server and upload a website there, or it can rent a server (either physical or virtual) from an existing hosting service provider. In both cases, the serving of a website to the public is delegated to the Web server, whether it's owned by the content creator or by a hosting company. Then a domain name has to be purchased through a name \emph{registrar}, so that it can be added in the DNS records with the IP address of the Web server. Once this is completed, the website is effectively public: browsers can resolve the domain name and reach the Web server to obtain the website.
 
 \section{Problems with the current Web} \label{sec:problems}
 The interaction between all of the above parties makes the Web vulnerable in a number of ways, that we can summarize in three main classes: vulnerability to censorship, need of trust and disregard of privacy.
-%todo(leandro) - done partially - I'd add a small paragraph in the beginning of this section. It would link the previous part, saying that whatever characteristic (centralization?) of the current web, leads to the three classes of problems you focus on (and list them).
 
 The first and most important class of problems in the current Web is vulnerability to \textbf{censorship}. Since we have a direct relationship from domain names to websites (or from IP addresses to websites), it is relatively easy for powerful parties (including governments and ISPs) to block communications from users to a certain service.
 The main attacks that can be used to prevent communication towards a website are:
@@ -92,7 +89,7 @@ The main attacks that can be used to prevent communication towards a website are
 
 The second class of problems is related to \textbf{trust}. When you access a website, there is no guarantee that the data you received is from the content creator because HTTP is vulnerable to man-in-the-middle attacks. There is no mechanism to verify the authenticity of the transmitted data and the protocol does not use encryption, so anyone can forge valid HTTP communication (even based on an ongoing one) and send it through the wires.
 
-HTTPS resolves this issue by asymmetrically encrypting the communication channel, and authenticating the data that is sent, but the current trust system (X.509) is based on certificate authorities and is considered weak, which might allow for identity theft (an interesting technical analysis of this has been written by~\cite{webarticle:httpssecurity}). %todo - you also need to trust the web server/hosting provider
+HTTPS resolves this issue by asymmetrically encrypting the communication channel, and authenticating the data that is sent, but the current trust system (X.509) is based on certificate authorities and is considered weak, which might allow for identity theft (an interesting technical analysis of this has been written by~\cite{webarticle:httpssecurity}). Even with HTTPS, the trust problem persists since clients still need to trust the Web server (especially when the website is  distributed by a third-party hosting service) to send data as the content creator intended to, without redactions to the information or removal of content.
 
 The final class of problems regards \textbf{privacy} and handling of personal information: with the current scenario, whenever you connect to a website, that website privately stores data about you.
 This data can be either automatically collected from user interactions, or can be provided directly by the user: consider, as an example, a social network, where users provide personal information such as their generalities, and the website collects data such as post interactions, number and timestamps of logins, and so on.
@@ -113,77 +110,99 @@ The projects described in this thesis have been selected based on the following 
 This thesis is structured as follows. Chapter~\ref{ch:background} introduces some common definitions and describes the models used to analyze the Web and any of the projects that will subsequently be explored; we also define the characteristics of the Distributed Web. Chapter~\ref{ch:storage} describes the expected properties of a distributed storage system and explores two projects implementing such a system: BitTorrent and IPFS. Chapter~\ref{ch:naming} describes the issues of the current naming system (DNS) and describes the challenges of implementing a distributed one, then explores two projects that resolve those complications: Namecoin and Ethereum Name Service. Chapter~\ref{ch:projects} describes two projects that combine decentralized naming and storage into one system, including software that allows easy access to that system: ZeroNet and Blockstack.
 Chapter~\ref{ch:conclusions} concludes the thesis.
 
-\chapter{Background} %todo - needs rewrite (see also Chapter 4 todo)
-\label{ch:background}
-%todo - define model: all centralized entities can be compromised, in peer-to-peer we have a large portion of the network behaving correctly
+\chapter{Background}\label{ch:background}
 
-%todo - add a definition of the blockchain (at least mention what it provides) and the DHT
+We introduce discussion about the decentralized Web by defining a key concept that allows us to better explain the difference between the standard Web and its distributed\footnote{In this work, we will use the terms ``decentralized'' and ``distributed'' as synonyms. Although their meaning is slightly different, that difference is not relevant in this work and we choose to not consider it.} counterpart: failure models.
 
-We have to rethink the Web if we want to move it to a decentralized environment. The current Web is a centralized system: each website is owned by a party that we'll define as \textit{content creator}. The content creator owns the website and is responsible for distributing its content, either by using a self-owned and maintained web server or by publishing it to a dedicated service, known as \textit{web hosting} service provider (there are too many services currently online to present a somewhat accurate list of examples here). When using \textit{web server}, we will always refer to both these options, since in both cases there is always a web server that serves the website, whether it's owned by the content provider or by a company.
-Although it's not required, the content creator usually also obtains a domain name to associate with the website.
+\section{Failure models}
 
-This system is centralized because the website is accessible only through the web server. If obtained, the domain name will always direct towards that server (even if it changes its IP address, since that's one of the main purposes of DNS).
+The two failure models that we define here are the \emph{stop} (or \emph{stopping}) failure model and the Byzantine failure model.
 
-Let us introduce a very important concept in distributed systems: \emph{failure}, and its related models.
-We introduce it now to highlight the difference between a centralized environment and a decentralized (or distributed) one.
+%todo - needed?
+In the following definitions, we consider \emph{processes} any entity that has an active function and interaction in a system. If we apply this concept to the Web, we consider to be processes servers, clients and communication channels (including routers), to name the most important ones.
 
-The failure model in which we could place the Web is a \emph{stopping failure model}.
-In this model, a process can \emph{fail}, i.e. it stops functioning as intended, and the way a process fails is by stopping, or \textit{halting}. Once a process has halted, it remains in that state. Other processes are able to detect this failure, and the most common way that this is done is by giving a maximum response time to message exchanges with that process: if we expect a communication which does not happen within a time limit, we consider that process as failed (this is called detection by \textit{timeout}).
+In the stopping failure model, a process can fail by interrupting all activities. This is known as \emph{halting}, or \emph{crashing} in some cases. Once a process has halted, it remains in that state. Other processes are able to detect this failure using many detection techniques, but since in the Web all connections are remote, without the ability to observe the state of other processes, the detection mechanism used in this context is to give a maximum response time to message exchanges: if we expect a communication that does not occur within a time limit, we consider that process to have failed. This is called detection by \textit{timeout}.
 
-This means that we know that each entity will behave as expected, and in case of failure it will not function at all. In other words, we consider that entity as \emph{trusted}, as it will never give a response which is not conforming to the protocol.
+In the Byzantine failure model, a process can fail by exhibiting arbitrary behavior, for example by producing unneeded messages, whether they comply with a given protocol or not, by lying about their state or omitting information. Byzantine processes are very hard to detect as failed, since they can ``disguise'' themselves as correct processes, while providing malicious data. The only constraint that will limit Byzantine processes is the amount of computing power they possess: this allows us to use cryptographic algorithms such as hashing, signatures and encryption to counter data alteration, a possible behavior exhibited by Byzantine processes. These solutions would be useless against an all-powerful process that is able to reverse hashes and break public-key cryptography.
 
-This model allows Web clients (browsers) and content creators to make certain assumptions on the behavior of web servers and other components:
+A user that interacts with a network is going to expect some form of behavior from external processes. A process in a stop failure model will either function correctly or it will not function at all, but in no case the data that a users receives will be incorrect or malformed. In other words, users \emph{trust} that entity and the information it provides them. On the other hand, a process in a Byzantine failure model can return any type of data, including incorrect or malformed information: these processes and their data are \emph{untrusted}, and require additional measures that can verify the validity of their information.
+
+The Byzantine failure model is particularly useful to model malicious intentions: since failed entities can perform arbitrary actions, it is particularly important to consider situations that can cause the most damage to the system. Once protections are in place against these actions (and all possible other scenarios), we are sure to protect the system from any attacker that takes over the entities that we consider to be Byzantine.
+
+\section{Our reference model}\label{sec:model}
+
+%todo - this section needs to be checked
+Assuming that the current Web is based on the stop failure model, we introduce a weaker model based instead on the Byzantine failure model.
+
+First, we consider \emph{centralized} systems any network of servers whose IP address is publicly available through a static directory; by static, we intend lists whose content can only be edited or updated manually through user intervention. On the other hand, a decentralized system relies on dynamic directories, which are automatically updated by an automated system.
+
+In our model, all servers that belong to centralized systems are Byzantine and therefore untrusted. This is true also for decentralized systems, but we limit the number of failed processes to a minor portion of the network, so that there is always a majority of processes running correctly that composes more than the 50\% of the number of servers in the system.
+
+All communication channels are under a Byzantine failure model, but it is always possible to find a network route whose channels do not fail. This allows us to assume that communication channels will alter data that is transmitted through them, but once such tampering is made detectable, communication between entities is still possible.
+
+\section{Relevant technologies}
+
+Here we will give an introduction to some of the most important technologies used by the projects described in the following Chapters.
+
+\subsection{Distributed Hash Table}\label{tech:dht}
+
+The Distributed Hash Table (or DHT) is a data structure that provides a key-value based lookup service. Like the name suggests, only the cryptographic hash of the actual keys is stored in the network, and it is the basis for locating and distributing data in the system.
+
+The set of all possible hashes is called the \emph{keyspace}. An algorithm is responsible to distribute ownership of the keyspace among the nodes in the network: each node will be assigned with only a portion of the set of all keys. An \emph{overlay network} is responsible to give information to nodes on how to reach other nodes based on their assigned hash, in order to facilitate data insertions and lookups. Clients insert and retrieve data by contacting any node of the network: if the node is responsible for that key, it will reply with the data, otherwise it will relay the message to another node, according to the information given by the overlay network.
+
+The most important DHT properties are its decentralization, its resilience to failures and the scalability of data access times with respect to the number of nodes in the network.
+
+DHTs have been shown to be vulnerable to Sybil attacks by~\cite{wang2012real} and therefore are not properly Byzantine fault tolerant: we are going to consider them BFT anyway, since a Sybil attack requires either introducing a number of nodes sufficiently large to disrupt the network, or enough computational power to maintain a large number of entities on few nodes. Furthermore, all uses of DHTs described in this thesis are still active today and thus not successfully disrupted, and some of them also implement additional measures to prevent Sybil attacks.
+
+\subsection{Blockchain}\label{tech:blockchain}
+
+The blockchain is a distributed data structure whose main goal is to implement Byzantine fault tolerant consensus. We will not explain the mechanisms behind a blockchain and how it achieves this result (more information on this can be found on the original Bitcoin paper by~\cite{bitcoin}),
+instead, we will just mention some of its components that will allow us to better explain the features of the projects that make use of it.
+
+A blockchain is an ordered sequence of \emph{blocks}. Each block contains some data, which are mostly transactions, but they can also include script-like operations or extra metadata. Each user of a blockchain is called a \emph{node}: it can participate in the chain if it has an \emph{address}, which is a hash of a public key generated by the node.
+
+Blockchains also implement cryptocurrencies such as Bitcoin, and each address has a non-negative amount of coins, that can be spent or earned by nodes through creation of \emph{transactions}. Each transaction costs a fee that is spent by the issuer address and transferred to the miner that resolved the block: the user that issues the operation is free to choose how much to pay in fees, which determines how fast the operation is going to be mined, since miners are going to prefer operations with higher fees to the ones with lower fees.
+
+%todo - mention Proof of work?
+
+\section{Goals of the distributed Web}\label{sec:goals}
+
+In this thesis we will explore how to move the centralized Web to a decentralized, peer-to-peer system. Any project of this nature that is also able to function under our reference model would resolve the three classes of problems described in Section~\ref{sec:problems}:
 \begin{itemize}
-	\item Web clients assume that the content they request is returned without any modification;
-	\item It is assumed that the channel through which the information is sent does not modify that data;
-	\item Content creators assume that the website that they create is stored in the web server (and distributed) without any modification.
-	%TODO - more?
-\end{itemize}
-In case of failure of the Web server, a browser will try to communicate with it, and after some time without receiving a response it will give up and show to the user an error message.
-
-One could argue that this model does not accurately represent the reality. For example, if a malicious third party takes over the communication channel, gaining complete control over each byte that it transports (an example of such a third party are Internet Service Providers), it can interfere and change the data that is transmitted. This is transparent to both the clients and the web server, since there is no mechanism in place to ensure that the data is \textit{integral}\footnote{TCP provides data integrity against transmission errors, which are in the order of few bits per kilobyte, but this is too weak in this scenario, where the entire TCP packet can be rewritten to appear unaltered.} -- and rightfully so, given that the communication channel is assumed to not alter data arbitrarily. This is known as a \textit{man-in-the-middle} attack.
-
-To allow this scenario in our model we need to weaken it, by removing assumptions on what the communication channel will do during failure. We now allow arbitrary behavior, which means that processes under this weaker model can produce any kind of message, whether it complies to the protocol or not: they can lie, omit information or do just about anything\footnotemark{}, which also includes stopping and behaving properly. This model is the \emph{Byzantine failure model}.
-\footnotetext{We are going to implicitly constrain Byzantine processes just by limiting their computing power. This allows us to use cryptographic algorithms such as hashing, signatures and encryption to counter data alteration. These would be useless against an all-powerful attacker that is able to reverse hashes and break public-key cryptography.}
-This is particularly useful to model malicious intentions: since failed entities can perform arbitrary actions, it is particularly important to consider situations that can cause the most damage to the system. Once we protect against these actions (and all possible other scenarios), we are sure to protect the system from any attacker that takes over the entities that we consider to be Byzantine.
-
-Let's now place the communication channel in this Byzantine failure model.
-HTTPS, the more secure Web protocol, is built around this weaker scenario. It introduces encryption and authentication of transmitted data, which allows it to be transferred over \textit{non-trusted} communication channels.
-If the data is altered by a malicious third party during transmission, the client or the web server can detect it and react accordingly.
-
-But what if we extend the Byzantine model to other entities? For example, if a content creator publishes a website on a web hosting service, that platform is technically able to delete or alter any file of that website, effectively sending to clients different information than the one intended by the author, and the clients would not notice this difference. HTTPS would not be able to protect against this attack, since it only protects the communication channel and not the website files themselves, which are encrypted by the web server only when transmitting them to a client: to do this, the web server has to access the files directly, and can therefore do whatever possible action to them, including editing and deleting them. Not only that: the web server is also able to send whatever content it desires (or refuse to serve content at all), since the client has no way of verifying that the content is as intended by its author.
-
-What would we achieve if we protect the data itself from Byzantine attacks? If the data can be distributed by a non-trusted entity, then we don't need to rely on some specific and trusted system: \textit{anyone} can distribute it.
-
-This effectively enables a \emph{distributed Web}, where content is shared by a network of web servers that anyone can provide. We don't need to trust some hosting service provider with the website data, we can distribute our data to any of them and we will be sure that the information is going to be transmitted safely without modifications.
-
-Let's see how this scenario can resolve the three problems described in Section~\ref{sec:problems}:
-\begin{itemize}
-	\item \textbf{Censorship}: to allow web servers to expose Byzantine behavior means that any one of them can refuse to serve content. But note that we can't assume that every single web server fails with Byzantine consequences, just like we don't assume that in the current Web every single server will crash when contacted. We have to guarantee that some percentage of the servers will behave properly, without failing.\\
-	This is why we need a \emph{network} of web servers and not just one: that one server not only is exposed to all of the attacks mentioned in Section~\ref{sec:problems}, but can also fail by refusing to serve content; if, instead of one, we have multiple web server (of which we are guaranteed that a percentage behaves properly), we know that if some web server fails (either on its own or by means of an attack) the rest of the network can still operate.
-
-	\item \textbf{Trust}: by distrusting the web servers, we have made impossible for them to successfully send data different from what the content creator intended. Clients have a way to detect information manipulation and can discard such manipulated data.
-
-	\item \textbf{Privacy} and handling of personal information: in a distributed environment, we no longer have websites that can privately store data about their users. This is because every website now is hosted on multiple servers: if they want to provide some form of consistency, they have to share or synchronize that data in some way. This would imply that the data is no longer private, but we cannot have public personal data available to multiple servers, especially when some of them have malicious intents.\\
+	\item \textbf{Censorship}: by introducing a distributed network of servers we are able to resist attacks that target single servers or centralized systems, such as the ones described in Section~\ref{sec:problems}; since we are guaranteed that a percentage of the network behaves properly, we know that if some web server fails (either on its own or by means of an attack) the rest of the network can still operate.
+	
+	\item \textbf{Trust}: by distrusting the servers through implementation of protections against Byzantine failures, we have made impossible for them to successfully send data different from what the content creator intended. Clients have a way to detect information manipulation and can discard such manipulated data.
+	
+	\item \textbf{Privacy} and handling of personal information: by introducing a distributed environment, we no longer have websites that can privately store data about their users. This is because every website now is hosted on multiple servers: if they want to provide some form of consistency, they have to share or synchronize that data in some way. This would imply that the data is no longer private, but we cannot have public personal data available to multiple servers, especially when some of them have malicious intents.\\
 	Among the different possibilities, we mention two options here: either the clients (and the clients only) store the private data, so that it is not shared in the network, or the data is uploaded in the network but in an encrypted way, so that only its owner can access it. We will see how different projects tackle this problem, and whether they solve it.
-	%todo - clarify that this is not because of the Byzantine protections, but because our solution is to decentralize.
 \end{itemize}
-
-Many projects claim to implement the distributed Web. Every one of them provides a specific strength or focuses on a particular issue instead of building a complete, all-round system.
-Unfortunately, such protocols are not well-known to the general public, and consequently are not widespread enough to be either standardized or integrated into modern state-of-the-art browsers.
-But most importantly, creating such a protocol is very difficult.
-
-Keep in mind that many of these projects do not define the model around which their platform is built. They mostly define the possible attacks and the related countermeasures they adopt. We will infer a model of the environment whenever we consider appropriate to do so, while trying to stay as close to the project specifications as possible.
-
-%\section{Challenges of creating a distributed Web}
-%todo - But how exactly is it difficult to build the distributed Web? is this done below?
 
 \chapter{Decentralizing Storage}\label{ch:storage}
 
-The first and most fundamental challenge in building the distributed Web is how to store the files that compose websites.
+The model in which the current Web is set based on a stop failure model. This model allows Web clients (browsers) and content creators to make certain assumptions on the behavior of web servers and other components:
+\begin{itemize}
+	\item It is assumed that the channel through which the information is sent does not modify that data;
+	\item Content creators assume that the website that they create is stored in the web server (and distributed) without any modification.
+\end{itemize}
+In case of failure of the Web server, a browser will try to communicate with it, and after some time without receiving a response it will give up and show to the user an error message (an example of failure detection by timeout).
 
-In the current Web, this is not generally a problem: you can either setup your own personal web server, exposed to the internet, that contains the website files, or you can upload those files to a web hosting service provider in order to serve them for you.
-But if we want to move the Web to a network of untrusted servers that are not necessarily going to distribute your files as you intended, if at all, we need to reconsider some fundamental concepts: such a distributed system needs to both guarantee that the files are still getting to the clients and guarantee to the clients that they receive the files exactly as their author has written them. To provide these two features, each project has to implement two systems, respectively.
+\section{Moving the Web to a distributed system}\label{sec:movingstorage}
+
+One could argue that this model does not accurately represent the reality. For example, if a malicious third party takes over the communication channel, gaining complete control over each byte that it transports (an example of such a third party are Internet Service Providers), it can interfere and change the data that is transmitted. This is transparent to both the clients and the web server, since there is no mechanism in place to ensure that the data is \textit{integral}\footnote{TCP provides data integrity against transmission errors, which are in the order of few bits per kilobyte, but this is too weak in this scenario, where the entire TCP packet can be rewritten to appear unaltered.} -- and rightfully so, given that the communication channel is assumed to not alter data arbitrarily. This is known as a \textit{man-in-the-middle} attack.
+
+To allow this scenario in our model we need to weaken it, by removing assumptions on what the communication channel will do during failure: we therefore move it in a Byzantine failure model.
+
+HTTPS, the more secure Web protocol, is built around this weaker scenario. It introduces encryption and authentication of transmitted data, which allows it to be transferred over untrusted communication channels. If the data is altered by a malicious third party during transmission, the client or the Web server can detect it and react accordingly.
+
+But this is not the only entity that we need to move to Byzantine behavior. Consider this: if a content creator publishes a website on a web hosting service, that platform is technically able to delete or alter any file of that website, effectively sending to clients different information than the one intended by the author. HTTPS would not be able to protect against this attack, since it only protects the communication channel and not the website files themselves, which are encrypted by the web server only when transmitting them to a client. Also, the Web server is able to send whatever content it desires independently from the files (or refuse to serve content at all), since the client has no way of verifying that the content is as intended by its author.
+
+If we move Web servers from a stopping failure model to a Byzantine one and implement appropriate safeguards such that data can be distributed by an untrusted entity, then we don't need to rely on some specific and trusted system: \emph{anyone} can distribute it.
+
+We can therefore build a distributed storage system where content is shared by a network of servers that anyone can provide. We don't need to trust some hosting service provider with the website data, we can distribute our data to any of these servers and we will be sure that the information is going to be transmitted safely without modifications.
+
+\section{Goals of distributed storage}
+
+A distributed storage system needs to both guarantee that the files are still getting to the clients and guarantee to the clients that they receive the files exactly as their author has written them. To provide these two features, each project has to implement two systems, respectively.
 
 The first one is an \emph{incentive scheme}, i.e. a way to encourage nodes in a network to share data. If the incentive is strong enough, there will be more people that genuinely participate in the system. If there is no incentive to share data, nodes will just obtain what they need and leave the network, without contributing to other node's downloads, thus reducing the overall performance of the system, possibly even rendering it useless if this behavior is intentionally brought to the extreme (in other words, an attack is performed).
 
@@ -227,8 +246,7 @@ BitTorrent peers usually do not share data with all known downloading peers to r
 BitTorrent \emph{data verification} system is based on cryptographic hashing, and is pretty straightforward: each torrent file contains the SHA-1 hash of every block in the torrent, so that peers can verify the integrity of each block upon downloading it.
 
 \subsection{Analysis}\label{sec:btanalysis}
-%todo - fix this sentence
-Let's try to infer the model in which BitTorrent is set. We have two main entities specific to the BitTorrent protocol: peers and trackers. 
+Let us verify that BitTorrent is able to function within our reference model. We have two main entities specific to the BitTorrent protocol: peers and trackers. 
 
 We can safely place peers in a Byzantine failure model. This is because BitTorrent implements a data verification mechanism to ensure that the blocks received by the network are valid, by computing their hash and matching it with the one reported in the torrent file. It also discourages malicious activity by implementing a \textit{tit-for-tat}-like incentive scheme, of which we'll talk about later.
 
@@ -244,8 +262,7 @@ But this is not the only issue in the network. Its incentive scheme has been tho
 
 \section{IPFS}\label{proj:ipfs}
 
-The InterPlanetary FileSystem (IPFS) is a decentralized file system based on content-addressing coupled with a hypermedia distribution protocol. It has been referred to as the \textit{Permanent Web} %todo(leandro) - refer to an example of where this is used
-, as one of the goals of the project is ``to make the web faster, safer, and more open'' and ``where links do not die''. %todo - citation to whitepaper
+The InterPlanetary FileSystem (IPFS) is a decentralized file system based on content-addressing coupled with a hypermedia distribution protocol. It is perhaps known as the \textit{Permanent Web}, as one of the goal use cases of the project is to be ``a new Permanent Web where links do not die'' (\cite{benet2014ipfs}).
 
 \subsection{Protocol overview}
 
@@ -253,7 +270,7 @@ IPFS is a peer-to-peer system, and each peer is called a \emph{node}: all nodes 
 
 On initialization, a node generates an asymmetric key pair, then it computes the cryptographic hash of their public key: that hash becomes the node's \emph{identifier} within the network.
 
-In IPFS there is one global (rather, \textit{interplanetary}) namespace where all objects are stored, unlike in BitTorrent where each torrent is completely separated from the others. Each object is therefore uniquely identifiable, and the system to generate such an identifier is cryptographic hashing\footnote{IPFS does not define which hashing algorithm is used, instead it uses a format known as \emph{multihash}~(\cite{multihash}) that specifies both the hash and its algorithm in a single string: this allows for continuous evolution of the set of used algorithms to discard old and non-secure ones in favor of newer techniques, even after deployment.}. This is known as \emph{content-addressing}: the \textit{address} that identifies and allows to retrieve some data is directly derivable from the data itself. This method enables the file space to be modeled as a \textit{Merkle DAG}, i.e. a directed acyclic graph where the edges are implemented as cryptographic hashes of the content of the node they are pointing at. The specification of the Merkle DAG implementation used in IFPS is described here~\cite{website:ipfsmerkledag}.
+In IPFS there is one global (rather, \textit{interplanetary}) namespace where all objects are stored, unlike in BitTorrent where each torrent is completely separated from the others. Each object is therefore uniquely identifiable, and the system to generate such an identifier is cryptographic hashing\footnote{IPFS does not define which hashing algorithm is used, instead it uses a format known as \emph{multihash}~(\cite{multihash}) that specifies both the hash and its algorithm in a single string: this allows for continuous evolution of the set of used algorithms to discard old and non-secure ones in favor of newer techniques, even after deployment.}. This is known as \emph{content-addressing}: the \textit{address} that identifies and allows to retrieve some data is directly derivable from the data itself. This method enables the file space to be modeled as a \textit{Merkle DAG}, i.e. a directed acyclic graph where the edges are implemented as cryptographic hashes of the content of the node they are pointing at. The specification of the Merkle DAG implementation used in IFPS is described here:~\cite{website:ipfsmerkledag}.
 
 Objects can be of four types:
 \begin{itemize}
@@ -292,12 +309,10 @@ If the ledgers match, peers are connected and allowed to request and transfer bl
 
 If a node happens to have no blocks to share with other nodes but has some requests to make (either because none of its blocks are needed by the nodes discovered through the DHT or because it just joined IPFS with no blocks at all), it can \textit{work} for other nodes, by retrieving blocks needed by the known nodes in order to increase the trust from such nodes towards itself and allow the credit to be repaid by serving the originally needed blocks.
 
-IPFS objects are \emph{immutable}. Since they are addressed by their hash, the contents of the objects cannot change once deployed on IPFS. This means that updates or new versions of objects will be published under a different address, even in the case of commits since new versions will be additional commit objects and have different hash. This makes it difficult to maintain, for example, a website where content could be frequently updated: a webmaster should continuously publish new IPFS links off-band to their users to make them aware of the website changes. To solve this problem, IPFS has a component called \emph{IPNS} %todo(leandro) - citation to whitepaper
-, which stands for InterPlanetary Name Space, and implements a mutable namespace where a unique path can be updated to refer to different IPFS objects. Each node has an IPNS path composed of \texttt{/ipns/}, to distinguish it from the immutable IPFS paths, followed by the identifier of the node, which is the hash of its public key. Under this path, there can only be \textit{signed objects}, a tuple composed by a standard object, its signature and the public key of the node, which can be verified by its hash contained in the path. Every type of standard object is supported, including trees and commits, allowing paths to reference child objects by name, similarly to IPFS. This mutable state cannot be stored in IPFS itself, therefore it lives in the DHT used for peer discovery.
+IPFS objects are \emph{immutable}. Since they are addressed by their hash, the contents of the objects cannot change once deployed on IPFS. This means that updates or new versions of objects will be published under a different address, even in the case of commits since new versions will be additional commit objects and have different hash. This makes it difficult to maintain, for example, a website where content could be frequently updated: a webmaster should continuously publish new IPFS links off-band to their users to make them aware of the website changes. To solve this problem, IPFS has a component called \emph{IPNS}~(\cite{benet2014ipfs}), which stands for InterPlanetary Name Space, and implements a mutable namespace where a unique path can be updated to refer to different IPFS objects. Each node has an IPNS path composed of \texttt{/ipns/}, to distinguish it from the immutable IPFS paths, followed by the identifier of the node, which is the hash of its public key. Under this path, there can only be \textit{signed objects}, a tuple composed by a standard object, its signature and the public key of the node, which can be verified by its hash contained in the path. Every type of standard object is supported, including trees and commits, allowing paths to reference child objects by name, similarly to IPFS. This mutable state cannot be stored in IPFS itself, therefore it lives in the DHT used for peer discovery.
 
 \subsection{Analysis}\label{sec:ipfsanalysis}
-%todo - instead of trying to infer a model, define the model first (in Chapter 2 maybe) and then check if IPFS (and BitTorrent) fit that model
-Inferring the model in which IPFS is set is relatively straightforward, since we only have one class of entities in the entire system: nodes.
+%Inferring the model in which IPFS is set is relatively straightforward, since we only have one class of entities in the entire system: nodes.
 
 Everything in IPFS suggests that it is meant to be deployed in a Byzantine environment. Every transferred block is verified through its hash, contained in the address, rendering impossible to counterfeit the content of the requested data; moreover, nodes that attempt to do so are detected and penalized by BitSwap through a timeout penalty.
 
@@ -314,7 +329,7 @@ IPFS uses a DHT as their peer discovery system. Any node that joins the network 
 \end{itemize}
 A temporary workaround would be to edit the list in the source code to include also more, lesser-known trusted nodes: since IPFS is open source, this is an entirely viable option.
 
-\section{Other solutions}
+\section{Other solutions}\label{sec:storageprojects}
 
 Many projects that are interesting and innovative under a scientific point of view have been excluded from this thesis because they do not meet the requirements specified in the Thesis Structure in Section~\ref{sec:structure}. We will list here the most important ones, their main characteristics and the motivation behind this choice:
 \begin{itemize}
@@ -361,14 +376,12 @@ In Table~\ref{table:storagecomparison} we summarize the algorithms and mechanism
 \end{table}
 
 \chapter{Decentralizing Naming}\label{ch:naming}
-%todo - It seems like this type of discussion would belong to Chapter 2, when we define the models. It doesn't, because we are not defining any models here, but then the whole discussion about bringing the web to Byzantine should be moved in Chapter 3. But if we do that, we lose the reasoning behind why we would define those models, and the definitions would just be there by themselves. Solve this by rewriting Chapter 2 and move some stuff to Chapter 3, to make a similar intro to this one here.
 
 In the Web, websites are identified by Uniform Resource Locators, or URLs, which support a very important feature: \textit{domain names}.
 Domain names are strings composed by words and dots that are easy for humans to understand and memorize: the reason that we need such names is that otherwise we would have to use IP addresses in URLs which have none of those properties. Since the Internet still needs IP addresses to locate servers and devices in general, we need a system that can translate from names to IP addresses: this is accomplished by the Domain Name System (DNS).
 
 \section{Domain Name System}
 
-%todo - this is taken pretty much as is from my Bachelor Project report: is this fine?
 The DNS is a decentralized naming system for devices connected to a network (including the Internet), originally defined in RFC 1034~\cite{rfc:1034} and RFC 1035~\cite{rfc:1035} and updated with successive RFCs throughout the years. The most important duty of the DNS is to map arbitrary human-friendly names to mainly IP addresses, although it can map to other types of data.
 
 The DNS defines three components:
@@ -395,47 +408,50 @@ To counter these and similar attacks (described in RFC 3833~\cite{rfc:3833}), DN
 
 While DNSSEC can prevent tampering of communications from a third-party attacker, it does not prevent other types of misconduct perpetrated by the DNS resolvers and name servers themselves, since they are still able to provide misleading information or to completely omit data regarding domain names that effectively become censored. This is because, from the client's point of view, DNS appears to be a centralized system (it is also a client/server protocol): the client only communicates with a DNS resolver, which will then search for the answer to the client's requests as described previously, if it doesn't already have that information.
 
-To include these types of attack, we would have to move (at least) the DNS resolvers into a Byzantine failure model, where they are allowed to omit or modify information.
+This discussion is very similar to what is explained in Section~\ref{sec:movingstorage}. Indeed, if we consider in which failure model both the DNS and the communication channel are set, we would argue that they both lie in a stopping failure model. When we move the channel to a Byzantine failure model we introduce public-key cryptography with DNSSEC (a system parallel to HTTPS) to avoid messages being tampered with, but this does not protect from misbehavior of the DNS resolvers themselves.
 
-This discussion is very similar to what is explained in Chapter~\ref{ch:background}.
-% todo(leandro) - Specify what you are refering to, in Chapter~2. One way to do that is to reference a specific section or subsection.
-Indeed, if we consider in which failure model the DNS is set, we would argue that it lies in a stopping failure model and its messages travel unmodified in a identically modeled channel.
-% todo(leandro) - Don't know what you mean by 'identically modeled channel'
-When we move the channel to a Byzantine failure model we introduce public-key cryptography with DNSSEC to avoid messages being tampered with.
-% todo(leandro) - The discussion about "models" here seems a bit out of place. I'd just expand the "DNS is insecure" part in the beginning (when talk about forging messages etc). Here, I'd just write what DNSSEC does, something in the lines of:
+To include these types of attack in our model, we would have to move (at least) the DNS resolvers into a Byzantine failure model, where they are allowed to omit or modify information.
+
+%A potential solution to the Byzantine name resolution problem could be to decentralize the system by introducing multiple servers that can maintain a global, replicated and verifiable state of all names included in the system. Each operation that modifies the state would need to require consensus from the network, so that verification data can be added to this operation and then applied to the shared state (basically a distributed, verifiable state machine). In this way, clients can request name resolutions to the network and verify that they are correct, or they can simply download the state from the network, verify it and perform name resolutions themselves. % removed, Zooko's Triangle make this introduction for us
+
+%x todo(leandro) - The discussion about "models" here seems a bit out of place. I'd just expand the "DNS is insecure" part in the beginning (when talk about forging messages etc). Here, I'd just write what DNSSEC does, something in the lines of:
 % "To cope with message tampering and blablabla, DNSSEC uses public-key cryptography blablabla"
-And now we move the servers (at least the ones that communicate with the clients, which are the DNS resolvers) to the Byzantine model.
-% todo(leandro) - The connection from this phrase, to Zooko's triangle and then namecoin is not good I think.
+%And now we move the servers (at least the ones that communicate with the clients, which are the DNS resolvers) to the Byzantine model.
+%x todo(leandro) - The connection from this phrase, to Zooko's triangle and then namecoin is not good I think.
 % One idea is to do the following:
 % - Just talk about the resolvers _here_, why they are centralized and why it's a problem
 % - Move Zooko's to it's own section
 
 \subsection{Zooko's Triangle}
 
-Now, following the theme of this thesis, the logical answer would be to decentralize the DNS resolvers.
-% todo(leandro) - It's better to be explicit than assume the reader is following your line of reasoning. But this phrase will probably disappear (see my previous todo)
-This was thought to be impossible by~\cite{wilcox2003names}, who conjectured that one cannot obtain a namespace where names are decentralized, secure (in the sense that an attacker cannot fake name resolutions) and human-meaningful at the same time: %todo - split in bullet list and expand
-this \textit{trilemma} would be known as the ``Zooko's Triangle''. While decentralized namespaces already existed, they failed to either be human-meaningful (since they relied on cryptographic hashes or public keys), or to be secure (such as DNSSEC, that cannot protect against failed DNS resolvers).
+A potential solution to the Byzantine name resolution problem could be to decentralize the system, but this was thought to be impossible by~\cite{wilcox2003names}, who conjectured that one cannot obtain a namespace where names can simultaneously be:
+\begin{itemize}
+	\item \textbf{decentralized}: no central authority has control over all names;
+	\item \textbf{secure}: an attacker cannot fake name resolutions;
+	\item \textbf{human-meaningful}: names are understandable and memorable for humans, and not a randomly-looking string of text.
+\end{itemize}
+
+This \textit{trilemma} would be known as the ``Zooko's Triangle''. While decentralized namespaces already existed, they failed to either be human-meaningful (since they relied on cryptographic hashes or public keys), or to be secure (such as DNSSEC, that cannot protect against failed DNS resolvers).
 
 This conjecture sparked discussion and interest about the problem. The birth and popularization of Bitcoin and the blockchain gave~\cite{swartz2011names} the idea that the validity of Zooko's Triangle's had been challenged by this practical and deployed project: his idea was later implemented as Namecoin.
 
 \section{Namecoin}\label{proj:namecoin}
 
-\cite{namecoin} is a ``key-value pair registration and transfer system'' % todo(leandro) - why the quotes? if this comes from some document, I'd cite it.
-that is based on the Bitcoin blockchain. It was its first fork, % todo(leandro) - clarify "fork"?
-and it uses \textit{merged mining} to allow Bitcoin miners to also obtain Namecoins as their reward for no additional computations. %todo(leandro) - I'd add some context what is "Bitcoin mining/miners". You also use it later in the Protocol Overview.
-The key-value directory offered by Namecoin is mainly used to register and lookup \texttt{.bit} domains, but it can also serve other purposes. % todo(leandro) - such as?
+Namecoin is a ``key-value pair registration and transfer system''~(\cite{namecoin}) that is based on the Bitcoin blockchain.
+% It was its first fork, % todo(leandro) - clarify "fork"?
+%and it uses \textit{merged mining} to allow Bitcoin miners to also obtain Namecoins as their reward for no additional computations. %todo(leandro) - I'd add some context what is "Bitcoin mining/miners". You also use it later in the Protocol Overview.
+The key-value directory offered by Namecoin is mainly used to register and lookup \texttt{.bit} domains, but it can also serve other purposes, including support for ZeroNet, a project described in Section~\ref{proj:zeronet}.
 
-At the time of writing, there is neither official documentation nor a first-party whitepaper describing Namecoin's design. Most of the information reported here is based on either the official website~\cite{} or an empirical analysis by~\cite{kalodner2015empirical}.
-% why only "Most of"? If there is some other source, cite it.
+At the time of writing, there is neither official documentation nor a first-party whitepaper describing Namecoin's design. The information reported here is based on either the official website~(\cite{namecoin}) or an empirical analysis by~\cite{kalodner2015empirical}.
 
 \subsection{Protocol overview}\label{sec:namecoindesc}
-Namecoin is based on a blockchain, which is a distributed data structure whose main goal is to implement Byzantine fault tolerant consensus. We will not explain the mechanisms behind a blockchain and how it achieves this result, since it has extensively been covered by the academic community; %todo - briefly describe the blockchain in Chapter 2 (move some of the below there)
-instead, we will just mention some of its components to better explain the features of Namecoin.
-% todo(leandro) - the bitcoin satoshi paper would be a ref for blockchain. You mention academic community, I'd also cite some of those.
+Namecoin's software is a fork of the Bitcoin client: it maintains all of the features of Bitcoin with some additions, but it relies on a completely new blockchain, independent to the original one.
+%which is a distributed data structure whose main goal is to implement Byzantine fault tolerant consensus. We will not explain the mechanisms behind a blockchain and how it achieves this result, since it has extensively been covered by the academic community; %todo - briefly describe the blockchain in Chapter 2 (move some of the below there)
+%instead, we will just mention some of its components to better explain the features of Namecoin.
+%x todo(leandro) - the bitcoin satoshi paper would be a ref for blockchain. You mention academic community, I'd also cite some of those.
 
-A blockchain is an ordered sequence of \emph{blocks}. Each block contains some data, which are mostly transactions in the case of Bitcoin, but they can also include operations and records, on which Namecoin expands by introducing custom functions.
-Each user of a blockchain is called a \emph{node}: it can participate in the chain if it has an \emph{address}, which is a hash of a public key generated by the node. Each address has a non-negative amount of coins, that can be spent or earned by nodes through creation of \emph{transactions}.
+%A blockchain is an ordered sequence of \emph{blocks}. Each block contains some data, which are mostly transactions in the case of Bitcoin, but they can also include operations and records, on which Namecoin expands by introducing custom functions.
+%Each user of a blockchain is called a \emph{node}: it can participate in the chain if it has an \emph{address}, which is a hash of a public key generated by the node. Each address has a non-negative amount of coins, that can be spent or earned by nodes through creation of \emph{transactions}.
 
 The Bitcoin blockchain supports the execution of non-Turing complete scripts; Namecoin in particular also defines \emph{records}, which are key-value pairs, and three additional \emph{operations} that are exclusive to Namecoin and define what functions are available to their users:
 \begin{enumerate}
@@ -446,7 +462,7 @@ The Bitcoin blockchain supports the execution of non-Turing complete scripts; Na
 
 In Namecoin, a registered name becomes invalid (expires) after 36'000 blocks from the latest update block, including the one that contains the \texttt{NAME\_FIRSTUPDATE} operation.
 
-To register a name there is a fee of 0.01 Namecoin: these coins are not given to any address, instead they are spent and are no longer available in the network (this operation is known as \emph{burning} coins). Also, all three of the mentioned operations cost a smaller, variable fee that is given to the miner that resolves the corresponding block, just like in Bitcoin: the address that issues the operation is free to choose how much to pay in fees, which determines how fast the operation is going to be mined, since miners are going to prefer operations with higher fees to the ones with lower fees.
+To register a name there is a fee of 0.01 Namecoin: these coins are not given to any address, instead they are spent and are no longer available in the network (this operation is known as \emph{burning} coins). Also, all three of the mentioned operations cost a smaller, variable fee that is given to the miner that resolves the corresponding block, just like in Bitcoin.
 
 On the other hand, name resolutions in Namecoin are free of charge: since the blockchain and every record contained in it is public, every device can read it and perform name lookups, even without participating in the network through mining or performing modifying operations. But in order to know the blockchain state and thus perform name resolutions autonomously, a device has to download the entire blockchain, which at the time of writing is 5.4 GB in size: this can be unfeasible for mobile devices such as smartphones and definitely out of reach for storage-restricted computers such as modems and routers. To solve this issue, some services offer name lookups through a Web-based API and others have deployed custom DNS resolvers that use the blockchain to perform resolutions but respond using the DNS protocol. Both of these solutions somewhat defeat the purpose of having a decentralized system, but improve accessibility to the Namecoin blockchain.
 
@@ -461,7 +477,6 @@ Some of the most important keys used in domain name records (\cite{website:namec
 	\item \texttt{tor} specifies a hidden service domain name usable in the Tor network, which exemplifies one of the goals of Namecoin, which is to provide mappings for different types of services, including ones that may not be based on the IP network;
 	\item \texttt{tls} contains TLS certificate fingerprints, allowing to specify for which protocols and ports they are used.
 \end{itemize}
-%todo - continue with more json keys?
 
 \subsection{Analysis}
 Let's consider Zooko's Triangle applied to Namecoin and verify that this solution effectively implements all three characteristics deemed impossible to co-exist: decentralization, security and human-meaningful names.
@@ -470,9 +485,10 @@ The first and probably most trivial one is decentralization: since Namecoin reli
 
 Another trivial property is human-meaningful names, which Namecoin definitely supports: users are free to choose the name to register instead of having to rely on computer-generated hashes or other mechanisms that produce seemingly random strings. The purchased names are stored in the blockchain as-is (after a 12 block reservation phase in which only the hash is registered) and are shared among all nodes that maintain a valid copy of the blockchain.
 
-The most important property and the most difficult to achieve is security. This is because, like most other characteristics, Namecoin entirely depends on the underlying blockchain, which has a probabilistic system to provide security. While some attacks are possible that would compromise the security of the blockchain (some of which derive from Bitcoin and extend to Namecoin since the design of the blockchain is really similar; more modern cryptocurrencies resolve some of these issues), the practicality of such attacks is extremely low. For example, an attack on the Bitcoin blockchain that allows \emph{double spending} (i.e. reverting a previous expense through replacement of the associated block to allow a new spending of the same coins) requires that the attacker has at least the same computing power as the sum of the power of every other Bitcoin miner in the network, thus the name \emph{majority attack}, or \emph{51\% attack}. This attack has been successfully executed against other, smaller cryptocurrencies (some examples have been reported by \cite{website:realwordmajorityattacks}), which confirms that in and of itself the blockchain is not as secure as a centralized system, but the years that both the Bitcoin and Namecoin cryptocurrency have spent in operational state have demonstrated that their blockchain is secure \emph{enough} to withstand real-world attacks. %todo - might need to rewrite this after Chapter 2 is rewritten
+The most important property and the most difficult to achieve is security. This is because, like most other characteristics, Namecoin entirely depends on the underlying blockchain, which has a probabilistic system to provide security. While some attacks are possible that would compromise the security of the blockchain (some of which derive from Bitcoin and extend to Namecoin since the design of the blockchain is really similar; more modern cryptocurrencies resolve some of these issues), the practicality of such attacks is extremely low. For example, an attack on the Bitcoin blockchain that allows \emph{double spending} (i.e. reverting a previous expense through replacement of the associated block to allow a new spending of the same coins) requires that the attacker has at least the same computing power as the sum of the power of every other Bitcoin miner in the network, thus the name \emph{majority attack}, or \emph{51\% attack}. This attack has been successfully executed against other, smaller cryptocurrencies (some examples have been reported by \cite{website:realwordmajorityattacks}), which confirms that in and of itself the blockchain is not as secure as a centralized system, but the years that both the Bitcoin and Namecoin cryptocurrency have spent in operational state have demonstrated that their blockchain is secure \emph{enough} to withstand real-world attacks. Also, majority attacks are not viable in our reference model (described in Section~\ref{sec:model}) since it constrains Byzantine nodes by limiting their computing power and to a number of failed nodes below the 50\% mark.
+%todo - might still need to rewrite this even after Chapter 2 is rewritten
 
-So Zooko's Triangle can be considered resolved, if we allow blockchain security to be good enough for a real-world deployment. But this doesn't imply that the Namecoin system is perfect and we need to consider other attacks that go beyond the successful implementation of distributed registration and lookup of arbitrary names.
+So Zooko's Triangle can be considered resolved under our assumptions. But this doesn't imply that the Namecoin system is perfect and we need to consider other attacks that go beyond the successful implementation of distributed registration and lookup of arbitrary names.
 
 Namecoin prevents stealing of names by implementing name registration in two steps: \texttt{NAME\_NEW} is the first step, which only includes a salted hash of the name, and \texttt{NAME\_FIRSTUPDATE} which exposes both the name and the salt used in hashing. Namecoin requires that there are at least 12 blocks between the two operations: this is to avoid that an attacker reads the name on the \texttt{NAME\_FIRSTUPDATE} operation and reverts the blockchain up to where the corresponding \texttt{NAME\_NEW} was issued, then proposes a new branch of the blockchain that contain the same operations but appearing to be issued by the wrong user, thus stealing the name. The more blocks pass between the two operations, the less likely this attack can succeed, since more blocks need to be resolved by the attacker alone while the rest of the network works on the legitimate chain.
 
@@ -497,8 +513,8 @@ of every label in the domain name (as defined by DNS) and then combines them tog
 ENS is divided into three components:
 \begin{itemize}
 	\item the \emph{registrars}, smart contracts that own domains and can issue subdomains for users following the rules and fees of the smart contract corresponding to the parent domain; 
-	\item the \emph{resolvers}, smart contracts that are responsible for translating names into the associated records, such as Ethereum address or hashes for content in Ethereum Swarm. %todo(leandro) - ref back to where you describe Ethereum Swarm.
-	\item the \emph{registry}, consisting of a single smart contract that keeps track of all domains and subdomains: with each domain (specifically its node), the registry associates the owner's address, the resolver's address and the caching time-to-live for that domain and all its records;
+	\item the \emph{resolvers}, smart contracts that are responsible for translating names into the associated records, such as Ethereum address or hashes for content in Ethereum Swarm (mentioned in Section~\ref{sec:storageprojects});
+	\item the \emph{registry}, consisting of a single smart contract that keeps track of all domains and subdomains: with each domain (specifically its node), the registry associates the owner's address, the resolver's address and the caching time-to-live for that domain and all its records.
 \end{itemize}
 
 In the current implementation of ENS, the main registrar contract (as described by~\cite{eip:ensregistrar}) is considered temporary and to be replaced approximately 2 years later since its deployment, dated 10 March 2017. This contract is responsible for domain registration (at least for domains directly under the \texttt{.eth} top level domain) and is based on an auction system. Users that want to register a name have to compete in what is described as a \emph{Vickrey auction}: users submit bids whose monetary value is kept secret from other participants and the winner of the auction pays the price of the second highest bid instead of his bid; this is done to incentivize users to bid the real amount they want to spend. The bidding period lasts three days from the start of the auction, which can be initiated by any user on any available name. After three days, follow two days called the \emph{reveal} period, in which users reveal their bid to the public: the winner obtains ownership of the domain and locks the corresponding amount in a dedicated contract called the \emph{Deed} contract, while all other participants get their bid amount back; the registry is updated accordingly. If there is only one bid, a nominal fee of 0.01 Ether is claimed from the winner. The bids contain neither the name to register nor the node for that domain, instead they contain a Keccak hash of the label that is the child of the domain for which the registrar is responsible, which is \texttt{.eth} for the main registrar described here.
@@ -510,8 +526,7 @@ The owner of a name has the right to register a resolver for its domain. Resolve
 	\item \texttt{ABI}, for storing contract interfaces, which in Ethereum are usually distributed out-of-band but are essential to interact with most contracts; this is in discussion to be approved as EIP 205 at the time of writing.
 \end{itemize}
 
-The public resolver contract deployed on the Ethereum mainnet (\cite{enspublicresolver}) also supports \texttt{content} records, used to handle content-based hashes like the ones found in Ethereum Swarm (IPFS hashes are not supported but a comment in the source file states that it's likely that multihash~\cite{multihash} will be supported in the future), %todo(leandro) - this parenthesis seems unimportant here. I'd cut it.
-\texttt{pubkey} records, which store elliptic-curve cryptography public keys, and \texttt{text} record, which simply store some textual data.
+The public resolver contract deployed on the Ethereum mainnet (\cite{enspublicresolver}) also supports \texttt{content} records, used to handle content-based hashes like the ones found in Ethereum Swarm, \texttt{pubkey} records, which store elliptic-curve cryptography public keys, and \texttt{text} record, which simply store some textual data.
 
 In ENS resolver contracts, all methods that perform node resolution are marked as \texttt{constant}: this indicates that those methods will not alter the state of the blockchain, which in turn means that all clients can execute these methods on their own for no fee, provided that they have access to a copy of the Ethereum blockchain, either by downloading it or through another client.
 
@@ -527,7 +542,7 @@ We begin with decentralization. ENS is implemented and runs on Ethereum, which i
 
 As for human-meaningful names, we can easily claim that they are supported by ENS: even though domains are handled through nodes instead of their readable form, users can directly derive nodes from domains and clients are likely to perform this transformation without the user's knowledge. For example, a potential ENS-enabled browser would most certainly accept domain names in their readable form and then compute the namehash to interact with ENS and perform resolutions; users would see, use and remember human-meaningful domain names, with a similar experience to the current Web.
 
-Similarly to Namecoin, ENS relies on the security of the underlying Ethereum blockchain. As Bitcoin, Ethereum is vulnerable to majority attacks, but they are unlikely to occur in the current real-world settings.
+Similarly to Namecoin, ENS relies on the security of the underlying Ethereum blockchain. As Bitcoin, Ethereum is vulnerable to majority attacks, but they are unlikely to occur in the current real-world settings and not feasible in our reference model described in Section~\ref{sec:model}.
 We should also consider failures from the deployed ENS smart contracts, possibly deriving from bugs or issues in the implementation that have not been discovered yet: this is one of the reasons that led to assigning ownership of the ENS system to a group of seven trustworthy people in the Ethereum community, so that if any problem arises with the contracts themselves or with the system those people can intervene and potentially fix the implementation bugs and/or recover from loss or unauthorized alteration of records. While this fact by itself does not inherently guarantee security, it is an additional measure to counter potential incidents or attacks.
 
 We now move our attention to more general naming concerns, starting with name stealing. ENS successfully prevents this attack by implementing a \emph{Vickrey auction}: bids happen independently from one another over a three day time span and are followed by two more days in which bids can only be revealed. Once a bid is revealed, no other user can place a higher bid on that name, therefore it is safe to reveal bids. Also, if one would want to revert the blockchain back to undo both the reveal and the bid and replace them with their own, it would need to revert and propose potentially several thousand blocks: Ethereum's target block time is 15 seconds, which means that the network will most likely produce more than 5'000 blocks per day. If the bid and its reveal are distant enough (some hours should suffice), this attack becomes unfeasible under our model assumptions.
@@ -540,7 +555,7 @@ so it would be redundant to include them here.
 
 Other projects not related to Ethereum are:
 \begin{itemize}
-	\item \textbf{EmerDNS}: part of a larger blockchain-based project known as Emercoin, whose goal is to provide secure and distributed business services and operations, not to develop an alternative to the Web; %todo - expand on this?
+	\item \textbf{EmerDNS}: part of a larger blockchain-based project known as Emercoin, whose goal is to provide secure and distributed business services and operations, not to develop an alternative to the Web;
 	\item \textbf{NXT Aliases}: part of another blockchain-based project called NXT, aliases are  generic key-value associations that allow any string to be associated with any other, possibly shorter string. Similarly to Emercoin, NXT provides many features but not a distributed Web;
 	\item \textbf{Blockchain Name System}: we discuss this in Section~\ref{proj:blockstack}.
 \end{itemize}
@@ -641,8 +656,7 @@ The ZeroNet client is not a browser, thus it is not able to render websites on i
 
 It is worth noting that the ZeroNet client does not simply relay content from the network to the browser, instead it provides a more complex Web interface that allows features such as displaying a loading page while the website is retrieved, or \emph{real-time website updates}. This last feature uses WebSocket API to let the interface know that content on the page has changed and that new data has to be displayed accordingly; under the hood, the content creator's client has sent a message to some current visitors, which are then going to relay the message to other peers, that a newer \texttt{content.json} file is available: the notified clients will compare the timestamps contained in that file to verify that it is actually newer and then download the modified files accordingly.
 
-A key feature of the so called Web 2.0 that allowed the rise and popularization of social medias is the ability to get, store and serve user-generated content. %todo - move this to intro if mentioned in Blockstack
-ZeroNet supports this through \emph{multi-user sites}: this feature allows website owners to give other users the ability of modifying some appropriate files of the website, effectively enabling user-generated content. The key of the user that obtains editing permission is stored in a \texttt{content.json} file and the user has to sign its changes when publishing them, so that the new content can be verified not only for integrity, but also for checking that no other user is submitting content without permission.
+A key feature of the so called Web 2.0 that allowed the rise and popularization of social medias is the ability to get, store and serve user-generated content. ZeroNet supports this through \emph{multi-user sites}: this feature allows website owners to give other users the ability of modifying some appropriate files of the website, effectively enabling user-generated content. The key of the user that obtains editing permission is stored in a \texttt{content.json} file and the user has to sign its changes when publishing them, so that the new content can be verified not only for integrity, but also for checking that no other user is submitting content without permission.
 
 ZeroNet is not made with anonymity as a priority and it is stated in various resources (\cite{website:zeronetpresentation}, \cite{website:zeronetfaq}) that ZeroNet is ``not more anonymous than BitTorrent'', in the sense that it is possible to identify which IP address created a website and uploaded its content into the network, and also who is currently serving files of some website. On the other hand, ZeroNet supports interoperability with Tor, an anonymizing network, so that all traffic can be routed through it without the risk of being de-anonymized by some Tor-unaware part of the system, which is the opposite of what happens in the already mentioned BitTorrent, as presented and analyzed by~\cite{manils2010compromising}.
 
@@ -652,8 +666,7 @@ Let us first quickly verify that ZeroNet data transfer protocol fits our Byzanti
 
 On the other hand, the other two characteristics are sources of concern: first, the chosen incentive scheme does not help in replicating all data that is stored in the network. This could be considered intentional and justifiable since the rationale behind this choice is to penalize content which is not worth to be replicated, instead of simply and blindly replicate all content inconditionally, creating some sort of ``tribunal'' provided by the community. Secondly, the peer discovery system is centralized, as it is based on BitTorrent's trackers that we already discussed in Section~\ref{proj:bittorrent}: while BitTorrent solves this by providing both a DHT and PeX as alternatives, ZeroNet only provides an equivalent to PeX, and this is not sufficient as this method is not reliable, since peers can refuse to share or provide misleading information about other peers, just like trackers. Similarly, peers can also setup their own tracker servers to be used by the rest of the community, but this has the exact same issues as peer exchange, with the added hassle of having to configure the client to contact these new trackers, instead of having the feature work out of the box.
 
-From the above we derive that ZeroNet data transfer protocol does not fit our model, %todo- define the model please, Chapter 2
-since peer discovery can be compromised. The lack of a Byzantine fault tolerant peer discovery system exposes ZeroNet to potential censorship as trackers and peers alike can refuse to provide correct information when requesting clients that share some given sites. On the other hand, it is worth noting that, in order to function, peer discovery only needs one non-failed tracker that provides enough information to discover a sufficiently large portion of the network, which then allows for peer exchange to be viable and improve on connectivity with other peers. But since our worst case scenario does not allow us to trust any tracker, the situation we just described also lies outside of the model.
+From the above we derive that ZeroNet data transfer protocol does not fit our reference model (stated in Section~\ref{sec:model}), since peer discovery can be compromised. The lack of a Byzantine fault tolerant peer discovery system exposes ZeroNet to potential censorship as trackers and peers alike can refuse to provide correct information when requesting clients that share some given sites. On the other hand, it is worth noting that, in order to function, peer discovery only needs one non-failed tracker that provides enough information to discover a sufficiently large portion of the network, which then allows for peer exchange to be viable and improve on connectivity with other peers. But since our worst case scenario does not allow us to trust any tracker, the situation we just described also lies outside of the model.
 
 The naming system used by ZeroNet is Namecoin, which we extensively discussed in Section~\ref{proj:namecoin}. What is of interest for us here is the way that ZeroNet uses Namecoin information: instead of contacting the blockchain directly, which would be the safest solution, naming data is obtained from the blockchain off-band and stored in the internal site ZeroName, against which the client performs name resolutions. Assuming that the off-band channel is trusted (apparently the main ZeroNet developer known as ``nofish'' has a script that updates ZeroName regularly~\cite{website:zeronameupdate}), this method is as secure (in the Zooko's Triangle sense) as performing resolutions on the blockchain directly: this is because data from the website is verified against the \texttt{content.json} file, which is itself verified against the ZeroName's public key stored in the client. Compromises in the peer discovery system might make this website inaccessible, but do not hamper transfer of information once enough valid peer data is obtained. But the assumption we just made implies that this system cannot be considered trustless, as we need to trust ZeroName's maintainer with the naming resolution data. The solution here is to rely on an actual Namecoin client and configure ZeroNet to use that instead of ZeroName.
 
@@ -799,7 +812,7 @@ Most of the research on which this document is based was done on current technol
 
 %\bibliographystyle{alpha}
 %\bibliographystyle{dcu}
-\bibliographystyle{plainnat} %TODO - figure out how to work this
+\bibliographystyle{plainnat} %todo - figure out how to work this
 \bibliography{webrbiblio}
 
 %\cleardoublepage
