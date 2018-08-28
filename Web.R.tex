@@ -136,7 +136,7 @@ Assuming that the current Web is based on the stop failure model, we introduce a
 
 First, we consider \emph{centralized} systems any network of servers whose IP address is publicly available through a static directory; by static, we intend lists whose content can only be edited or updated manually through user intervention. On the other hand, a decentralized system relies on dynamic directories, which are automatically updated by an automated system.
 
-In our model, all servers that belong to centralized systems are Byzantine and therefore untrusted. This is true also for decentralized systems, but we limit the number of failed processes to a minor portion of the network, so that there is always a majority of processes running correctly that composes more than the 50\% of the number of servers in the system.
+In our model, all servers that belong to centralized systems are Byzantine and therefore untrusted. This is true also for decentralized systems, but we limit the number of failed processes to a minor portion of the network, so that there is always a large majority of processes running correctly that composes more than two thirds of the number of servers in the system.
 
 All communication channels are under a Byzantine failure model, but it is always possible to find a network route whose channels do not fail. This allows us to assume that communication channels will alter data that is transmitted through them, but once such tampering is made detectable, communication between entities is still possible.
 
@@ -148,7 +148,7 @@ Here we will give an introduction to some of the most important technologies use
 
 The Distributed Hash Table (or DHT) is a data structure that provides a key-value based lookup service. Like the name suggests, only the cryptographic hash of the actual keys is stored in the network, and it is the basis for locating and distributing data in the system.
 
-The set of all possible hashes is called the \emph{keyspace}. An algorithm is responsible to distribute ownership of the keyspace among the nodes in the network: each node will be assigned with only a portion of the set of all keys. An \emph{overlay network} is responsible to give information to nodes on how to reach other nodes based on their assigned hash, in order to facilitate data insertions and lookups. Clients insert and retrieve data by contacting any node of the network: if the node is responsible for that key, it will reply with the data, otherwise it will relay the message to another node, according to the information given by the overlay network.
+The set of all possible hashes is called the \emph{keyspace}. An algorithm is responsible to distribute ownership of the keyspace among nodes in the network: each node will be assigned with only a portion of the set of all keys. An \emph{overlay network} is responsible to give information to nodes on how to reach other nodes based on their assigned hash, in order to facilitate data insertions and lookups. Clients insert and retrieve data by contacting any node of the network: if the node is responsible for that key, it will reply with the data, otherwise it will relay the message to another node, according to the information given by the overlay network.
 
 The most important DHT properties are its decentralization, its resilience to failures and the scalability of data access times with respect to the number of nodes in the network.
 
@@ -716,7 +716,7 @@ In fact, they implemented this scenario as Blockstack IDs, which are identifiers
 % todo(leandro) - what scenario?
 Users define through Gaia where they prefer to store their data and  who can see it. Applications request access to this data directly to the user through the Blockstack Browser, which acts as a client for the Blockstack network.
 
-\subsection{Analysis}
+\subsection{Analysis}\label{sec:blockstackanalysis}
 
 The solution proposed by the Blockstack team is really unique in its structure, especially considering the storage system Gaia. Data verification is guaranteed throughout all the sub-projects that compose the network: at the bottom, virtualchains rely on the blockchain's BFT consensus to build a trustless state machine, used to implement the Blockchain Name Service; then the Atlas network uses the BNS to verify and index all data that it contains; then, at the top, Atlas' zone files are used to locate the Gaia storage provider chosen by the name owner, whose content is verified against the name owner's public key, stored in BNS. This makes Blockstack a fully trustless system.
 
@@ -754,14 +754,13 @@ The two projects, ZeroNet and Blockstack, differ in nature. ZeroNet offers more 
 
 If we consider censorship resistance, ZeroNet provides the better solution, even if it's not perfect: website visitors automatically copy and serve its contents, building a somewhat ``popular-first'' replication system that favors frequently visited websites over rarely accessed ones. ZeroNet's vulnerability to censorship resides in the peer discovery system, based on BitTorrent's trackers, which are a centralized entity and allows for attackers to impede access to the network or to take over and control data returned by them. Blockstack is also vulnerable to censorship, but the attack vector directly targets the data,
 %todo(leandro) - what do you mean by "the attack vector directly targets the data"? I don't think you mention it the project's section.
-since its location is static and known publicly through Atlas zone files. At the time of writing, Gaia does not support decentralized ``back-end'' storage systems that are not vulnerable to attacks based on URLs, such as IPFS.
-%todo(leandro) - what is an "attack based on URLs"?
+since its location is static and known publicly through Atlas zone files. At the time of writing, Gaia does not support decentralized ``back-end'' storage systems that are not vulnerable to standard Web attacks, such as IPFS.
 
 As for trust, ZeroNet technically needs to trust the trackers in order to function correctly, for the same reasons that we discussed above, but once the peer network is bootstrapped, no trust is required as all received data can be verified with the website hash, which is either known or obtained from the trustless Namecoin system. Blockstack, on the other hand, does not need trust in order to function: the blockchain ``bootstraps trust'' for the entire network, since all data contained in virtualchains, in the Atlas network and in Gaia ultimately can be verified with data contained in the blockchain. While cloud-storage providers supported by Gaia may need to be trusted to keep the data, a user can also setup a personally owned server which can act as fail-over in case said providers fail, removing the need to trust them.
 
 When it comes to privacy the two systems provide radically opposite offerings: ZeroNet completely lacks support for privacy of data, instead every file stored in the network is public (although it plans to support ``private sites''). Blockstack, on the contrary, fully implements privacy controls, making them central to the whole system through Blockstack IDs: with Gaia, users can control where to store their data and who to share that information with; Blockstack-enabled applications have to request access to user data directly to the user, through the Blockstack Browser.
 
-In Table~\ref{table:dwebcomparison} we summarize the main features and characteristics that ZeroNet and Blockstack exhibit. From the table, it is clear that ZeroNet does not reach our requirements for a decentralized Web, while Blockstack is more fit but still lacks some properties, especially considering how the current system is used for user data only, instead of also storing websites
+In Table~\ref{table:dwebcomparison} we summarize the main features and characteristics that ZeroNet and Blockstack exhibit. From the table, it is clear that ZeroNet does not reach our requirements for a decentralized Web, while Blockstack is more fit but still lacks some properties, especially considering how the current system is used for user data only, instead of also storing websites.
 %todo(leandro) - what is the difference between user data and a website?
 
 \begin{table}[h]
@@ -809,7 +808,7 @@ The level of trust required to utilize Tor depends on the task that a user wants
 
 While Tor provides anonymity to its users, the user's data needed in the interaction with hidden services is handled in the same way as in the standard Web: the services keep user data in their servers, outside of user's control. Privacy controls are not provided by Tor, but instead the responsibility of offering such tools reside on the hidden services themselves. Not even the law here can enforce privacy regulations, as hidden services are protected from identification and therefore not accountable for their conduct.
 
-Projects similar to Tor are the Invisible Internet Project, also known as I2P~(\cite{i2p}) and Freenet, already mentioned in Section~\ref{sec:browserprojects}. Anonymity networks provide a potential alternative to the distributed Web for resolving the issues of the current Web. %\todo(leandro) - this phrase is out of place (you don't do this kind of "similar projects" with other works). It belongs in "Other solutions".
+Projects similar to Tor are the Invisible Internet Project, also known as I2P~(\cite{i2p}) and Freenet, already mentioned in Section~\ref{sec:browserprojects}. Anonymity networks provide a potential alternative to the distributed Web for resolving the issues of the current Web. %todo(leandro) - this phrase is out of place (you don't do this kind of "similar projects" with other works). It belongs in "Other solutions".
 
 \chapter{Conclusions}\label{ch:conclusions}
 
@@ -817,19 +816,19 @@ We have described the current state-of-the-art for the decentralized Web. We fir
 
 Development of the decentralized Web is in its early stages. New projects and solutions continue to arise, making this area very dynamic and full of innovation. Events such as the Decentralized Web Summit~(\cite{website:dws}) are gaining popularity and traction, hosting informative talks and making the scene more interconnected by having members of different organizations talk to each other and confront ideas. This document is bound to become obsolete within the next years as more projects evolve and reach stable deployment, but it is still interesting to explore the current technologies since they create the foundation for what is next to come.
 
-It's also worth stating that none of the projects described here have become massively popular among Internet users as alternatives to the standard Web. The most popular one, BitTorrent, is well known for its file sharing capabilities instead of being part of ZeroNet's data transfer system. %todo - continue?
+It's also worth stating that none of the projects described here have become massively popular among Internet users as alternatives to the standard Web. The most popular one, BitTorrent, is well known for its file sharing capabilities instead of being part of ZeroNet's data transfer system.
 
-Most of the research on which this document is based was done on current technologies, so if any information reported in this document is incorrect, we blame a Byzantine attacker over the standard Web that fooled us with misleading data.
+\section{Future work}
+
+In this work we have highlighted flaws that affect some of the projects described. Since many of these projects are open source, contributions to their development to fix their issues represent potential future work of this thesis. For example, we mentioned in Section~\ref{sec:blockstackanalysis} that Blockstack needs developers that can implement IPFS support in Gaia; many other projects also welcome open source contributions.
+
+A project that requires much work but has great potential of implementing a distributed Web is Ethereum, through combination of Ethereum Swarm and ENS. Supporting development of these features also classifies as future work of this thesis.
+
+Among the projects described we cannot identify a system that fully satisfies our vision of the distributed Web. Possible future work would be to develop a new system either by the ground up, or by reusing existing technologies among the ones described here. In fact, this was the original goal of this Master Thesis, but research in the area discovered many projects that needed to be analyzed first, and exploration of the systems required a whole Thesis of its own. But now that the area has been researched, one can build new projects that combine features from existing systems or implement novel techniques to bring original and valuable improvements over the systems described here.
 
 %\appendix 
 
 \backmatter
-
-%\chapter{Glossary}
-%\begin{itemize}
-%	\item TCP
-%	\item ISP	
-%\end{itemize}
 
 %\bibliographystyle{alpha}
 %\bibliographystyle{dcu}
