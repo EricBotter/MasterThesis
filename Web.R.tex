@@ -36,7 +36,6 @@ morecomment=[l]{//s},
 
 \begin{abstract}
 The World Wide Web is probably the most popular and used service of the Internet, sometimes even confused with the Internet itself. But the Web has one fundamental problem: it is based on a client-server model, which is not ideal considering the importance of Web services that we use everyday. This allows powerful entities to perform attacks such as Denial of Service, IP blocking and DNS hijacking to control access to websites and services based on the Web. Notable examples of such attacks are the Distributed Denial of Service Attack that hit GitHub (\cite{webarticle:githubddos}) on February 2018, or the blocking of Wikipedia enacted by the Turkish government (\cite{webarticle:turkeywikipedia}) on April 2017.
-%todo - I want to mention throttling too, but I can't find any compelling example of that behavior
 
 The invention of the blockchain and its popularization through projects like Bitcoin and Ethereum brought renewed interest towards fully distributed and trustless solutions, and this has the potential to impact the Web. In this thesis, we present and analyze some of the currently implemented and active projects which aim to move the Web from its centralized client-server environment to a decentralized trustless system.
 
@@ -63,8 +62,6 @@ Last but not least, I also thank my friends and family for supporting me spiritu
 \chapter{Introduction}\label{ch:intro}
 
 The World Wide Web (or most commonly known as simply ``the Web'') is probably the most popular and used service of the Internet, sometimes even confused with the Internet itself. It is very common nowadays to access the Web and browse websites from many platforms, from the typical desktop computer to the modern smartphone.
-
-%todo - give context about why a distributed web and what is happening at the moment?
 
 The Web is based on a client-server architecture, where Web servers provide objects (such as documents, images or files in general) to clients that request and display them, called \textit{user agents} (e.g. Web browsers).
 
@@ -93,10 +90,7 @@ HTTPS resolves this issue by asymmetrically encrypting the communication channel
 
 The final class of problems regards \textbf{privacy} and handling of personal information: with the current scenario, whenever you connect to a website, that website privately stores data about you.
 This data can be either automatically collected from user interactions, or can be provided directly by the user: consider, as an example, a social network, where users provide personal information such as their generalities, and the website collects data such as post interactions, number and timestamps of logins, and so on.
-This effectively moves ownership of the data from the user to the company. Data that intrinsically belongs to the user
-(especially personal information such as name, address and phone number)
-%todo(leandro) - Could be good to use other examples here? I think it could be argued that these are actually kind of public, or expected to be given to a company... some ideas: location data, private messages and documents, search history, photos.
-are stored privately into the company server, and the user has limited control over it, since the only possible actions on the data are the ones defined by the company or required by law.
+This effectively moves ownership of the data from the user to the company. Data that intrinsically belongs to the user (especially personal information such as location data, private messages and documents) are stored privately into the company server, and the user has limited control over it, since the only possible actions on the data are the ones defined by the company or required by law.
 %todo(leandro) - What do you think of briefly mentioning/discussing the GDPR?
 
 \section{Thesis goals}
@@ -106,8 +100,7 @@ The projects described in this thesis have been selected based on the following 
 \begin{itemize}
 	\item A project has as one of its goals to replace or provide an alternative to the existing Web;
 	\item A project must have been successfully deployed and must be still active at the time of writing, with a significant user base;
-	\item A project must mainly depend on data replication in a distributed system and must handle Byzantine failures and adversaries;
-%todo(leandro) - I don't understand what you by "mainly depend on data replication in a distributed system". Would just leaving the second part, about Byzantine failures, be enough?
+	\item A project must tolerate Byzantine failures and provide availability through data replication;
 	\item A project is a building block for another project in the thesis.
 \end{itemize}
 
@@ -120,38 +113,35 @@ Chapter~\ref{ch:conclusions} concludes the thesis.
 We introduce discussion about the decentralized Web by defining a key concept that allows us to better explain the difference between the standard Web and its distributed\footnote{In this work, we will use the terms ``decentralized'' and ``distributed'' as synonyms. Although their meaning is slightly different, that difference is not relevant in this work and we choose to not consider it.} counterpart: failure models.
 
 \section{Failure models}
+
 We consider a distributed system composed of \emph{processes} which communicate by sending messages through communication \emph{channels}.
 The set of processes includes servers (e.g., web, naming, storage), clients (e.g., browsers) and other entities such as routers.
-%todo(leandro) - I think this definition mimics what you previously wrote in the end of the "reference model"
+%note(leandro) - I think this definition mimics what you previously wrote in the end of the "reference model"
 
 In this work, we consider two failure models: \emph{Fail-stop} (or \emph{stopping}) and \emph{Byzantine}.
 
-In the Fail-stop failure model, a process may fail by interrupting all activities. This is known as \emph{halting} or \emph{crashing} in some cases. Once a process has halted, it remains in that state. Other processes are able to detect this failure using some detection technique. In the case of the Web, this is tipically done through \emph{timeouts}: if we expect a communication that does not occur within a time limit, we consider the process to have failed.
-We include in the failure model the behaviour of communication channels: they may drop, reorder and delay messages, but may not create or alter them.
-Furthermore, if a message is sent infinitely often, it is also received infinitely often.
-In practice, that means processes can always communicate (i.e., find a network route to each other), except during temporary network disruptions.
+In the Fail-stop failure model, a process may fail by interrupting all activities. This is known as \emph{halting} or \emph{crashing} in some cases. Once a process has halted, it remains in that state. Other processes are able to detect this failure using some detection technique. In the case of the Web, this is typically done through \emph{timeouts}: if we expect a communication that does not occur within a time limit, we consider the process to have failed.
+We include in the failure model the behavior of communication channels: they may drop, reorder and delay messages, but may not create or alter them.
+Furthermore, if a message is sent infinitely often, it is also received infinitely often: in practice, this means processes can always communicate (i.e., find a network route to each other), except during temporary network disruptions.
+In this model, processes are referred to as \emph{trusted}, meaning that entities can rely on the data that is exchanged with these processes.
 
 In the Byzantine failure model, a process may fail by exhibiting arbitrary behavior. This includes, for example, producing unneeded messages, whether they comply with a given protocol or not, lying about their state and omitting information. Byzantine processes are very hard to detect as failed, since they can ``disguise'' themselves as correct processes, while providing malicious data.
 Furthermore, communication channels may also create and modify messages.
 The Byzantine failure model is particularly useful to model malicious actors, or \emph{attackers}: since failed entities can perform arbitrary actions, it is important to consider the situations which can cause the most damage to the system.
-
-% Once protections are in place against these actions (and all possible other scenarios), we are sure to protect the system from any attacker that takes over the entities that we consider to be Byzantine.
-
-% A user that interacts with a network is going to expect some form of behavior from external processes. A process in a stop failure model will either function correctly or it will not function at all, but in no case the data that a users receives will be incorrect or malformed. In other words, users \emph{trust} that entity and the information it provides them. On the other hand, a process in a Byzantine failure model can return any type of data, including incorrect or malformed information: these processes and their data are \emph{untrusted}, and require additional measures that can verify the validity of their information.
+Processes in this model are \emph{untrusted}, as there is no guarantee on the validity of information generated by these entities.
 
 \section{The system model of the distributed Web}\label{sec:model}
 We argue that the current Web assumes a stopping failure model: entities must trust each other for the system to work correctly.
 For the distributed Web, we instead assume a Byzantine model.
 
-First, we consider \emph{centralized} systems any network of servers whose IP address is publicly available through a static directory; by static, we intend lists whose content can only be edited or updated manually through user intervention. On the other hand, a decentralized system relies on dynamic directories, which are automatically updated by an automated system.
-% todo(leandro) - I'm really confused by the previous paragraph. What do you mean here?
-
 For a system to make progress and work correctly under Byzantine failures, it is necessary to make some extra assumptions.
 First, the computing power of Byzantine processes is limited, such that cryptographic algorithms such as hashing, signatures and encryption cannot be subverted.
 Second, the number of Byzantine processes in the system is limited. % todo(leandro) - expand here, citing eyal2018majority and lamport1982byzantine for example (i've added them to the bib file).
 
-% In our model, all servers that belong to centralized systems are Byzantine and therefore untrusted. This is true also for decentralized systems, but we limit the number of failed processes to a minor portion of the network, so that there is always a large majority of processes running correctly that composes more than two thirds of the number of servers in the system.
+%We also distinguish between \emph{static} and \emph{dynamic} distributed systems. We consider static any network of servers whose IP address is publicly available through a list whose content can only be edited or updated manually through user intervention. On the other hand, a dynamic decentralized system relies on directories that are automatically updated by an automated system.
 
+%In our model, all servers that belong to centralized systems are Byzantine and therefore untrusted. This is true also for decentralized systems, but we limit the number of failed processes to a minor portion of the network, so that there is always a large majority of processes running correctly that composes more than two thirds of the number of servers in the system.
+ 
 \section{Relevant technologies}
 
 Here we will give an introduction to some of the most important technologies used by the projects described in the following Chapters.
@@ -169,17 +159,16 @@ DHTs have been shown to be vulnerable to Sybil attacks by~\cite{wang2012real} an
 
 \subsection{Blockchain}\label{tech:blockchain}
 
-The blockchain is a distributed data structure whose main goal is to implement Byzantine fault tolerant consensus.
-% todo(leandro) - Consensus is never defined. Maybe it's not necessary to use the term. What is important I guess is that it is a distributed ledger and it is immutable (well, probabilistically at least).
+The blockchain is a distributed data structure whose main goal is to implement a Byzantine fault tolerant, immutable ledger.
+% todo(leandro) -  immutable, well, probabilistically at least
 We will not explain the mechanisms behind a blockchain and how it achieves this result (more information on this can be found on the original Bitcoin paper by~\cite{bitcoin}),
 instead, we will just mention some of its components that will allow us to better explain the features of the projects that make use of it.
 
 A blockchain is an ordered sequence of \emph{blocks}. Each block contains some data, which are mostly transactions, but they can also include script-like operations or extra metadata. Each user of a blockchain is called a \emph{node}: it can participate in the chain if it has an \emph{address}, which is a hash of a public key generated by the node.
 
 % todo(leandro) - Is it necessary to go into details on "bitcoin and mining..."?. If yes, this part needs to be worked on a bit (what is a  miner?  what does it mean to resolve a block? and so on). A blockchain can be implemented with no mining at all (e.g., PBFT, proof-of-stake).
-Blockchains also implement cryptocurrencies such as Bitcoin, and each address has a non-negative amount of coins, that can be spent or earned by nodes through creation of \emph{transactions}. Each transaction costs a fee that is spent by the issuer address and transferred to the miner that resolved the block: the user that issues the operation is free to choose how much to pay in fees, which determines how fast the operation is going to be mined, since miners are going to prefer operations with higher fees to the ones with lower fees.
-
-%todo - mention Proof of work?
+%todo - I removed mentions of mining here but I need to check if it's used later in the text
+Blockchains also implement cryptocurrencies such as Bitcoin, and each address has a non-negative amount of coins, that can be spent or earned by nodes through creation of \emph{transactions}. Each transaction costs a fee that is spent by the issuer address and transferred to the users that verify and finalize the block, adding it to the ledger. The user that issues the transaction is free to choose how much to pay in fees, which determines how fast the operation is going to be verified, since the network will prefer transactions with higher fees to the ones with lower fees.
 
 \section{Goals of the distributed Web}\label{sec:goals}
 
@@ -271,7 +260,7 @@ Identifying the failure model for the trackers is not so easy. This is because t
 
 Let's not forget that BitTorrent also has decentralized peer discovery methods, including a DHT. These systems, if available, will always be used alongside the tracker-based system, and since the DHT is already Byzantine fault-tolerant, we can also place the trackers in a Byzantine model, since we won't be losing functionalities in doing so, although we might suffer from a performance perspective.
 
-But there's still one element that needs consideration: the source of torrent files. The BitTorrent documentation (as written in BitTorrent Enhancement Proposal 3 by~\cite{bep:3}) explicitly specifies that torrent files are served over the Web, but this is not always the case, and it surely isn't enforced by BitTorrent clients: as long as they receive a torrent file, they will start to download the corresponding torrent. It is pretty clear that this source must be trusted, otherwise we would have an invalid torrent definition and the client would download data that is not what the torrent file or its source might suggest to be. %todo - expand on this? it seems pretty simple to me, maybe too much simple
+But there's still one element that needs consideration: the source of torrent files. The BitTorrent documentation (as written in BitTorrent Enhancement Proposal 3 by~\cite{bep:3}) explicitly specifies that torrent files are served over the Web, but this is not always the case, and it surely isn't enforced by BitTorrent clients: as long as they receive a torrent file, they will start to download the corresponding torrent. It is pretty clear that this source must be trusted, otherwise we would have an invalid torrent definition and the client would download data that is not what the torrent file or its source might suggest to be.
 
 So far the most vulnerable point we described is the source of the torrents. A user must find a reputable and trustworthy source from which torrents can be obtained. This is particularly an issue because of the controversial (and often illegal) content that can be obtained through the BitTorrent network: for example, malicious agents might setup websites which offer counterfeit software, while they actually distribute malware, or government agencies might take control of a popular torrent distribution website to track their users and alter or remove the torrent files that are offered, potentially affecting legitimate torrents.
 
@@ -333,10 +322,10 @@ IPFS objects are \emph{immutable}. Since they are addressed by their hash, the c
 
 Everything in IPFS suggests that it is meant to be deployed in a Byzantine environment. Every transferred block is verified through its hash, contained in the address, rendering impossible to counterfeit the content of the requested data; moreover, nodes that attempt to do so are detected and penalized by BitSwap through a timeout penalty.
 
-As for the danger of free riding, BitSwap incentivizes nodes to share blocks by introducing a ledger mechanism that, while being based on the \textit{tit-for-tat} like algorithm of BitTorrent, it has been made more robust through the required synchronization of ledgers between nodes: this allows to build trust among well-behaved nodes while maintaining a harsh environment for fresh nodes that join the network or towards nodes that refuse to maintain a ledger, possibly to cancel debts towards other nodes. %todo - expand on this?
+As for the danger of free riding, BitSwap incentivizes nodes to share blocks by introducing a ledger mechanism that, while being based on the \textit{tit-for-tat} like algorithm of BitTorrent, it has been made more robust through the required synchronization of ledgers between nodes: this allows to build trust among well-behaved nodes while maintaining a harsh environment for fresh nodes that join the network or towards nodes that refuse to maintain a ledger, possibly to cancel debts towards other nodes.
 
 IPFS has an issue which is very similar to BitTorrent: just like torrent files must be distributed out-of-band, in IPFS the paths (which include the hashes) of the data must also be distributed out-of-band. But if we consider the current Web, we find the same issue: URLs of websites have to be obtained out-of-band, and the users that connect to a bad URL will not visit the webpage that they were looking for. This has been mitigated by the introduction of search engines, that made discovery of websites possible by keyword and not by URL. If a search engine behaves properly, it will return the correct URLs for the searched services. Some of these have grown to be so popular that they have started to become integrated in browsers, so that a user doesn't need to know the URL of the search engine in the first place. But the problem is only mitigated, not resolved, which allows for attacks such as \textit{typosquatting} and \textit{homograph attacks}. %todo(leandro) - define (consider a section in Chapter 2 dedicated to attacks so that you don't need to define them here or later)
-IPFS actually improves over the Web by not being vulnerable to both of these attacks, since URLs are hashes with a strict selection of characters and a typo is almost certainly making the hash a dead link that has no associated object, but an adversary can still deliver a malicious IPFS path to a user and claim that such link leads to some content, while in reality it does not, for example by using scam e-mails or by hosting a standard website in the normal Web. IPFS also makes it more difficult for users to detect such attacks, because its paths are neither human friendly nor related to the content in a semantic way; in other words a path towards a service is not going to contain the name of that service, while in the Web it's very likely that the URL is purposefully chosen to include the service name. %todo - does IPNS with public keys help in this?
+IPFS actually improves over the Web by not being vulnerable to both of these attacks, since URLs are hashes with a strict selection of characters and a typo is almost certainly making the hash a dead link that has no associated object, but an adversary can still deliver a malicious IPFS path to a user and claim that such link leads to some content, while in reality it does not, for example by using scam e-mails or by hosting a standard website in the normal Web. IPFS also makes it more difficult for users to detect such attacks, because its paths are neither human friendly nor related to the content in a semantic way; in other words a path towards a service is not going to contain the name of that service, while in the Web it's very likely that the URL is purposefully chosen to include the service name.
 
 IPFS uses a DHT as their peer discovery system. Any node that joins the network has to bootstrap the DHT: while IPFS does not mandate any method for doing so, the reference implementation has a list of nodes coded directly into the application from which the client bootstraps the system. Since the addresses of those nodes are well-known (they are coded in an open source application), powerful attackers can impede access to these nodes by using the censoring techniques described in Section~\ref{sec:problems}, rendering a client unable to reach the entire IPFS network. This problem has been reported by GitHub user~\cite{website:ipfsbootstrap} in a GitHub issue in the IPFS reference implementation project page and during discussion some solutions were proposed, including:
 \begin{itemize}
@@ -429,16 +418,6 @@ This discussion is very similar to what is explained in Section~\ref{sec:movings
 
 To include these types of attack in our model, we would have to move (at least) the DNS resolvers into a Byzantine failure model, where they are allowed to omit or modify information.
 
-%A potential solution to the Byzantine name resolution problem could be to decentralize the system by introducing multiple servers that can maintain a global, replicated and verifiable state of all names included in the system. Each operation that modifies the state would need to require consensus from the network, so that verification data can be added to this operation and then applied to the shared state (basically a distributed, verifiable state machine). In this way, clients can request name resolutions to the network and verify that they are correct, or they can simply download the state from the network, verify it and perform name resolutions themselves. % removed, Zooko's Triangle make this introduction for us
-
-%x todo(leandro) - The discussion about "models" here seems a bit out of place. I'd just expand the "DNS is insecure" part in the beginning (when talk about forging messages etc). Here, I'd just write what DNSSEC does, something in the lines of:
-% "To cope with message tampering and blablabla, DNSSEC uses public-key cryptography blablabla"
-%And now we move the servers (at least the ones that communicate with the clients, which are the DNS resolvers) to the Byzantine model.
-%x todo(leandro) - The connection from this phrase, to Zooko's triangle and then namecoin is not good I think.
-% One idea is to do the following:
-% - Just talk about the resolvers _here_, why they are centralized and why it's a problem
-% - Move Zooko's to it's own section
-
 \subsection{Zooko's Triangle}
 
 A potential solution to the Byzantine name resolution problem could be to decentralize the system, but this was thought to be impossible by~\cite{wilcox2003names}, who conjectured that one cannot obtain a namespace where names can simultaneously be:
@@ -454,21 +433,12 @@ This conjecture sparked discussion and interest about the problem. The birth and
 
 \section{Namecoin}\label{proj:namecoin}
 
-Namecoin is a ``key-value pair registration and transfer system''~(\cite{namecoin}) that is based on the Bitcoin blockchain.
-% It was its first fork, % todo(leandro) - clarify "fork"?
-%and it uses \textit{merged mining} to allow Bitcoin miners to also obtain Namecoins as their reward for no additional computations. %todo(leandro) - I'd add some context what is "Bitcoin mining/miners". You also use it later in the Protocol Overview.
-The key-value directory offered by Namecoin is mainly used to register and lookup \texttt{.bit} domains, but it can also serve other purposes, including support for ZeroNet, a project described in Section~\ref{proj:zeronet}.
+Namecoin is a ``key-value pair registration and transfer system''~(\cite{namecoin}) that is based on the Bitcoin blockchain. The key-value directory offered by Namecoin is mainly used to register and lookup \texttt{.bit} domains, but it can also serve other purposes, including support for ZeroNet, a project described in Section~\ref{proj:zeronet}.
 
 At the time of writing, there is neither official documentation nor a first-party whitepaper describing Namecoin's design. The information reported here is based on either the official website~(\cite{namecoin}) or an empirical analysis by~\cite{kalodner2015empirical}.
 
 \subsection{Protocol overview}\label{sec:namecoindesc}
 Namecoin's software is a fork of the Bitcoin client: it maintains all of the features of Bitcoin with some additions, but it relies on a completely new blockchain, independent to the original one.
-%which is a distributed data structure whose main goal is to implement Byzantine fault tolerant consensus. We will not explain the mechanisms behind a blockchain and how it achieves this result, since it has extensively been covered by the academic community; %todo - briefly describe the blockchain in Chapter 2 (move some of the below there)
-%instead, we will just mention some of its components to better explain the features of Namecoin.
-%x todo(leandro) - the bitcoin satoshi paper would be a ref for blockchain. You mention academic community, I'd also cite some of those.
-
-%A blockchain is an ordered sequence of \emph{blocks}. Each block contains some data, which are mostly transactions in the case of Bitcoin, but they can also include operations and records, on which Namecoin expands by introducing custom functions.
-%Each user of a blockchain is called a \emph{node}: it can participate in the chain if it has an \emph{address}, which is a hash of a public key generated by the node. Each address has a non-negative amount of coins, that can be spent or earned by nodes through creation of \emph{transactions}.
 
 The Bitcoin blockchain supports the execution of non-Turing complete scripts; Namecoin in particular also defines \emph{records}, which are key-value pairs, and three additional \emph{operations} that are exclusive to Namecoin and define what functions are available to their users:
 \begin{enumerate}
@@ -502,7 +472,7 @@ The first and probably most trivial one is decentralization: since Namecoin reli
 
 Another trivial property is human-meaningful names, which Namecoin definitely supports: users are free to choose the name to register instead of having to rely on computer-generated hashes or other mechanisms that produce seemingly random strings. The purchased names are stored in the blockchain as-is (after a 12 block reservation phase in which only the hash is registered) and are shared among all nodes that maintain a valid copy of the blockchain.
 
-The most important property and the most difficult to achieve is security. This is because, like most other characteristics, Namecoin entirely depends on the underlying blockchain, which has a probabilistic system to provide security. While some attacks are possible that would compromise the security of the blockchain (some of which derive from Bitcoin and extend to Namecoin since the design of the blockchain is really similar; more modern cryptocurrencies resolve some of these issues), the practicality of such attacks is extremely low. For example, an attack on the Bitcoin blockchain that allows \emph{double spending} (i.e. reverting a previous expense through replacement of the associated block to allow a new spending of the same coins) requires that the attacker has at least the same computing power as the sum of the power of every other Bitcoin miner in the network, thus the name \emph{majority attack}, or \emph{51\% attack}. This attack has been successfully executed against other, smaller cryptocurrencies (some examples have been reported by \cite{website:realwordmajorityattacks}), which confirms that in and of itself the blockchain is not as secure as a centralized system, but the years that both the Bitcoin and Namecoin cryptocurrency have spent in operational state have demonstrated that their blockchain is secure \emph{enough} to withstand real-world attacks. Also, majority attacks are not viable in our reference model (described in Section~\ref{sec:model}) since it constrains Byzantine nodes by limiting their computing power and to a number of failed nodes below the 50\% mark.
+The most important property and the most difficult to achieve is security. This is because, like most other characteristics, Namecoin entirely depends on the underlying blockchain, which has a probabilistic system to provide security. While some attacks are possible that would compromise the security of the blockchain (some of which derive from Bitcoin and extend to Namecoin since the design of the blockchain is really similar; more modern cryptocurrencies resolve some of these issues), the practicality of such attacks is extremely low. For example, an attack on the Bitcoin blockchain that allows \emph{double spending} (i.e. reverting a previous expense through replacement of the associated block to allow a new spending of the same coins) requires that the attacker has at least the same computing power as the sum of the power of every other Bitcoin miner in the network, thus the name \emph{majority attack}, or \emph{51\% attack}. This attack has been successfully executed against other, smaller cryptocurrencies (some examples have been reported by \cite{website:realwordmajorityattacks}), which confirms that in and of itself the blockchain is not as secure as a centralized system, but the years that both the Bitcoin and Namecoin cryptocurrency have spent in operational state have demonstrated that their blockchain is secure \emph{enough} to withstand real-world attacks. Also, majority attacks are not viable in our reference model (described in Section~\ref{sec:model}) since it constrains Byzantine nodes by limiting their computing power and to a number of failed nodes below one third of the network size.
 %todo - might still need to rewrite this even after Chapter 2 is rewritten
 
 So Zooko's Triangle can be considered resolved under our assumptions. But this doesn't imply that the Namecoin system is perfect and we need to consider other attacks that go beyond the successful implementation of distributed registration and lookup of arbitrary names.
@@ -549,7 +519,7 @@ In ENS resolver contracts, all methods that perform node resolution are marked a
 
 The ENS registry is very simple and straightforward. It keeps a mapping from nodes to a tuple containing the address of the owner, the address of the resolver's contract and a time-to-live value that is mostly there for DNS interoperability. Registrars communicate with the registry to update records and to verify ownerships, and the resolvers only need to talk to the registry to verify ownerships.
 
-The ENS system is owned by seven people involved in ENS or in the Ethereum community. This allows for changes such as introduction of a new top-level domain or to recover from vulnerabilities in the currently deployed contracts, but, this effectively makes these seven people owners of every domain in the registry, allowing for changes in every record. The ownership is eventually going to be replaced by a contract and to better define governance of root nodes, making the current solution temporary. %todo - shoud I state the names?
+The ENS system is owned by seven people involved in ENS or in the Ethereum community. This allows for changes such as introduction of a new top-level domain or to recover from vulnerabilities in the currently deployed contracts, but, this effectively makes these seven people owners of every domain in the registry, allowing for changes in every record. The ownership is eventually going to be replaced by a contract and to better define governance of root nodes, making the current solution temporary.
 
 \subsection{Analysis}
 
