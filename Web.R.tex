@@ -202,8 +202,9 @@ The previous example is prevented by HTTPS, the more secure Web protocol, which 
 If the data is altered by a malicious third party during transmission, the client or the Web server can detect it and react accordingly.
 
 Simply using HTTPS does not prevent other kinds of attack though. Consider this: if a content creator publishes a website on a web hosting service, that platform is technically able to delete or alter any file of that website, effectively sending to clients different information than the one intended by the author. HTTPS would not be able to protect against this attack, since it only protects the communication channel and not the website files themselves, which are encrypted by the web server only when transmitting them to a client. Also, the Web server is able to send whatever content it desires independently from the files (or refuse to serve content at all), since the client has no way of verifying that the content is as intended by its author.
-As such, web servers must also be considered Byzantine.
-The primary function of a web server is storing and serving content.
+
+As such, web servers must also be considered Byzantine. Since in this scenario data can be distributed by an untrusted entity, then \emph{anyone} can distribute it: this allows for distributed storage systems where content is shared by networks of servers known as \emph{peer-to-peer} networks.
+
 In this chapter, we look into distributed storage systems which allow for data to be safely stored and distributed by untrusted entities, removing the need for trusting a single hosting service provider.
 
 \section{Goals of distributed storage}
