@@ -184,15 +184,6 @@ In this thesis we will explore how to move the centralized Web to a decentralize
 
 \chapter{Decentralizing Storage}\label{ch:storage}
 
-% The model in which the current Web is set is based on a stop failure model. This model allows Web clients (browsers) and content creators to make certain assumptions on the behavior of web servers and other components:
-% \begin{itemize}
-% 	\item It is assumed that the channel through which the information is sent does not modify that data;
-% 	\item Content creators assume that the website that they create is stored in the web server (and distributed) without any modification.
-% \end{itemize}
-% In case of failure of the Web server, a browser will try to communicate with it, and after some time without receiving a response it will give up and show to the user an error message (an example of failure detection by timeout).
-
-% \section{Moving the Web to a distributed system}\label{sec:movingstorage}
-
 The model assumed by the current Web is the stopping failure model: servers are implicitly trusted to behave correctly.
 One could argue that this model does not accurately represent the reality.
 For example, a malicious third party might listen on and fake messages in the communication channel between a client and web server (an example of such a third party are Internet Service Providers).
@@ -239,7 +230,6 @@ BitTorrent does not define how to bootstrap the connection to the DHT, leaving i
 	\item Torrent files can contain information about nodes of the DHT or peers in the BitTorrent network.
 \end{itemize}
 
-%todo(leandro) - suggest start a subsection here. something like "sharing a file with BitTorrent"
 To better describe the functionalities and mechanisms of BitTorrent, let's explore two fundamental scenarios: uploading a torrent into the network and downloading a torrent from the network.
 
 To upload a torrent into the network, a user has to collect a set of files that will compose the torrent. By using a client that supports this functionality, the user can create a corresponding torrent file, which can then be distributed by the user on their preferred platform. The user's client now is aware of the torrent and has all its files: it is therefore seeding the torrent to other users.
@@ -319,13 +309,12 @@ If a node happens to have no blocks to share with other nodes but has some reque
 IPFS objects are \emph{immutable}. Since they are addressed by their hash, the contents of the objects cannot change once deployed on IPFS. This means that updates or new versions of objects will be published under a different address, even in the case of commits since new versions will be additional commit objects and have different hash. This makes it difficult to maintain, for example, a website where content could be frequently updated: a webmaster should continuously publish new IPFS links off-band to their users to make them aware of the website changes. To solve this problem, IPFS has a component called \emph{IPNS}~(\cite{benet2014ipfs}), which stands for InterPlanetary Name Space, and implements a mutable namespace where a unique path can be updated to refer to different IPFS objects. Each node has an IPNS path composed of \texttt{/ipns/}, to distinguish it from the immutable IPFS paths, followed by the identifier of the node, which is the hash of its public key. Under this path, there can only be \textit{signed objects}, a tuple composed by a standard object, its signature and the public key of the node, which can be verified by its hash contained in the path. Every type of standard object is supported, including trees and commits, allowing paths to reference child objects by name, similarly to IPFS. This mutable state cannot be stored in IPFS itself, therefore it lives in the DHT used for peer discovery.
 
 \subsection{Analysis}\label{sec:ipfsanalysis}
-%Inferring the model in which IPFS is set is relatively straightforward, since we only have one class of entities in the entire system: nodes.
 
 Everything in IPFS suggests that it is meant to be deployed in a Byzantine environment. Every transferred block is verified through its hash, contained in the address, rendering impossible to counterfeit the content of the requested data; moreover, nodes that attempt to do so are detected and penalized by BitSwap through a timeout penalty.
 
 As for the danger of free riding, BitSwap incentivizes nodes to share blocks by introducing a ledger mechanism that, while being based on the \textit{tit-for-tat} like algorithm of BitTorrent, it has been made more robust through the required synchronization of ledgers between nodes: this allows to build trust among well-behaved nodes while maintaining a harsh environment for fresh nodes that join the network or towards nodes that refuse to maintain a ledger, possibly to cancel debts towards other nodes.
 
-IPFS has an issue which is very similar to BitTorrent: just like torrent files must be distributed out-of-band, in IPFS the paths (which include the hashes) of the data must also be distributed out-of-band. But if we consider the current Web, we find the same issue: URLs of websites have to be obtained out-of-band, and the users that connect to a bad URL will not visit the webpage that they were looking for. This has been mitigated by the introduction of search engines, that made discovery of websites possible by keyword and not by URL. If a search engine behaves properly, it will return the correct URLs for the searched services. Some of these have grown to be so popular that they have started to become integrated in browsers, so that a user doesn't need to know the URL of the search engine in the first place. But the problem is only mitigated, not resolved, which allows for attacks such as \textit{typosquatting} and \textit{homograph attacks}. %todo(leandro) - define (consider a section in Chapter 2 dedicated to attacks so that you don't need to define them here or later)
+IPFS has an issue which is very similar to BitTorrent: just like torrent files must be distributed out-of-band, in IPFS the paths (which include the hashes) of the data must also be distributed out-of-band. But if we consider the current Web, we find the same issue: URLs of websites have to be obtained out-of-band, and the users that connect to a bad URL will not visit the webpage that they were looking for. This has been mitigated by the introduction of search engines, that made discovery of websites possible by keyword and not by URL. If a search engine behaves properly, it will return the correct URLs for the searched services. Some of these have grown to be so popular that they have started to become integrated in browsers, so that a user doesn't need to know the URL of the search engine in the first place. But the problem is only mitigated, not resolved, which allows for attacks such as \textit{typosquatting} and \textit{homograph attacks} (defined in Section~\ref{sec:squatting}).
 IPFS actually improves over the Web by not being vulnerable to both of these attacks, since URLs are hashes with a strict selection of characters and a typo is almost certainly making the hash a dead link that has no associated object, but an adversary can still deliver a malicious IPFS path to a user and claim that such link leads to some content, while in reality it does not, for example by using scam e-mails or by hosting a standard website in the normal Web. IPFS also makes it more difficult for users to detect such attacks, because its paths are neither human friendly nor related to the content in a semantic way; in other words a path towards a service is not going to contain the name of that service, while in the Web it's very likely that the URL is purposefully chosen to include the service name.
 
 IPFS uses a DHT as their peer discovery system. Any node that joins the network has to bootstrap the DHT: while IPFS does not mandate any method for doing so, the reference implementation has a list of nodes coded directly into the application from which the client bootstraps the system. Since the addresses of those nodes are well-known (they are coded in an open source application), powerful attackers can impede access to these nodes by using the censoring techniques described in Section~\ref{sec:problems}, rendering a client unable to reach the entire IPFS network. This problem has been reported by GitHub user~\cite{website:ipfsbootstrap} in a GitHub issue in the IPFS reference implementation project page and during discussion some solutions were proposed, including:
@@ -340,10 +329,10 @@ A temporary workaround would be to edit the list in the source code to include a
 
 Many projects that are interesting and innovative from a scientific point of view have been excluded from this thesis because they do not meet the requirements specified in the Thesis Structure in Section~\ref{sec:structure}. We will list here the most important ones, their main characteristics and the motivation behind this choice:
 \begin{itemize}
-	\item \textbf{Ethereum Swarm}: while it features similar properties as IPFS, such as content-addressing, it is based on the Ethereum blockchain and it caters to Ethereum specific needs, such as hosting of distributed applications (or \textit{dapps}). It focuses on fast delivery of small amounts of data and really strong anti-censorship features such as \textit{plausible deniability} of ownership of data, which makes impossible to determine with certainty which node is hosting which content. At the time of writing, development is in early proof-of-concept stages with only a test network available to users.
-	\item \textbf{Filecoin}: developed by Protocol Labs and based on their own IPFS, it introduces methods to verify that data is not only stored correctly but also kept for a large amount of time, ready to be served. These methods are called \textit{Proof-of-Replication} and \textit{Proof-of-Spacetime}. Its goal is slightly different from offering a new decentralized Web (it is also suitable for personal cloud storage needs since data can be encrypted by the uploader, but without encryption it can be used to build decentralized apps). It has not been deployed at the time of writing, without even a test network available.
-	\item \textbf{Dat}: a dataset synchronization protocol designed to replicate and transfer large sets of data between peers, based on Merkle trees and public key cryptography for data verification and a DHT for peer discovery. It's the technology at the foundation of Beaker Browser, which we mention in Section~\ref{sec:browserprojects}.
-	\item \textbf{Sia} and \textbf{Storj}: two projects similar to Filecoin but simpler in nature. Their explicit goal is to provide a new decentralized cloud-storage service that is cheaper than the centralized ones available on the Web today.
+	\item \textbf{Ethereum Swarm}\footnote{Ethereum Swarm: \url{https://github.com/ethersphere/swarm}}: while it features similar properties as IPFS, such as content-addressing, it is based on the Ethereum blockchain and it caters to Ethereum specific needs, such as hosting of distributed applications (or \textit{dapps}). It focuses on fast delivery of small amounts of data and really strong anti-censorship features such as \textit{plausible deniability} of ownership of data, which makes impossible to determine with certainty which node is hosting which content. At the time of writing, development is in early proof-of-concept stages with only a test network available to users.
+	\item \textbf{Filecoin}\footnote{Filecoin: \url{https://filecoin.io/}}: developed by Protocol Labs and based on their own IPFS, it introduces methods to verify that data is not only stored correctly but also kept for a large amount of time, ready to be served. These methods are called \textit{Proof-of-Replication} and \textit{Proof-of-Spacetime}. Its goal is slightly different from offering a new decentralized Web (it is also suitable for personal cloud storage needs since data can be encrypted by the uploader, but without encryption it can be used to build decentralized apps). It has not been deployed at the time of writing, without even a test network available.
+	\item \textbf{Dat}\footnote{Dat protocol whitepaper repository: \url{https://github.com/datprotocol/whitepaper}}: a dataset synchronization protocol designed to replicate and transfer large sets of data between peers, based on Merkle trees and public key cryptography for data verification and a DHT for peer discovery. It's the technology at the foundation of Beaker Browser, which we mention in Section~\ref{sec:browserprojects}.
+	\item \textbf{Sia}\footnote{Sia: \url{https://sia.tech/}} and \textbf{Storj}\footnote{Storj: \url{https://storj.io/}}: two projects similar to Filecoin but simpler in nature. Their explicit goal is to provide a new decentralized cloud-storage service that is cheaper than the centralized ones available on the Web today.
 \end{itemize}
 
 \section{Summary}\label{sec:storagesummary}
@@ -415,9 +404,19 @@ To counter these and similar attacks (described in RFC 3833~\cite{rfc:3833}), DN
 
 While DNSSEC can prevent tampering of communications from a third-party attacker, it does not prevent other types of misconduct perpetrated by the DNS resolvers and name servers themselves, since they are still able to provide misleading information or to completely omit data regarding domain names that effectively become censored. This is because, from the client's point of view, DNS appears to be a centralized system (it is also a client/server protocol): the client only communicates with a DNS resolver, which will then search for the answer to the client's requests as described previously, if it doesn't already have that information.
 
-This discussion is very similar to what is explained in Section~\ref{sec:movingstorage}. Indeed, if we consider in which failure model both the DNS and the communication channel are set, we would argue that they both lie in a stopping failure model. When we move the channel to a Byzantine failure model we introduce public-key cryptography with DNSSEC (a system parallel to HTTPS) to avoid messages being tampered with, but this does not protect from misbehavior of the DNS resolvers themselves.
+This discussion is very similar to what is explained at the beginning of Chapter~\ref{ch:storage}. Indeed, if we consider in which failure model both the DNS and the communication channel are set, we would argue that they both lie in a stopping failure model. When we allow the channel to fail in a Byzantine manner we introduce public-key cryptography with DNSSEC (a system parallel to HTTPS) to avoid messages being tampered with, but this does not protect from misbehavior of the DNS resolvers themselves.
 
-To include these types of attack in our model, we would have to move (at least) the DNS resolvers into a Byzantine failure model, where they are allowed to omit or modify information.
+To include these types of attack in our model, we would have to consider (at least) the DNS resolvers inside a Byzantine failure model, where they are allowed to omit or modify information.
+
+\subsection{Domain squatting}\label{sec:squatting}
+
+DNS is also vulnerable to attacks more closely related to the names themselves rather than the centralized nature of the system: \emph{domain squatting}, \emph{typosquatting} and \emph{homograph attacks}.
+
+Domain squatting occurs when an attacker obtains a name that fully matches the name of a business or of another service, before these parties obtain that name for themselves. Thus, a user that wants to access the service or the business' website by directly typing their name into the address bar, will instead land on the attacker's website. While DNS suffers this problem, but some countries have laws in place to prevent such behavior from occurring.
+
+Typosquatting is very similar to normal squatting, but instead of reserving the correct name, the attacker obtains a very similar name, so that if a user makes a mistake in typing the name on the keyboard (such an error is commonly referred to as a \emph{typo}), that user will obtain the attacker's website instead of being presented with an error message. DNS does not prevent this as well, and many typosquatting websites are present on the normal Web, as reported by~\cite{website:typosquatting}.
+
+Homograph attacks, instead, do not rely on typos but on maliciously placed links: the name obtained is visually similar if not identical to the attacked name, but the characters used are not from the ASCII set, but instead use the full Unicode character map, which contains glyphs similar or identical to the ones in the ASCII set but with a different byte value associated to it. Such Unicode characters are needed to support internationalized domain names, to avoid restricting users with different alphabets than the Latin one. Users would not be able to tell the difference between the original name and the look-alike, and would click on links that seem legitimate but instead lead to an attacker's website. DNS leaves full Unicode support up to the authorities of single top level domains, therefore some TLDs support Unicode and others don't. Also, if a browser detects a mixture of character sets in a domain name it will display that URL with a technique known as \emph{Punycode}, described in RFC 3492 (\cite{rfc:3492}), that shows multi-byte characters as strings of ASCII text instead of their Unicode glyph. 
 
 \subsection{Zooko's Triangle}
 
@@ -480,9 +479,7 @@ So Zooko's Triangle can be considered resolved under our assumptions. But this d
 
 Namecoin prevents stealing of names by implementing name registration in two steps: \texttt{NAME\_NEW} is the first step, which only includes a salted hash of the name, and \texttt{NAME\_FIRSTUPDATE} which exposes both the name and the salt used in hashing. Namecoin requires that there are at least 12 blocks between the two operations: this is to avoid that an attacker reads the name on the \texttt{NAME\_FIRSTUPDATE} operation and reverts the blockchain up to where the corresponding \texttt{NAME\_NEW} was issued, then proposes a new branch of the blockchain that contain the same operations but appearing to be issued by the wrong user, thus stealing the name. The more blocks pass between the two operations, the less likely this attack can succeed, since more blocks need to be resolved by the attacker alone while the rest of the network works on the legitimate chain.
 
-Namecoin does not prevent \emph{domain squatting}: this occurs when an attacker obtains a name that fully matches the name of a business or of another service, before these parties obtain that name for themselves. Thus, a user that wants to access the service or the business' website by directly typing their name into the address bar, will instead land on the attacker's website. DNS also has this problem, but some countries have laws in place to prevent such behavior from occurring; Namecoin does not have any mechanism in place to either prevent or correct this behavior, which appears to be very present, as described in the work of ~\cite{kalodner2015empirical}.
-
-Since Namecoin cannot prevent domain squatting, also \emph{typosquatting} and \emph{homograph attacks} are viable. Typosquatting is very similar to normal squatting, but instead of reserving the correct name, the attacker obtains a very similar name, so that if a user makes a mistake in typing the name on the keyboard (such an error is commonly referred to as a \emph{typo}), that user will obtain the attacker's website instead of being presented with an error message. DNS does not prevent this as well, and many typosquatting websites are present on the normal Web. Homograph attacks, instead, do not rely on typos but on maliciously placed links: the name obtained is visually similar if not identical to the attacked name, but the characters used are not from the ASCII set, but instead use the full Unicode character map, which contains glyphs similar or identical to the ones in the ASCII set but with a different byte value associated to it. Such Unicode characters are needed to support internationalized domain names, to avoid restricting users with different alphabets than the Latin one. Users would not be able to tell the difference between the original name and the look-alike, and would click on links that seem legitimate but instead lead to an attacker's website. DNS leaves full Unicode support up to the authorities of single top level domains, therefore some TLDs support Unicode and others don't. Also, if a browser detects a mixture of character sets in a domain name it will display that URL with a technique known as \emph{Punycode}, described in RFC 3492 (\cite{rfc:3492}), that shows multi-byte characters as strings of ASCII text instead of their Unicode glyph. While Namecoin uses Punycode to encode internationalized domain names into the blockchain, this does not prevent any type of attack as clients are very likely to decode names from Punycode before displaying them.%todo - move definitions of these attacks to introduction or Chapter 2?
+Namecoin does not have any mechanism in place to either prevent or correct \emph{domain squatting}, which appears to be very present, as described in the work of ~\cite{kalodner2015empirical}. Because of this, also \emph{typosquatting} and \emph{homograph attacks} are viable. While Namecoin uses Punycode to encode internationalized domain names into the blockchain, this does not prevent any type of attack as clients are very likely to decode names from Punycode before displaying them.
 
 \section{Ethereum Name Service}\label{proj:ens}
 
@@ -543,12 +540,10 @@ so it would be redundant to include them here.
 
 Other projects not related to Ethereum are:
 \begin{itemize}
-	\item \textbf{EmerDNS}: part of a larger blockchain-based project known as Emercoin, whose goal is to provide secure and distributed business services and operations, not to develop an alternative to the Web;
-	\item \textbf{NXT Aliases}: part of another blockchain-based project called NXT, aliases are  generic key-value associations that allow any string to be associated with any other, possibly shorter string. Similarly to Emercoin, NXT provides many features but not a distributed Web;
+	\item \textbf{EmerDNS}\footnote{EmerDNS: \url{https://emercoin.com/en/documentation/blockchain-services/emerdns/emerdns-introduction}}: part of a larger blockchain-based project known as Emercoin, whose goal is to provide secure and distributed business services and operations, not to develop an alternative to the Web;
+	\item \textbf{NXT Aliases}\footnote{NXT Aliases: \url{https://nxtplatform.org/what-is-nxt/alias-system/}}: part of another blockchain-based project called NXT, aliases are  generic key-value associations that allow any string to be associated with any other, possibly shorter string. Similarly to Emercoin, NXT provides many features but not a distributed Web;
 	\item \textbf{Blockchain Name System}: we discuss this in Section~\ref{proj:blockstack}.
 \end{itemize}
-
-%todo - mention OpenNIC?
 
 \section{Summary}
 
@@ -609,10 +604,10 @@ In Table~\ref{table:namingcomparison} we summarize the main features and accompl
 
 \chapter{Distributed Web Projects}\label{ch:projects}
 
-We have previously discussed how key Web components like storage of data and naming can be moved from a stopping-failure environment to a Byzantine failure scenario, and we explored real case projects that have implemented and exemplified our descriptions. In this chapter, we see how the two components can be combined to obtain a solution that may be called the distributed Web.
+We have previously discussed how key Web components like storage of data and naming can be realized in a Byzantine failure scenario, and we explored real case projects that have implemented and exemplified our descriptions. In this chapter, we see how the two components can be combined to obtain a solution that may be called the distributed Web.
 % todo(leandro) - This phrasing that you use throughout the text "move X from stopping failure to a byzantine failure" sounds a bit weird to me. Have to think a bit on an alternative.
 Thus, the projects we're going discuss next provide a complete, Web-like, user experience, either by extending the functionalities of existing browsers or through some specific browser-like interface.
-%todo - define the distributed Web as the combination of decentralized storage and naming
+
 To satisfy our requirements for a distributed web (see Section~\ref{sec:problems}), these projects must satisfy the following:
 \begin{itemize}
 	\item Resistance to \textbf{censorship}, by using a distributed data storage system that correctly decouples websites from IP addresses and by relying on a valid peer discovery system and good incentive scheme;
@@ -627,8 +622,6 @@ ZeroNet is the first distributed Web project that we present. It combines BitTor
 \subsection{Project overview}
 
 We start by defining some general concepts of the ZeroNet system. Being a peer-to-peer system, a client is called a \emph{peer}. A ZeroNet website (or \emph{zite}, as the community has grown to call them) consists of a collection of files that are listed in a special file named \texttt{content.json}. To exchange messages between peers, ZeroNet uses MessagePack~(\cite{website:msgpack}), which provides a JSON-like interface but a more compact data representation.
-
-% ZeroNet implements a custom data transfer protocol, of which we will just state the basics and the main accomplishments, as it is not the focus of this part to present a full exploration of this protocol.
 
 ZeroNet's data verification mechanism is based on the same elliptic-curve public key cryptography used in Bitcoin\footnote{This allows website owners to receive Bitcoin payments since the public key is also a valid Bitcoin address. This feature is planned to be integrated into ZeroNet, but this is not implemented at the time of writing.}: each website is identified by a public key that is also used to address it. Once a client fetches a website, the first request is to the \texttt{content.json} file, which is signed by the website creator using the corresponding private key; the client verifies the file against the website's public key. This file is essential to the data verification mechanism since it contains the SHA-512 hash of every single file of that website. The client will then download these files from the network and will be able to verify their integrity against their previously obtained and already verified hash.
 
@@ -645,8 +638,7 @@ It is worth noting that the ZeroNet client does not simply relay content from th
 A key feature that allowed the rise of social media is the ability to get, store and serve user-generated content. ZeroNet supports this through \emph{multi-user sites}: this feature allows website owners to give other users the ability to modify specific files of the website, effectively enabling user-generated content. The key of the user that obtains editing permission is stored in a \texttt{content.json} file and the user has to sign its changes when publishing them, so that the new content can be verified not only for integrity, but also for checking that no other user is submitting content without permission.
 %todo(leandro) - and how does this user actually publishes changes? I guess he can't issue a new "content.json" as he is not the owner...
 
-ZeroNet is not made with anonymity as a priority and it is stated in various resources (\cite{website:zeronetpresentation}, \cite{website:zeronetfaq}) that ZeroNet is ``not more anonymous than BitTorrent'', in the sense that it is possible to identify which IP address created a website and uploaded its content into the network, and also who is currently serving files of some website. On the other hand, ZeroNet supports interoperability with Tor, an anonymizing network, so that all traffic can be routed through it without the risk of being de-anonymized by some Tor-unaware part of the system, which is the opposite of what happens in the already mentioned BitTorrent, as presented and analyzed by~\cite{manils2010compromising}.
-%todo(leandro) - this phrase is not very clear to me. What do you mean by "opposite of what happens in BitTorrent"?
+ZeroNet is not made with anonymity as a priority and it is stated in various resources (\cite{website:zeronetpresentation}, \cite{website:zeronetfaq}) that ZeroNet is ``not more anonymous than BitTorrent'', in the sense that it is possible to identify which IP address created a website and uploaded its content into the network, and also who is currently serving files of some website. On the other hand, ZeroNet supports interoperability with Tor, an anonymizing network, so that all traffic can be routed through it without the risk of being de-anonymized by some Tor-unaware part of the system; an example of software that can de-anonymize its users is BitTorrent, as presented and analyzed by~\cite{manils2010compromising}.
 
 \subsection{Analysis}
 
@@ -726,12 +718,11 @@ An example of this is Diffuse~(\cite{website:diffuse}), a music player applicati
 The development scene in the distributed web area is active, with many projects currently in early stages or still in planning phase, sparked by the current trend of blockchains and decentralization, but there are also other, older projects that were born from activism promoting freedom of speech and communication. Among all these projects, the most notable are:
 
 \begin{itemize}
-\item \textbf{SAFE Network}~\cite{}: a project developed by MaidSafe that aims to reuse available hard disk space of computers to provide a distributed storage system, which can be accessed and explored with the SAFE browser; at the time of writing, this project is only available on an Alpha test network;
-  %todo(leandro) - what is MaidSafe?
-	\item \textbf{Beaker Browser}~\cite{}: based on the dataset synchronization protocol known as Dat, Beaker Browser allows for creation and visualization of distributed websites, although it fails to provide or reuse a distributed naming system, relying instead on HTTP and DNS to resolve names.
-	\item \textbf{Freenet}~\cite{}: a very mature project, with its initial release dating back to the year 2000, it's a peer-to-peer platform focused on anonymity and censorship resistance; Freenet allows browsing websites, known as \emph{freesites}, but the naming scheme is based on nicknames, which are simply labels defined by single users and not shared globally;
-      % todo(leandro) - It's not clear why Freenet doesn't merit its "section", since you mention its a very mature, peer-to-peer, anonymous and censorship resistant solution.
-      % todo(leandro) - this part about nicknames is too vague.
+	\item \textbf{SAFE Network}\footnote{SAFE Network: \url{https://safenetwork.org/}}: a project developed by MaidSafe\footnote{MaidSafe: \url{https://maidsafe.net/}} that aims to reuse available hard disk space of computers to provide a distributed storage system, which can be accessed and explored with the SAFE browser; at the time of writing, this project is only available on an Alpha test network;
+	\item \textbf{Beaker Browser}\footnote{Beaker Browser: \url{https://beakerbrowser.com/}}: based on the dataset synchronization protocol known as Dat, Beaker Browser allows for creation and visualization of distributed websites, although it fails to provide or reuse a distributed naming system, relying instead on HTTP and DNS to resolve names.
+	\item \textbf{Freenet}\footnote{Freenet: \url{https://freenetproject.org/}}: a very mature project, with its initial release dating back to the year 2000, it's a peer-to-peer platform focused on anonymity and censorship resistance; Freenet allows browsing websites, known as \emph{freesites}, but the naming scheme is based on nicknames, which are simply labels defined and stored by single users and not shared globally, thus not defying Zooko's Triangle;
+    % todo(leandro) - It's not clear why Freenet doesn't merit its "section", since you mention its a very mature, peer-to-peer, anonymous and censorship resistant solution.
+    % todo(leandro) - this part about nicknames is too vague.
 \end{itemize}
 
 \section{Summary}
@@ -814,9 +805,7 @@ A project that requires much work but has great potential of implementing a dist
 
 %todo(leandro) - not critical, but I though of this question: is there some specific problem which is currently not well addressed by the current solutions?
 
-Among the projects described we cannot identify a system that fully satisfies our vision of the distributed Web. Possible future work would be to develop a new system either from the ground up, or by reusing the existing technology studied in this Thesis.
-%todo(leandro) - I don't know about the part that follows. I guess leave it here and we see Fernando's opinion.
-In fact, this was the original goal of this Master Thesis, but research in the area discovered many projects that needed to be analyzed first, and exploration of the systems required a whole Thesis of its own. But now that the area has been researched, one can build new projects that combine features from existing systems or implement novel techniques to bring original and valuable improvements over the systems described here.
+Among the projects described we cannot identify a system that fully satisfies our vision of the distributed Web. Possible future work would be to develop new projects that combine features from existing systems or implement novel techniques to bring original and valuable improvements over the systems described here.
 
 %\appendix
 
@@ -824,7 +813,7 @@ In fact, this was the original goal of this Master Thesis, but research in the a
 
 %\bibliographystyle{alpha}
 %\bibliographystyle{dcu}
-\bibliographystyle{plainnat} %todo - figure out how to work this
+\bibliographystyle{plainnat}
 \bibliography{webrbiblio}
 
 %\cleardoublepage
