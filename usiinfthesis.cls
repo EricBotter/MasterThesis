@@ -482,7 +482,7 @@ date of the approved research program.\\[18mm]
 \RequirePackage{textcomp}
 \RequirePackage{url}
 \RequirePackage{amsmath}
-\RequirePackage[square]{natbib}
+\RequirePackage[square,numbers]{natbib}
 %%% lowercase header for bibliography and corresponding entry in the
 %%% ToC. \bibsection is provided by the natbib package
 \renewcommand\bibsection{
