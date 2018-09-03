@@ -6,9 +6,12 @@
 }
 
 @inproceedings{cohen2003incentives,
-	title={Incentives build robustness in BitTorrent},
-	author={Cohen, Bram},
-	year={2003}
+  title={Incentives build robustness in BitTorrent},
+  author={Cohen, Bram},
+  booktitle={Workshop on Economics of Peer-to-Peer systems},
+  volume={6},
+  pages={68--72},
+  year={2003}
 }
 
 @Article{Zghaibeh2008,
@@ -29,15 +32,17 @@
 }
 
 @inproceedings{locher2006free,
-	title={Free riding in BitTorrent is cheap},
-	author={Locher, Thomas and Moor, Patrick and Schmid, Stefan and Wattenhofer, Roger},
-	year={2006},
-	organization={Citeseer}
+    author = {Thomas Locher and Patrick Moor and Stefan Schmid and Roger Wattenhofer},
+    title = {Free Riding in BitTorrent is Cheap},
+    booktitle = {In Proc. 5th Workshop on Hot Topics in Networks (HotNets)},
+    year = {2006}
 }
 
 @misc{multihash,
 	title={Multihash},
 	howpublished={\url{https://github.com/multiformats/multihash}},
+    author={Benet, Juan},
+    year={2014},
 	note={[Retrieved 11-August-2018]}
 }
 
@@ -74,14 +79,14 @@
 @misc{website:tldlist,
 	title = {{List of Internet top-level domains - Wikipedia, the free encyclopedia}},
 	howpublished = {\url{https://en.wikipedia.org/wiki/List_of_Internet_top-level_domains}},
-	note = {[Retrieved 11-June-2016]},
+	note = {[Retrieved 2-September-2018]},
 }
 
 @misc{website:namecoindomainwiki,
 	title = {Domain Name Specification 2.0},
 	howpublished={\url{https://wiki.namecoin.info/?title=Domain_Name_Specification_2.0}},
 	note= {[Retrieved 5-August-2018]},
-	author = {Namecoin developers},
+	author = {Namecoin},
 	year = {2014, 2018}
 }
 
@@ -97,31 +102,39 @@
 	title={Warning: Misspelling that web address can lead to trouble},
 	howpublished={\url{https://www.nbcnews.com/business/consumer/warning-misspelling-web-address-can-lead-trouble-n876086}},
 	author={Herb Weisbaum},
+	year={2018},
 	note={[Retrieved 1-September-2018]},
-	year={2018}
 }
 
 @misc{rfc:1034,
 	title = {{RFC 1034 - Domain names - concepts and facilities}},
 	howpublished = {\url{https://tools.ietf.org/html/rfc1034}},
-	note = {[Retrieved 8-June-2016]},
+    author = {P. Mockapetris},
+    year = {1987},
+	note = {[Retrieved 2-September-2018]},
 }
 
 @misc{rfc:1035,
 	title = {{RFC 1035 - Domain names - implementation and specification}},
+    year = {1987},
+    author = {P. Mockapetris},
 	howpublished = {\url{https://tools.ietf.org/html/rfc1035}},
-	note = {[Retrieved 8-June-2016]},
+	note = {[Retrieved 2-September-2018]},
 }
 
 @misc{rfc:3833,
 	title = {{RFC 3833 - Threat Analysis of the Domain Name System (DNS)}},
 	howpublished = {\url{https://tools.ietf.org/html/rfc3833}},
+    author = {D. Atkins and R. Austein},
+    year = {2014},
 	note = {[Retrieved 24-July-2018]},
 }
 
 @misc{rfc:3492,
 	title={{Punycode: A Bootstring encoding of Unicode for Internationalized Domain Names in Applications (IDNA)}},
 	howpublished = {\url{https://www.ietf.org/rfc/rfc3492.txt}},
+    author = {A. Costello},
+    year = {2003},
 	note = {[Retrieved 6-August-2018]}
 }
 
@@ -144,13 +157,16 @@
 @misc{eip:ensregistrar,
 	title={Initial ENS Hash Registrar},
 	howpublished={\url{https://github.com/maurelian/EIPs/blob/e784c0f050/EIPS/eip-ens-initial-registrar.md}},
+    year={2016},
 	note={[Retrieved 8-August-2018]},
 	author={Maurelian and Nick Johnson}
 }
 
 @misc{enspublicresolver,
-	title={Etherscan.io, Contract 0x5FfC014343cd971B7eb70732021E26C35B744cc4},
+	title={ENS Public Resolver, Contract 0x5FfC014343cd971B7eb70732021E26C35B744cc4},
 	howpublished={\url{https://etherscan.io/address/0x5ffc014343cd971b7eb70732021e26c35b744cc4#code}},
+    author={Ethereum Name Service},
+    year={2017},
 	note={[Retrieved 11-August-2018]}
 }
 
@@ -169,12 +185,15 @@
 @misc{website:msgpack,
 	title={MessagePack: It's like JSON. but fast and small.},
 	howpublished={\url{https://msgpack.org/}},
+    author={MsgPack},
 	note={[Retrieved 14-August-2018]}
 }
 
 @misc{website:zeronetpresentation,
 	title={ZeroNet: Decentralized web platform using Bitcoin cryptography and BitTorrent network.},
 	howpublished={\url{https://zeronet.io/files/ZeroNet_Presentation.pdf}},
+    author={ZeroNet},
+    year={2018},
 	note={[Retrieved 14-August-2018]}
 }
 
@@ -216,18 +235,21 @@
 @misc{namecoin,
 	author={Namecoin},
 	howpublished = {\url{https://namecoin.org/}},
+    year ={2018},
 	note = {[Retrieved 25-July-2018]},
 }
 
 @article{bitcoin,
-	title={Bitcoin: A peer-to-peer electronic cash system},
-	author={Nakamoto, Satoshi}
+    title={Bitcoin: A peer-to-peer electronic cash system},
+    author={Nakamoto, Satoshi},
+    year={2008},
 }
 
 @misc{blockstack,
-	title={Blockstack Technical Whitepaper},
+	title={Blockstack: A New Internet for Decentralized Applications},
 	howpublished={\url{https://blockstack.org/whitepaper.pdf}},
 	author={Muneeb Ali and Ryan Shea and Jude Nelson and Michael J. Freedman},
+    year={2017},
 	note={[Retrieved 19-August-2018]}
 }
 
@@ -248,7 +270,8 @@
 @misc{website:ipfsbootstrap,
 	title={Censorship resistant bootstrapping (e.g. for wikipedia) - Issue 3908},
 	howpublished={\url{https://github.com/ipfs/go-ipfs/issues/3908}},
-	author = {ianopolous},
+	author = {Ian Preston},
+    year = {2017},
 	note ={[Retrieved 31-July-2018]},
 }
 
@@ -266,8 +289,10 @@
 
 @misc{website:ipfsmerkledag,
 	title={ipfs/specs: The merkledag},
+    author={Benet, Juan},
 	howpublished={\url{https://github.com/ipfs/specs/blob/147abca8a9/merkledag/README.md}},
-	note={[Retrieved 7-August-2018]}	
+    year={2018},
+	note={[Retrieved 7-August-2018]}
 }
 
 @article{benet2014ipfs,
@@ -287,6 +312,7 @@
 	title={Private sites - Issue 62},
 	howpublished={\url{https://github.com/HelloZeroNet/ZeroNet/issues/62}},
 	author={HelloZeroNet},
+    year=2015,
 	note={[Retrieved 18-August-2018]}
 }
 
@@ -319,29 +345,32 @@
 @misc{website:gaiaimprovements,
 	title={[Gaia] Request for Storage Drivers - Issue 430},
 	howpublished={\url{https://github.com/blockstack/blockstack-core/issues/430}},
+    author={Patrick Stanley},
+    year=2017,
 	note={[Retrieved 20-August-2018]}
 }
 
 @misc{website:diffuse,
-	title={Diffuse},
+    title={Diffuse},
 	howpublished={\url{https://diffuse.sh/}},
 	note={[Retrieved 20-August-2018]}
 }
 
-@misc{tor,
+@misc{website:tor,
 	title={Tor Project | Privacy Online},
 	howpublished={https://www.torproject.org/},
 	note={[Retrieved 21-August-2018]}
 }
 
-@misc{website:torhiddenservice,
-	title={Tor: Onion Service Protocol},
-	howpublished={\url{https://www.torproject.org/docs/onion-services.html.en}},
-	note={[Retrieved 21-August-2018]}
+@article{torhiddenservice,
+    title={Tor: The second generation onion router},
+    author={Syverson, Paul and Dingledine, R and Mathewson, N},
+    journal={Usenix Security},
+    year={2004}
 }
 
-@misc{i2p,
-	title={I2P Anonymous Network},
+@misc{website:i2p,
+	author={I2P Anonymous Network},
 	howpublished={\url{https://geti2p.net/en/}},
 	note={[Retrieved 21-August-2018]}
 }
@@ -350,6 +379,7 @@
 	title={The BitTorrent Protocol Specification},
 	howpublished={\url{http://www.bittorrent.org/beps/bep_0003.html}},
 	author={Bram Cohen},
+    year={2008},
 	note={[Retrieved 31-July-2018]},
 }
 
