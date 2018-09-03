@@ -89,8 +89,7 @@ The second class of problems is related to \textbf{trust}. When you access a web
 HTTPS resolves this issue by asymmetrically encrypting the communication channel, and authenticating the data that is sent, but the current trust system (X.509) is based on certificate authorities and is considered weak, which might allow for identity theft (an interesting technical analysis of this has been written by~\cite{webarticle:httpssecurity}). Even with HTTPS, the trust problem persists since clients still need to trust the Web server (especially when the website is  distributed by a third-party hosting service) to send data as the content creator intended to, without redactions to the information or removal of content.
 
 The final class of problems regards \textbf{privacy} and handling of personal information: with the current scenario, whenever you connect to a website, that website privately stores data about you.
-This data can be either automatically collected from user interactions, or can be provided directly by the user: consider, as an example, a social network, where users provide personal information such as their generalities, and the website collects data such as post interactions, number and timestamps of logins, and so on.
-%todo(leandro) - "their generalities" sounds a bit weird to me. How about "users provide general personal information"
+This data can be either automatically collected from user interactions, or can be provided directly by the user: consider, as an example, a social network, where users provide general personal information and the website collects data such as post interactions, number and timestamps of logins, and so on.
 This effectively moves ownership of the data from the user to the company. Data that intrinsically belongs to the user (especially personal information such as location data, private messages and documents) are stored privately into the company server, and the user has limited control over it, since the only possible actions on the data are the ones defined by the company or required by law.
 %todo(leandro) - What do you think of briefly mentioning/discussing the GDPR?
 
@@ -149,8 +148,7 @@ Here we will give an introduction to some of the most important technologies use
 
 \subsection{Distributed Hash Table}\label{tech:dht}
 
-%todo(leandro) - add one or two references for DHT here. Maybe the original Chord paper?
-The Distributed Hash Table (or DHT) is a data structure that provides a key-value based lookup service. Like the name suggests, only the cryptographic hash of the actual keys is stored in the network, and it is the basis for locating and distributing data in the system.
+The Distributed Hash Table (as generalized from~\cite{stoica2001chord} and~\cite{maymounkov2002kademlia}) is a data structure that provides a key-value based lookup service. Like the name suggests, only the cryptographic hash of the actual keys is stored in the network, and it is the basis for locating and distributing data in the system.
 
 The set of all possible hashes is called the \emph{keyspace}. An algorithm is responsible for distributing ownership of the keyspace among nodes in the network: each node will be assigned only a portion of the set of all keys. An \emph{overlay network} is responsible for giving information to nodes on how to reach other nodes based on their assigned hash, in order to facilitate data insertions and lookups. Clients insert and retrieve data by contacting any node of the network: if the node is responsible for that key, it will reply with the data, otherwise it will relay the message to another node, according to the information given by the overlay network.
 
@@ -209,6 +207,7 @@ Another key component of a distributed storage system is \emph{peer discovery}, 
 \section{BitTorrent}\label{proj:bittorrent}
 
 %\todo(leandro) - a citation to bittorrent is missing
+% I think the citation you added is fine, as I intend the protocol here and not the company BitTorrent Inc. to which their website points to
 BitTorrent~(\cite{bep:3}) is probably the most known and used peer-to-peer file-sharing protocol. It is also part of ZeroNet, a project we discuss in Section~\ref{proj:zeronet}.
 
 \subsection{Protocol overview}
@@ -296,7 +295,14 @@ $$ \mathit{debt~ratio} = \frac{\mathit{bytes~sent}}{\mathit{bytes~received} + 1}
 This value is then used in the strategy function to determine the likelihood of sharing blocks with the node from which the debt ratio was computed. In the reference implementation, the strategy function is as follows:
 $$ P\left( \mathit{send}~|~\mathit{debt~ratio} \right) = 1 - \frac{1}{1 + e^{6 - 3\cdot\mathit{debt~ratio}}} $$
 
-This is a type of function known as sigmoid, more specifically it is an inverted logistic function. It yields values between 0 and 1, being close to 1 with input of 0 or below, and rapidly decreasing towards 0 as the input increases. %todo - insert plot?
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/ipfsplot}
+	\caption{A plot showing the behavior of the strategy function found in the reference implementation of IPFS.}
+	\label{fig:ipfsplot}
+\end{figure}
+
+A plot of this function can be found at Figure~\ref{fig:ipfsplot}. This is a type of function known as sigmoid, more specifically it is an inverted logistic function. It yields values between 0 and 1, being close to 1 with input of 0 or below, and rapidly decreasing towards 0 as the input increases.
 It's easy to infer that nodes will be able to obtain blocks from a node towards which they have low debt or no debt at all; also, nodes that have exchanged many blocks in the past will be more tolerant of recent debt, allowing for some form of trust between long-lived well-behaved nodes that is directly proportional to the amount of bytes received from that given node.
 
 When two nodes connect, they exchange their ledgers to verify that the information about previous block transfers matches: if it doesn't, both nodes clear all the information they have on the other node, losing both debt and trust that was accumulated before. A mismatch might also happen when a node is trying to clear its debt, so that another node is willing to transfer blocks with it as if it was a new node, therefore nodes are allowed to refuse communication and disconnect when a ledger mismatch happens, but this is not mandatory.
@@ -403,7 +409,7 @@ To counter these and similar attacks (described in~\cite{rfc:3833}), DNS Securit
 
 While DNSSEC can prevent tampering of communications from a third-party attacker, it does not prevent other types of misconduct perpetrated by the DNS resolvers and name servers themselves, since they are still able to provide misleading information or to completely omit data regarding domain names that effectively become censored. This is because, from the client's point of view, DNS appears to be a centralized system (it is also a client/server protocol): the client only communicates with a DNS resolver, which will then search for the answer to the client's requests as described previously, if it doesn't already have that information.
 
-This discussion is very similar to what is explained at the beginning of Chapter~\ref{ch:storage}. Indeed, if we consider in which failure model both the DNS and the communication channel are set, we would argue that they both lie in a stopping failure model. The usage of public-key cryptography with DNSSEC (a system parallel to HTTPS) prevents messages from being tampered with, but does not prevent misbehavior of the DNS resolvers themselves.
+This discussion is very similar to what is explained at the beginning of Chapter~\ref{ch:storage}. Indeed, if we consider in which failure model both the DNS and the communication channel are set, we would argue that they both lie in a stopping failure model. The usage of public-key cryptography with DNSSEC (a system parallel to HTTPS) prevents messages from being tampered with (a possibility in the Byzantine model), but does not prevent misbehavior of the DNS resolvers themselves.
 
 To include these types of attack in our model, we would have to consider (at least) the DNS resolvers inside a Byzantine failure model, where they are allowed to omit or modify information.
 
@@ -504,8 +510,7 @@ The owner of a name has the right to register a resolver for its domain. Resolve
 \begin{itemize}
 	\item \texttt{addr}, for resolving to an Ethereum address, which can either correspond to a contract or a wallet;
 	\item \texttt{name}, for reverse resolutions back to a plaintext domain name, defined in EIP 181~(\cite{eip:181}), which allows address owners to register an authoritative name for their address (since everyone can point a name to an address by registering that name, even if its address does not belong to the name owner);
-	\item \texttt{ABI}, for storing contract interfaces, which in Ethereum are usually distributed out-of-band but are essential to interact with most contracts; this is in discussion to be approved as EIP 205 at the time of writing.
-      %todo(leandro) - missing citation to EIP 205
+	\item \texttt{ABI}, for storing contract interfaces, which in Ethereum are usually distributed out-of-band but are essential to interact with most contracts; this is in discussion to be approved as EIP 205~(\cite{eip:205}) at the time of writing.
 \end{itemize}
 
 The public resolver contract deployed on the Ethereum mainnet (\cite{enspublicresolver}) also supports \texttt{content} records, used to handle content-based hashes like the ones found in Ethereum Swarm, \texttt{pubkey} records, which store elliptic-curve cryptography public keys, and \texttt{text} record, which simply store some textual data.
@@ -532,8 +537,7 @@ We now move our attention to more general naming concerns, starting with name st
 ENS does not have mechanisms in place to prevent \emph{domain squatting} and the related attacks, \emph{typosquatting} and \emph{homograph attacks}. We can consider the fact that the ``centralized'' ownership of ENS allows for interventions to resolve situations where such attacks were enacted, but it seems unlikely that this would be done at the current stage, knowing that the deployed registrar is considered temporary. We also have to note that in the ENS FAQ document~(\cite{website:ensfaq}) it's stated that the next permanent registrar will aim to provide fairness (``The system should not unduly favor people who happen to be in the right place at the right time'') and to implement a principle of least surprise (``Wherever possible, names should resolve to the resource most users would expect it to resolve to''), so this is likely to impact feasibility of these attacks, but this is not part of the current registrar.
 
 \section{Other solutions}
-ENS supersedes other previous attempts to implement DNS-like functionality on the Ethereum blockchain: such projects were either simpler in nature or did not allow different types of records to be registered, %todo - reference: https://github.com/ethereum/EIPs/blob/4938bcbf91/EIPS/eip-137.md#motivation
-so it would be redundant to include them here.
+ENS supersedes other previous attempts to implement DNS-like functionality on the Ethereum blockchain: such projects were either simpler in nature or did not allow different types of records to be registered~(\cite{eip:137}), so it would be redundant to include them here.
 
 Other projects not related to Ethereum are:
 \begin{itemize}
@@ -645,8 +649,7 @@ This could be considered intentional and justifiable since the rationale behind 
 %todo(leandro) - it's not clear to me here: does the DHT satisfy your requirements?
 % It does, and ZeroNet does not have a DHT
 
-From the above we derive that ZeroNet data transfer protocol is not Byzantine fault tolerant since peer discovery can be compromised. The lack of a BFT peer discovery system exposes ZeroNet to potential censorship as trackers and peers alike can refuse to provide correct information when requesting clients that share some given sites. On the other hand, it is worth noting that, in order to function, peer discovery only needs one non-failed tracker that provides enough information to discover a sufficiently large portion of the network, which then allows for peer exchange to be viable and improve on connectivity with other peers. But this is not enough to obtain BFT peer discovery: censorship attacks are unlikely to target only a portion of trackers, especially since a list of the servers used by ZeroNet is directly obtainable from the project's source code, therefore we cannot trust any single tracker.
-%todo(leandro) - It's not clear to me if the model assumptions of 1/3 Byzantine is sufficient here or not.
+From the above we derive that ZeroNet data transfer protocol is not Byzantine fault tolerant since peer discovery can be compromised. The lack of a BFT peer discovery system exposes ZeroNet to potential censorship as trackers and peers alike can refuse to provide correct information when requesting clients that share some given sites. On the other hand, it is worth noting that, in order to function, peer discovery only needs one non-failed tracker that provides enough information to discover a sufficiently large portion of the network, which then allows for peer exchange to be viable and improve on connectivity with other peers. But this is not enough to obtain BFT peer discovery: censorship attacks are unlikely to target only a portion of trackers, especially since a list of the servers used by ZeroNet is directly obtainable from the project's source code; since trackers are a small number of fixed servers, we argue that subverting more than 1/3 of them is feasible.
 
 The naming system used by ZeroNet is Namecoin, which we discussed in Section~\ref{proj:namecoin}. What is of interest for us here is the way that ZeroNet uses Namecoin information: instead of contacting the blockchain directly, which would be the safest solution, naming data is obtained from the blockchain off-band and stored in the internal site ZeroName, against which the client performs name resolutions. Assuming that the off-band channel is trusted (apparently the main ZeroNet developer known as ``nofish'' has a script that updates ZeroName regularly~\cite{website:zeronameupdate}), this method is as secure (in the Zooko's Triangle sense) as performing resolutions on the blockchain directly: this is because data from the website is verified against the \texttt{content.json} file, which is itself verified against the ZeroName's public key stored in the client.
 Compromises in the peer discovery system might make this website inaccessible, but do not hamper transfer of information once a valid peer is found.
@@ -658,7 +661,7 @@ A feature that would enable some form of private data management called ``privat
 
 \section{Blockstack}\label{proj:blockstack}
 
-Blockstack is a blockchain based decentralized platform that aims to provide a new, distributed internet. This network can be accessed through the first-party Blockstack Browser, available as either a normal website~(\cite{website:blockstackbrowser}) or as a downloadable client~(\cite{website:blockstackdownload}). The Blockstack system is described in a technical whitepaper by~\cite{blockstack} %dot from et al.
+Blockstack is a blockchain based decentralized platform that aims to provide a new, distributed internet. This network can be accessed through the first-party Blockstack Browser, available as either a normal website~(\cite{website:blockstackbrowser}) or as a downloadable client~(\cite{website:blockstackdownload}). The Blockstack system is described in a technical whitepaper by~\cite{blockstack}.
 
 \subsection{Project overview}
 
@@ -687,10 +690,8 @@ Information in the network cannot be added without first announcing it on the BN
 
 Atlas zone files contain URIs that point to where the actual data is located. This data belongs to the storage system known as Gaia, which is very different from the distributed storage systems we have seen in Chapter~\ref{ch:storage}. In Gaia, storage is separated by user, or in other words, each user with a record in BNS has ownership of its own data. In fact, the user is also responsible for providing the disk space in which the owned data is to be stored: in addition to privately owned servers, Gaia supports online cloud storage providers such as Amazon S3 and Dropbox. The user chooses which service is to be used (more than one can be chosen to provide redundancy) and then stores through Gaia its files on those services. Gaia clients are responsible for handling data verification: files stored through Gaia are signed with the user's private key so that they can be later verified with the public key stored in BNS. Gaia also supports encryption of data and access-control capabilities to limit data access to some known addresses (explained in more detail in the Gaia GitHub repository:~\cite{website:gaiaaccesscontrol}).
 
-When considering the scope of such a system, Blockstack developers put the emphasis on storage of personal data, to be used in Blockstack-enabled applications and websites, including standard ones.
-%todo(leandro) - not sure what you mean in this previous phrase
-% I changed the sentence below, maybe it clarifies a bit
-In fact, they implemented storage of personal data as Blockstack IDs, which are identifiers on the BNS that are connected through Atlas and Gaia to information that can be used on all Blockstack-enabled services.
+When considering the scope of such a system, Blockstack developers put the emphasis on storage of user data (such as personal information, documents, images etc. of the users of the service) to be used in Blockstack-enabled applications and websites, rather than using the network for hosting the application data or the website itself.
+In fact, they implemented storage of user data as Blockstack IDs, which are identifiers on the BNS that are connected through Atlas and Gaia to information that can be used on all Blockstack-enabled services.
 Users define through Gaia where they prefer to store their data and who can see it. Applications request access to this data directly to the user through the Blockstack Browser, which acts as a client for the Blockstack network.
 
 \subsection{Analysis}\label{sec:blockstackanalysis}
@@ -705,11 +706,8 @@ A solution to this problem would be to add support for storage providers that ar
 
 The most important part of Blockstack is the focus on privacy of user data. This is directly expressed in the realization of Blockstack IDs and its surrounding API that allow developers to build applications based on it. Users have full control over their data through the Gaia system, including its location (on which service it is hosted, including personally owned servers) and which applications can access it. This data can also be shared among different services, which allows for better interoperability between applications, even if they are potential competitors (say, for example, two social media websites). Blockstack developers have also encouraged adoption of this feature by registering on BNS a \texttt{.id.blockstack} namespace where users can register a Blockstack ID without paying a fee, directly through the Blockstack Browser.
 
-As of now, the Blockstack network is not used to directly serve websites, even if the system technically supports it. Instead, Blockstack-enabled applications are either served in the standard Web or distributed as standalone, native executable files.
-%todo(leandro - this needs to be explained better, it's a bit too vague.
-An example of this is Diffuse~(\cite{website:diffuse}), a cloud-based music player application that supports, among other features, login with Blockstack IDs: it is both reachable at its web address or by downloading a standalone client from their GitHub project page.
-%todo(leandro) - what does a music player has to do with the distributed web? does the "naming" and "storage" have anything to do with it?
-% It's a website, and I added cloud-based since it stores songs in the cloud (ex. dropbox and IPFS). I might drop this example if I figure out how to better explain the first sentence in this paragraph.
+As of now, the Blockstack network is not used to directly serve websites, even if the system technically supports it. Instead, developers currently build applications that only use the network for Blockstack IDs, and not for storing and serving application data, which is instead in the form of native clients distributed through the standard Web or is made available directly as a website.
+An example of this is the first-party demo application ``Hello Blockstack''\footnote{Hello Blockstack: \url{https://helloblockstack.com/}}, which is itself a standard website, but makes use of the Blockstack platform to enable user login through their Blockstack ID.
 
 \section{Other solutions}\label{sec:browserprojects}
 
@@ -718,8 +716,7 @@ The development scene in the distributed web area is active, with many projects 
 \begin{itemize}
 	\item \textbf{SAFE Network}\footnote{SAFE Network: \url{https://safenetwork.org/}}: a project developed by MaidSafe\footnote{MaidSafe: \url{https://maidsafe.net/}} that aims to reuse available hard disk space of computers to provide a distributed storage system, which can be accessed and explored with the SAFE browser; at the time of writing, this project is only available on an Alpha test network;
 	\item \textbf{Beaker Browser}\footnote{Beaker Browser: \url{https://beakerbrowser.com/}}: based on the dataset synchronization protocol known as Dat, Beaker Browser allows for creation and visualization of distributed websites, although it fails to provide or reuse a distributed naming system, relying instead on HTTP and DNS to resolve names;
-	\item \textbf{Freenet}\footnote{Freenet: \url{https://freenetproject.org/}}: a very mature project, with its initial release dating back to the year 2000, it's a peer-to-peer platform focused on anonymity and censorship resistance; Freenet allows browsing websites, known as \emph{freesites}, but the naming scheme is based on nicknames, which are simply labels defined and stored by single users and not shared globally. % , thus not defying Zooko's Triangle.
-      %todo(leandro) - I've cut the small part above because it may be mistaken as if Zooko's Triangle has not been refuted (and you mention that Namecoin does).
+	\item \textbf{Freenet}\footnote{Freenet: \url{https://freenetproject.org/}}: a very mature project, with its initial release dating back to the year 2000, it's a peer-to-peer platform focused on anonymity and censorship resistance; Freenet allows browsing websites, known as \emph{freesites}, but the naming scheme is based on nicknames, which are simply labels defined and stored by single users and not shared globally, thus not satisfying decentralization from Zooko's Triangle.
 \end{itemize}
 
 \subsection{Alternatives to decentralization}\label{proj:tor}
