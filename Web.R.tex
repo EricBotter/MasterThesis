@@ -184,7 +184,7 @@ In this thesis we will explore how to move the centralized Web to a decentralize
 The model assumed by the current Web is the stopping failure model: servers are implicitly trusted to behave correctly.
 One could argue that this model does not accurately represent the reality.
 For example, a malicious third party might listen on and fake messages in the communication channel between a client and web server (an example of such a third party are Internet Service Providers).
-Without a mechanism in place to stop such tempering, this behaviour would be transparent to both the clients and the web server, allowing for what is called a \textit{man-in-the-middle} attack.\footnote{TCP provides data integrity against transmission errors, which are in the order of few bits per kilobyte, but this is too weak in this scenario, where the entire TCP packet can be rewritten to appear unaltered.}.
+Without a mechanism in place to stop such tempering, this behavior would be transparent to both the clients and the web server, allowing for what is called a \textit{man-in-the-middle} attack\footnote{TCP provides data integrity against transmission errors, which are in the order of few bits per kilobyte, but this is too weak in this scenario, where the entire TCP packet can be rewritten to appear unaltered.}.
 To prevent such attacks, it is fundamental to assume a weaker, Byzantine model.
 The previous example is prevented by HTTPS, the more secure Web protocol, which introduces encryption and authentication of transmitted data.
 If the data is altered by a malicious third party during transmission, the client or the Web server can detect it and react accordingly.
@@ -372,7 +372,7 @@ In Table~\ref{table:storagecomparison} we summarize the algorithms and mechanism
 			\end{tabular} \\ \hline
 		\end{tabular}
 	\end{center}
-	\caption{Summary of algorithms and techniques used by the presented distributed storage projects}
+	\caption{Summary of algorithms and techniques used by the presented distributed storage projects.}
 	\label{table:storagecomparison}
 \end{table}
 
@@ -417,7 +417,7 @@ To include these types of attack in our model, we would have to consider (at lea
 
 DNS is also vulnerable to attacks more closely related to the names themselves rather than the centralized nature of the system: \emph{domain squatting}, \emph{typosquatting} and \emph{homograph attacks}.
 
-Domain squatting occurs when an attacker obtains a name that fully matches the name of a business or of another service, before these parties obtain that name for themselves. Thus, a user that wants to access the service or the business' website by directly typing their name into the address bar, will instead land on the attacker's website. While DNS suffers this problem, but some countries have laws in place to prevent such behavior from occurring.
+Domain squatting occurs when an attacker obtains a name that fully matches the name of a business or of another service, before these parties obtain that name for themselves. Thus, a user that wants to access the service or the business' website by directly typing their name into the address bar, will instead land on the attacker's website. DNS suffers from this problem, but some countries have laws in place to prevent such behavior from occurring.
 
 Typosquatting is very similar to normal squatting, but instead of reserving the correct name, the attacker obtains a very similar name, so that if a user makes a mistake in typing the name on the keyboard (such an error is commonly referred to as a \emph{typo}), that user will obtain the attacker's website instead of being presented with an error message. DNS does not prevent this as well, and many typosquatting websites are present on the normal Web, as reported by~\cite{website:typosquatting}.
 
@@ -513,7 +513,7 @@ The owner of a name has the right to register a resolver for its domain. Resolve
 	\item \texttt{ABI}, for storing contract interfaces, which in Ethereum are usually distributed out-of-band but are essential to interact with most contracts; this is in discussion to be approved as EIP 205~(\cite{eip:205}) at the time of writing.
 \end{itemize}
 
-The public resolver contract deployed on the Ethereum mainnet (\cite{enspublicresolver}) also supports \texttt{content} records, used to handle content-based hashes like the ones found in Ethereum Swarm, \texttt{pubkey} records, which store elliptic-curve cryptography public keys, and \texttt{text} record, which simply store some textual data.
+The public resolver contract deployed on the Ethereum mainnet (\cite{enspublicresolver}) also supports \texttt{content} records, used to handle content-based hashes like the ones found in Ethereum Swarm, \texttt{pubkey} records, which store elliptic-curve cryptography public keys, and \texttt{text} records, which simply store some textual data.
 
 In ENS resolver contracts, all methods that perform node resolution are marked as \texttt{constant}: this indicates that those methods will not alter the state of the blockchain, which in turn means that all clients can execute these methods on their own for no fee, provided that they have access to a copy of the Ethereum blockchain, either by downloading it or through another client.
 
@@ -599,17 +599,17 @@ In Table~\ref{table:namingcomparison} we summarize the main features and accompl
 			\\ \hline
 		\end{tabular}
 	\end{center}
-	\caption{Summary of features and accomplishments of the presented distributed naming projects}
+	\caption{Summary of features and accomplishments of the presented distributed naming projects.}
 	\label{table:namingcomparison}
 \end{table}
 
 
 \chapter{Distributed Web Projects}\label{ch:projects}
 
-We have previously discussed how key Web components like storage of data and naming can be realized in a Byzantine failure scenario, and we explored projects that have implemented and exemplified our descriptions. In this chapter, we see how the two components can be combined to obtain a solution that may be called the distributed Web.
-Thus, the projects we're going discuss next provide a complete, Web-like, user experience, either by extending the functionalities of existing browsers or through some specific browser-like interface.
+We have previously discussed how key Web components like storage of data and naming can be realized in a Byzantine failure scenario, and we explored projects that have implemented and exemplified our descriptions. In this Chapter, we see how the two components can be combined to obtain a solution that may be called the distributed Web.
+Thus, the projects we're going discuss next provide a complete, Web-like user experience, either by extending the functionalities of existing browsers or through some specific browser-like interface.
 
-To satisfy our requirements for a distributed web (see Section~\ref{sec:problems}), these projects must satisfy the following:
+To satisfy our requirements for a distributed Web (see Section~\ref{sec:problems}), these projects must satisfy the following:
 \begin{itemize}
 	\item Resistance to \textbf{censorship}, by using a distributed data storage system that correctly decouples websites from IP addresses and by relying on a valid peer discovery system and good incentive scheme;
 	\item Lack of \textbf{trust}, by using Byzantine fault tolerant protocols to transfer data and to resolve names without the need of trusting any external party;
@@ -628,7 +628,7 @@ ZeroNet's data verification mechanism is based on the same elliptic-curve public
 
 ZeroNet does not really implement an incentive scheme, instead it applies a very simple rule to replicate data: peers that visit a website will also start to serve the downloaded files to other peers. The incentive that this rule is meant to provide is that popular websites that are visited by many people will be heavily replicated, ensuring a long lifespan, while unpopular, or even worse, sites that contain potentially illegal content will not be visited, especially since visitors will automatically serve those unwanted files, and no copies of that website will be made.
 
-ZeroNet bases its peer discovery solution on BitTorrent, more specifically on BitTorrent's trackers: a client will request to a tracker which peers are currently serving a specific website and the tracker will return those peers. This action also adds the requesting peer to the list of currently serving peers. ZeroNet implements a peer exchange system equivalent to BitTorrent's PEX, in which clients can suggest the IP addresses of other peers by using a dedicated message of the protocol. ZeroNet also includes a tracker server in its code, so that any client can also function as a tracker server if configured accordingly.
+ZeroNet bases its peer discovery solution on BitTorrent, more specifically on BitTorrent trackers: a client will request to a tracker which peers are currently serving a specific website and the tracker will return those peers. This action also adds the requesting peer to the list of currently serving peers. ZeroNet implements a peer exchange system equivalent to BitTorrent's PEX, in which clients can suggest the IP addresses of other peers by using a dedicated message of the protocol. ZeroNet also includes a tracker server in its code, so that any client can also function as a tracker server if configured accordingly.
 
 Since websites are addressed by their public key, ZeroNet URLs are not human-meaningful. While this identification mechanism is sufficient to retrieve websites, ZeroNet supports Namecoin's \texttt{.bit} domain names: clients will obtain the record for the requested domain name and search for the key \texttt{zeronet} in the obtained JSON, which is expected to contain the ZeroNet public key of the corresponding website; clients will then proceed to obtain the list of peers and the website files as described above. As we stated in Section~\ref{sec:namecoindesc}, to perform resolutions in Namecoin, a client would need to download the entire Namecoin blockchain. Instead, ZeroNet relies on ZeroName, an internal ZeroNet site that stores all ZeroNet enabled domains registered on Namecoin. ZeroNet can also be configured to use a locally running Namecoin client in case the user wants to perform resolution against the actual blockchain.
 
@@ -645,7 +645,7 @@ ZeroNet is not made with anonymity as a priority and it is stated in various res
 We start by checking if the ZeroNet data transfer protocol fits our Byzantine failure model defined in Section~\ref{ch:background}. Assuming that elliptic-curve cryptography is strong enough to resist computationally limited attackers, ZeroNet's data verification system correctly functions under our assumptions: the \texttt{content.json} file is verified against the website's address, which is either known or provided by the Byzantine fault tolerant Namecoin, to avoid tampering.
 
 Two other characteristics of ZeroNet are sources of concern. First, the chosen incentive scheme does not help in replicating all data that is stored in the network.
-This could be considered intentional and justifiable since the rationale behind this choice is to penalize content which is not worth of replication. Instead of blindly replicating all content unconditionally, the community (i.e., content popularity) decides what merits replication. Second, the peer discovery system is centralized, as it is based on BitTorrent's trackers that we already discussed in Section~\ref{proj:bittorrent}: while BitTorrent solves this by providing both a DHT and PeX as alternatives, ZeroNet only provides an equivalent to PeX, and this is not sufficient as this method is not reliable, since peers can refuse to share or provide misleading information about other peers, just like trackers. Similarly, peers can also setup their own tracker servers to be used by the rest of the community, but this has the exact same issues as peer exchange, with the added hassle of having to configure the client to contact these new trackers, instead of having the feature work out of the box.
+This could be considered intentional and justifiable since the rationale behind this choice is to penalize content which is not worth of replication. Instead of blindly replicating all content unconditionally, the community (i.e., content popularity) decides what merits replication. Second, the peer discovery system is centralized, as it is based on BitTorrent's trackers that we already discussed in Section~\ref{proj:bittorrent}: while BitTorrent solves this by providing both a DHT and PEX as alternatives, ZeroNet only provides an equivalent to PEX, and this is not sufficient as this method is not reliable, since peers can refuse to share or provide misleading information about other peers, just like trackers. Similarly, peers can also setup their own tracker servers to be used by the rest of the community, but this has the exact same issues as peer exchange, with the added hassle of having to configure the client to contact these new trackers, instead of having the feature work out of the box.
 %todo(leandro) - it's not clear to me here: does the DHT satisfy your requirements?
 % It does, and ZeroNet does not have a DHT
 
@@ -780,7 +780,7 @@ In Table~\ref{table:dwebcomparison} we summarize the main features and character
 			Privacy controls & No & Yes \\ \hline
 		\end{tabular}
 	\end{center}
-	\caption{Summary of features and characteristics of the presented distributed Web projects}
+	\caption{Summary of features and characteristics of the presented distributed Web projects.}
 	\label{table:dwebcomparison}
 \end{table}
 
