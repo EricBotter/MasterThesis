@@ -357,6 +357,12 @@ In Table~\ref{table:storagecomparison} we summarize the algorithms and mechanism
 		\begin{tabular}{|l|l|l|} \hline
 			\textbf{Feature} & \textbf{BitTorrent} & \textbf{IPFS} \\ \hline
 			
+			File container & Torrents & IPFS Objects \\ \hline
+			
+			Directory support & Yes & Yes \\ \hline
+
+			Link support & No & Yes \\ \hline
+
 			Data verification & Off-band cryptographic hashes &
 			\begin{tabular}{@{}l@{}}
 				Off-band cryptographic hashes \\
@@ -370,6 +376,7 @@ In Table~\ref{table:storagecomparison} we summarize the algorithms and mechanism
 				BitSwap strategy\\
 				Reference impl. is based on \textit{debt ratio}
 			\end{tabular} \\ \hline
+			
 		\end{tabular}
 	\end{center}
 	\caption{Summary of algorithms and techniques used by the presented distributed storage projects.}
@@ -572,6 +579,12 @@ In Table~\ref{table:namingcomparison} we summarize the main features and accompl
 			\end{tabular} &
 			Blockchain (Ethereum)	\\ \hline
 			
+			Name registration procedure & Two-step claim & Vickrey blind auction
+			\\ \hline
+			
+			Expected time of name reg. & Two hours & Five days
+			\\ \hline
+			
 			\begin{tabular}{@{}l@{}}
 				Refutation of Zooko's Triangle \\
 				1. Decentralized \\
@@ -597,6 +610,7 @@ In Table~\ref{table:namingcomparison} we summarize the main features and accompl
 			
 			Prevention of squatting and related attacks & No & No (but can recover through human intervention)
 			\\ \hline
+			
 		\end{tabular}
 	\end{center}
 	\caption{Summary of features and accomplishments of the presented distributed naming projects.}
@@ -758,29 +772,36 @@ In Table~\ref{table:dwebcomparison} we summarize the main features and character
 
 \begin{table}[h]
 	\begin{center}
-		\begin{tabular}{|p{3.5cm}|p{4.5cm}|p{4cm}|} \hline
-			\textbf{Feature} & \textbf{ZeroNet} & \textbf{Blockstack} \\ \hline
+		\begin{tabular}{|l|l|l|l|} \hline
+%		\begin{tabular}{|p{3.5cm}|p{4.5cm}|p{4cm}|} \hline
+			\textbf{Feature} & \textbf{ZeroNet} & \textbf{Blockstack} & \textbf{Tor} \\ \hline
 			
-			Underlying technology & 
-			\begin{tabular}{@{}l@{}}
-				Custom data transfer protocol \\
-				BitTorrent trackers \\
-				Namecoin \\
-			\end{tabular} &
-			\begin{tabular}{@{}l@{}}
-				Blockchain (Bitcoin) \\
-				Atlas peer network \\
-				Gaia storage system \\
-			\end{tabular}	\\ \hline
+			Storage system & Custom & Gaia storage system & Web based \\ \hline
 			
-			Censorship resistance & No (uses trackers) & No (centralized storage) \\ \hline
+			Storage discovery & BitTorrent trackers & Atlas peer network & DHT \\ \hline
 			
-			Lack of trust & No (uses trackers) & Yes \\ \hline
+			Naming system & Namecoin & Blockchain Name System & \emph{Public-key based} \\ \hline
 			
-			Privacy controls & No & Yes \\ \hline
+%			Underlying technology & 
+%			\begin{tabular}{@{}l@{}}
+%				Custom data transfer protocol \\
+%				BitTorrent trackers \\
+%				Namecoin \\
+%			\end{tabular} &
+%			\begin{tabular}{@{}l@{}}
+%				Blockchain (Bitcoin) \\
+%				Atlas peer network \\
+%				Gaia storage system \\
+%			\end{tabular}	\\ \hline
+			
+			Censorship resistance & No (uses trackers) & No (centralized storage) & Yes \\ \hline
+			
+			Lack of trust & No (uses trackers) & Yes & Yes \\ \hline
+			
+			Privacy controls & No & Yes & No \\ \hline
 		\end{tabular}
 	\end{center}
-	\caption{Summary of features and characteristics of the presented distributed Web projects.}
+	\caption{Summary of features and characteristics of the presented distributed Web projects. Tor is included for comparison with the described platforms. Note that Tor's naming system does not produce human-meaningful names and thus does not challenge Zooko's Triangle.}
 	\label{table:dwebcomparison}
 \end{table}
 
